@@ -1,0 +1,11 @@
+:root {
+    --sd-border-primary: #e7e9e8;
+    --sd-link-color: #117cee;
+    --sd-bg-secondary: #fafafa;
+    --sd-border-light: rgba(0,0,0,.04);
+    --sd-bg-primary-hover: #eff0f0;
+    --sd-text-grey-900: #262626;
+    --sd-border-grey-4: #e7e9e8;
+    --sd-grey-7: #8a8f8d;
+    --sd-text-body: #585a5a;
+}
