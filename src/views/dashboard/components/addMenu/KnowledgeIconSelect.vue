@@ -10,7 +10,6 @@
                     <s-icon-font @click="emit('update:value', item)" :type="item" svg-sprite
                         style="width: 24px; height: 24px;" />
                 </div>
-
             </div>
         </template>
         <div

@@ -1,11 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/login/index.vue'
 import Dashboard from '../views/dashboard/index.vue'
-import "unocss"
+import 'unocss'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      redirect: '/dashboard',
+    },
     {
       path: '/login',
       name: 'login',
@@ -15,7 +19,7 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: Dashboard,
-    }
+    },
   ],
 })
 
@@ -29,7 +33,12 @@ router.beforeEach((to, from, next) => {
     if (!access_token) {
       next({ path: '/login' })
     } else {
-      next()
+      const redirectUrl = to.query.redirect as string
+      if (redirectUrl) {
+        next({ path: redirectUrl })
+      } else {
+        next()
+      }
     }
   }
 })

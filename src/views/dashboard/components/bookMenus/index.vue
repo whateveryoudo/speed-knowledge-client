@@ -4,8 +4,8 @@
     <div class="px-2" v-if="expanded">
       <div
         class="book-header flex items-center rounded-[6px] h-[36px] pl-1 pr-3 cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200"
-        @click="toggleInner">
-        <a-button type="text"
+        :class="{ 'pl-3': bookList.length === 0 }" @click="toggleInner">
+        <a-button v-if="bookList.length > 0" type="text"
           class="shadow-btn-wrapper mr-2 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)]">
           <span class="transition-transform duration-200" :class="{ 'rotate-90': innerExpanded }">
             <CaretRightOutlined />
@@ -17,9 +17,13 @@
         </span>
       </div>
       <Collapse :when="innerExpanded" class="book-list">
-        <MenuList :books="bookList" :active-book-key="activeBookKey" :drag-handle-mode="dragHandleMode"
-          :show-more="true" @update:books="onBooksUpdate" @update:activeBookKey="onActiveKeyUpdate"
-          @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd" />
+        <SkeletonList :loading="loading">
+          <MenuList v-if="bookList.length > 0" :books="bookList" :active-book-key="activeBookKey"
+            :drag-handle-mode="dragHandleMode" :show-more="true" @update:books="onBooksUpdate"
+            @update:activeBookKey="onActiveKeyUpdate" @book-click="handleBookClick" @drag-start="onDragStart"
+            @drag-end="onDragEnd" />
+          <Empty0 hasTop v-else description="暂无知识库" />
+        </SkeletonList>
       </Collapse>
 
     </div>
@@ -62,16 +66,12 @@ import {
 } from '@ant-design/icons-vue'
 import { Collapse } from 'vue-collapsed'
 import MenuList from './MenuList.vue'
-
-export interface BookItem {
-  id: string
-  title: string
-  isPrivate: boolean
-}
+import { getKnowledgeList, type KnowledgeItem } from '@/api/knowledge'
+import to from 'await-to-js'
 
 const props = withDefaults(
   defineProps<{
-    books?: BookItem[]
+    books?: KnowledgeItem[]
     activeBookKey?: string
     expanded?: boolean
   }>(),
@@ -83,12 +83,12 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  'update:books': [books: BookItem[]]
+  'update:books': [books: KnowledgeItem[]]
   'update:activeBookKey': [key: string]
-  'book-click': [book: BookItem]
+  'book-click': [book: KnowledgeItem]
   'update:expanded': [expanded: boolean]
 }>()
-
+const loading = ref(false)
 // 外部控制的展开/收起
 const expanded = ref<boolean>(props.expanded)
 watch(() => props.expanded, (v) => {
@@ -97,21 +97,8 @@ watch(() => props.expanded, (v) => {
 
 // 内部列表折叠（仅在展开态下生效）
 const innerExpanded = ref(true)
-
 // 知识库列表（支持拖拽）
-const bookList = ref<BookItem[]>(
-  props.books.length > 0
-    ? [...props.books]
-    : [
-      { id: '1', title: '杂谈', isPrivate: true },
-      { id: '2', title: '默认知识库', isPrivate: true },
-      { id: '3', title: 'easycube', isPrivate: true },
-      { id: '4', title: '研发一体化', isPrivate: true },
-      { id: '5', title: '集成平台', isPrivate: true },
-      { id: '6', title: '额外任务', isPrivate: true },
-      { id: '7', title: '底座相关', isPrivate: true },
-    ]
-)
+const bookList = ref<KnowledgeItem[]>([])
 
 // 当前激活的知识库
 const activeBookKey = ref(props.activeBookKey || '')
@@ -168,6 +155,18 @@ watch(() => props.books, (newBooks) => {
     bookList.value = [...newBooks]
   }
 }, { deep: true })
+
+const initKnowledgeList = async () => {
+  loading.value = true
+  const [error, res] = await to(getKnowledgeList())
+  if (!error) {
+    bookList.value = res.data
+  }
+  loading.value = false
+}
+
+initKnowledgeList()
+
 
 // 监听 props.activeBookKey 变化
 watch(() => props.activeBookKey, (newKey) => {

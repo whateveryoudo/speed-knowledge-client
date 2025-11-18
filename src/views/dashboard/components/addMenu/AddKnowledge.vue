@@ -8,7 +8,7 @@
                 <a-form-item name="name" label="" class="mb-3">
                     <a-flex :gap="6">
                         <KnowledgeIconSelect v-model:value="form.icon" />
-                        <a-input v-model:value="form.name" placeholder="知识库名称" />
+                        <a-input ref="nameInputRef" v-model:value="form.name" placeholder="知识库名称" />
                     </a-flex>
                 </a-form-item>
                 <a-form-item name="description" label="">
@@ -16,7 +16,7 @@
                 </a-form-item>
             </div>
 
-            <!-- 新建至 -->
+            <!-- 新建至,TODO:这里是空间选择，目前没有 -->
             <div class="mb-6">
                 <div class="mb-2 text-[var(--ant-color-text)]">新建至</div>
                 <a-form-item name="owner">
@@ -38,19 +38,21 @@
                 </a-form-item>
             </div>
         </a-form>
-        <a-button block type="primary" :class="[!canSubmit && 'opacity-50 cursor-not-allowed']" :loading="loading" @click="handleOk">
+        <a-button block type="primary" :class="[!canSubmit && 'opacity-50 cursor-not-allowed']" :loading="loading"
+            @click="handleOk">
             新建
         </a-button>
     </s-full-modal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { IconFont } from 'speed-components-ui/components'
 import { UserOutlined } from '@ant-design/icons-vue'
 import type { FormInstance } from 'ant-design-vue'
 import avatarDef from '@/assets/images/avatar_def.png'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
+
 
 interface Props {
     open?: boolean
@@ -64,8 +66,8 @@ interface Emits {
 interface FormValues {
     name: string
     description?: string
-    owner: string
-    group: string
+    group_id: number
+    icon: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -75,13 +77,14 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const formRef = ref<FormInstance>()
+const nameInputRef = ref<HTMLInputElement>()
 const loading = ref(false)
 
 const form = ref<FormValues>({
     name: '',
     description: '',
-    owner: '个人',
-    group: 'default'
+    group_id: 1,
+    icon: '',
 })
 
 const rules = {
@@ -105,8 +108,8 @@ watch(() => props.open, (val) => {
         form.value = {
             name: '',
             description: '',
-            owner: '个人',
-            group: 'default'
+            group_id: 1,
+            icon: 'icon-book-0',
         }
         formRef.value?.clearValidate()
     }
@@ -135,6 +138,13 @@ const handleOk = async () => {
 const handleCancel = () => {
     emit('update:open', false)
 }
+
+watch(() => props.open, async (val) => {
+    if (val) {
+        await nextTick()
+        nameInputRef.value?.focus()
+    }
+}, { immediate: true })
 </script>
 
 <style lang="less" scoped>

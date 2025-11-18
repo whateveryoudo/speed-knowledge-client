@@ -1,9 +1,10 @@
 <template>
     <a-flex class="h-full" justify="center" align="center">
         <div
-            class="w-[400px] border border-solid border-[var(--sd-border-primary)] h-[500px] bg-[var(--ant-color-bg-base)] px-[8px] py-[48px] shadow-[0_4px_8px_-4px_rgba(0,0,0,.13),0_6px_16px_0_rgba(0,0,0,.08),0_12px_24px_16px_rgba(0,0,0,.04)] rounded-[10px]">
-            <div class="text-[25px]  mb-6 font-bold text-[var(--ant-color-text)] text-center">
-                {{ title }}
+            class="w-[400px] border border-solid border-[var(--sd-border-primary)] bg-[var(--ant-color-bg-base)] px-[8px] py-[48px] shadow-[0_4px_8px_-4px_rgba(0,0,0,.13),0_6px_16px_0_rgba(0,0,0,.08),0_12px_24px_16px_rgba(0,0,0,.04)] rounded-[10px]">
+            <div
+                class="text-[25px]  mb-6 font-bold text-[var(--ant-color-text)] text-center flex items-center justify-center">
+                <img :src="logo" alt="logo" class="w-[35px] h-auto mr-2"> {{ title }}
             </div>
             <a-form class="mx-auto max-w-[320px]" :model="form" :rules="rules" @finish="handleSubmit">
                 <a-form-item name="username">
@@ -40,12 +41,15 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { AxiosError } from 'axios'
+import type { ResponseType } from '@/api/request'
 import { rges } from '@/utils/validate'
 import { getVerificateCode, login } from '@/api/auth'
 import { register } from '@/api/users'
 import to from 'await-to-js'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
+import logo from '@/assets/logo.png'
 const router = useRouter()
 const title = import.meta.env.VITE_SYS_TITLE
 const loginMode = ref<'login' | 'register'>('login')
@@ -166,8 +170,14 @@ const handleSubmit = async (values: FormData) => {
         const [err, res] = await to(login(tempParams))
         if (err) {
             loading.value = false
+            const axiosErr = err as AxiosError<ResponseType>
+            if (axiosErr.response?.status === 400) {
+                initVerificateCode()
+            }
             return
         }
+
+
         message.success('登录成功!');
         // 将token存入localstorage
         localStorage.setItem('access_token', res.data.access_token)

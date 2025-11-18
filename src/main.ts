@@ -4,6 +4,7 @@ import router from './router'
 import SpeedComponents from "speed-components-ui/components";
 import 'speed-components-ui/dist/style.css';
 import { useAntdCssVars } from 'speed-components-ui/hooks';
+import globalComponents from '@/components/global'
 import 'uno.css'
 import '@/assets/base.less'
 
@@ -22,4 +23,5 @@ app.unmount = () => {
   app.unmount();
 };
 
+app.use(globalComponents)
 app.mount('#app')
