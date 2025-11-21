@@ -1,5 +1,5 @@
 <template>
-    <draggable v-model="innerBookList" :animation="200"
+    <draggable :list="innerBooks" :animation="200"
         :handle="dragHandleModeLocal === 'handle' ? '.drag-handle' : undefined" item-key="id" ghost-class="ghost-item"
         chosen-class="chosen-item" drag-class="drag-item" @start="onDragStart" @end="onDragEnd">
         <template #item="{ element: book }">
@@ -14,13 +14,12 @@
                     class="shadow-btn-wrapper icon mr-1 cursor-move group-hover:opacity-100  opacity-0">
                     <HolderOutlined />
                 </a-button>
-                <s-icon-font type="icon-book-0" class="mr-2" svg-sprite
-                    style="width: 18px; height: 18px;" />
+                <s-icon-font :type="book.icon" class="mr-2" svg-sprite style="width: 18px; height: 18px;" />
 
-                <span class="book-title flex-1 text-[14px] truncate" :title="book.title">
-                    {{ book.title }}
+                <span class="book-title flex-1 text-[14px] truncate" :title="book.name">
+                    {{ book.name }}
                 </span>
-                <LockOutlined class="text-[12px]" v-if="book.isPrivate" />
+                <LockOutlined class="text-[12px]" v-if="book.is_public" />
 
                 <a-button type="text" class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0"
                     v-if="showMore">
@@ -37,15 +36,11 @@
 import { ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { MenuOutlined, LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
+import { type KnowledgeItem } from '@sk/types'
 
-export interface BookItem {
-    id: string
-    title: string
-    isPrivate: boolean
-}
 
 const props = withDefaults(defineProps<{
-    books?: BookItem[]
+    books?: KnowledgeItem[]
     activeBookKey?: string
     dragHandleMode?: 'handle' | 'full'
     showMore?: boolean
@@ -57,25 +52,17 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-    'update:books': [books: BookItem[]]
     'update:activeBookKey': [key: string]
-    'book-click': [book: BookItem]
+    'book-click': [book: KnowledgeItem]
     'drag-start': []
     'drag-end': []
 }>()
 
-const innerBookList = ref<BookItem[]>([...props.books])
 const isDragging = ref(false)
 const dragHandleModeLocal = ref<'handle' | 'full'>(props.dragHandleMode)
 const activeBookKey = props.activeBookKey || ''
+const innerBooks = ref<KnowledgeItem[]>([])
 
-watch(() => props.books, (newVal) => {
-    innerBookList.value = [...newVal]
-}, { deep: true })
-
-watch(innerBookList, (newVal) => {
-    emit('update:books', newVal)
-}, { deep: true })
 
 watch(() => props.dragHandleMode, (mode) => {
     dragHandleModeLocal.value = mode
@@ -97,8 +84,11 @@ const toggleDragMode = () => {
     dragHandleModeLocal.value = dragHandleModeLocal.value === 'handle' ? 'full' : 'handle'
 }
 
-const handleBookClick = (book: BookItem) => {
+const handleBookClick = (book: KnowledgeItem) => {
     emit('update:activeBookKey', book.id)
-    emit('book-click', book)
 }
+
+watch(() => props.books, (newVal) => {
+    innerBooks.value = newVal
+}, { immediate: true })
 </script>

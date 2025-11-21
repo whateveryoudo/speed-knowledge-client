@@ -4,4 +4,5 @@ import * as common from "./common";
 import * as user from "./user";
 import * as knowledge from "./knowledge";
 import { initSkApiConfig } from "./request";
+export * from "./path";
 export { attachment, auth, common, user, knowledge, initSkApiConfig };

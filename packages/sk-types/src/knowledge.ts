@@ -1,12 +1,15 @@
-export interface KnowledgeItem {
+export interface KnowledgeCreate {
+  name: string;
+  description?: string;
+  cover_url?: any;
+  group_id: string;
+  icon: string;
+}
+export interface KnowledgeItem extends KnowledgeCreate {
   id: string;
   user_id: number;
-  group_id: number;
-  icon: string;
-  name: string;
   slug: string;
-  description: string;
-  cover_url: string;
+  cover_url: any;
   is_public: boolean;
   items_count: number;
   content_updated_at: string;

@@ -19,8 +19,7 @@
       <Collapse :when="innerExpanded" class="book-list">
         <SkeletonList :loading="loading">
           <MenuList v-if="bookList.length > 0" :books="bookList" :active-book-key="activeBookKey"
-            :drag-handle-mode="dragHandleMode" :show-more="true" @update:books="onBooksUpdate"
-            @update:activeBookKey="onActiveKeyUpdate" @book-click="handleBookClick" @drag-start="onDragStart"
+            :drag-handle-mode="dragHandleMode" :show-more="true" @book-click="handleBookClick" @drag-start="onDragStart"
             @drag-end="onDragEnd" />
           <Empty0 hasTop v-else description="暂无知识库" />
         </SkeletonList>
@@ -42,8 +41,7 @@
             </div>
             <div class="book-list">
               <MenuList :books="bookList" :active-book-key="activeBookKey" :drag-handle-mode="dragHandleMode"
-                :show-more="false" @update:books="onBooksUpdate" @update:activeBookKey="onActiveKeyUpdate"
-                @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd" />
+                :show-more="false" @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd" />
             </div>
           </div>
         </template>
@@ -66,27 +64,20 @@ import {
 } from '@ant-design/icons-vue'
 import { Collapse } from 'vue-collapsed'
 import MenuList from './MenuList.vue'
-import { knowledge as knowledgeApi} from '@sk/api'
+import { knowledge as knowledgeApi } from '@sk/api'
 import { type KnowledgeItem } from '@sk/types'
 import to from 'await-to-js'
 
 const props = withDefaults(
   defineProps<{
-    books?: KnowledgeItem[]
-    activeBookKey?: string
     expanded?: boolean
   }>(),
   {
-    books: () => [],
-    activeBookKey: '',
     expanded: true,
   }
 )
 
 const emit = defineEmits<{
-  'update:books': [books: KnowledgeItem[]]
-  'update:activeBookKey': [key: string]
-  'book-click': [book: KnowledgeItem]
   'update:expanded': [expanded: boolean]
 }>()
 const loading = ref(false)
@@ -102,7 +93,7 @@ const innerExpanded = ref(true)
 const bookList = ref<KnowledgeItem[]>([])
 
 // 当前激活的知识库
-const activeBookKey = ref(props.activeBookKey || '')
+const activeBookKey = ref()
 
 // 拖拽模式：'handle' 仅句柄拖拽，'full' 整体拖拽
 const dragHandleMode = ref<'handle' | 'full'>('handle')
@@ -129,33 +120,11 @@ const toggleDragMode = () => {
 }
 
 // 点击知识库
-const handleBookClick = (book: BookItem) => {
+const handleBookClick = (book: KnowledgeItem) => {
   activeBookKey.value = book.id
-  emit('update:activeBookKey', book.id)
-  emit('book-click', book)
 }
 
-const onBooksUpdate = (newBooks: BookItem[]) => {
-  bookList.value = [...newBooks]
-  emit('update:books', bookList.value)
-}
 
-const onActiveKeyUpdate = (key: string) => {
-  activeBookKey.value = key
-  emit('update:activeBookKey', key)
-}
-
-// 监听 bookList 变化，同步到父组件
-watch(bookList, (newBooks) => {
-  emit('update:books', newBooks)
-}, { deep: true })
-
-// 监听 props.books 变化，同步到内部
-watch(() => props.books, (newBooks) => {
-  if (newBooks.length > 0) {
-    bookList.value = [...newBooks]
-  }
-}, { deep: true })
 
 const initKnowledgeList = async () => {
   loading.value = true
@@ -169,9 +138,8 @@ const initKnowledgeList = async () => {
 initKnowledgeList()
 
 
-// 监听 props.activeBookKey 变化
-watch(() => props.activeBookKey, (newKey) => {
-  activeBookKey.value = newKey || ''
+defineExpose({
+  refreshList: initKnowledgeList
 })
 </script>
 

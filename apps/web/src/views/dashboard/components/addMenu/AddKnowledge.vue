@@ -38,7 +38,7 @@
             <!-- 分组 -->
             <div class="mb-6">
                 <div class="mb-2 text-[var(--ant-color-text)]">分组</div>
-                <a-form-item name="group">
+                <a-form-item name="group_id">
                     <a-select v-model:value="form.group_id" :options="groupOptions" placeholder="请选择分组" />
                 </a-form-item>
             </div>
@@ -57,17 +57,14 @@ import { UserOutlined } from '@ant-design/icons-vue'
 import type { FormInstance, SelectProps } from 'ant-design-vue'
 import avatarDef from '#sk-web/assets/images/avatar_def.png'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
-
+import { knowledge as knowledgeApi } from '@sk/api'
+import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate } from '@sk/types'
 import to from 'await-to-js'
 
 interface Props {
     open?: boolean
 }
 
-interface Emits {
-    (e: 'update:open', value: boolean): void
-    (e: 'ok', values: FormValues): void
-}
 
 interface FormValues {
     name: string
@@ -81,7 +78,10 @@ const props = withDefaults(defineProps<Props>(), {
     open: false
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+    (e: 'update:open', value: boolean): void
+    (e: 'ok', newId: string): void
+}>()
 
 const formRef = ref<FormInstance>()
 const nameInputRef = ref<HTMLInputElement>()
@@ -90,6 +90,7 @@ const loading = ref(false)
 const form = ref<FormValues>({
     name: '',
     description: '',
+    cover: [],
     group_id: undefined,
     icon: 'icon-book-0',
 })
@@ -118,13 +119,14 @@ watch(() => props.open, (val) => {
             description: '',
             group_id: undefined,
             icon: 'icon-book-0',
+            cover: []
         }
         formRef.value?.clearValidate()
     }
 })
 
 const getKnowledgeGroupListData = async () => {
-    const [error, res] = await to(getKnowledgeGroupList())
+    const [error, res] = await to(knowledgeApi.getKnowledgeGroupList())
     if (error) {
         return
     }
@@ -142,13 +144,20 @@ const handleOk = async () => {
     if (!canSubmit.value) return
     try {
         loading.value = true
-
-        // 模拟提交
-        setTimeout(() => {
-            emit('ok', { ...form.value })
-            emit('update:open', false)
-            loading.value = false
-        }, 500)
+        const reqParams: KnowledgeCreate = {
+            name: form.value.name,
+            description: form.value.description,
+            cover_url: form.value.cover?.[0],
+            group_id: form.value?.group_id ?? '',
+            icon: form.value.icon,
+        }
+        const [error, res] = await to(knowledgeApi.addKnowledge(reqParams))
+        if (error) {
+            loading.value = false;
+            return
+        }
+        emit('update:open', false)
+        emit('ok', res.data)
     } catch (error) {
         console.error('表单验证失败:', error)
     }

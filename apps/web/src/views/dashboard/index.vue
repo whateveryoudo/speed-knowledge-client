@@ -27,15 +27,14 @@
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu />
+                        <AddMenu @add-knowledge-cb="handleAddKnowledgeCb" />
                     </a-flex>
 
                     <StartMenus v-model:activeModuleKey="activeModuleKey" />
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库菜单 -->
-                        <BookMenus expanded v-model:books="books" v-model:activeBookKey="activeBookKey"
-                            @book-click="handleBookClick" />
+                        <BookMenus ref="bookMenusRef" expanded />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -116,7 +115,7 @@ const activeModuleKey = ref('start');
 // 知识库数据
 const books = ref<BookItem[]>([])
 const activeBookKey = ref('')
-
+const bookMenusRef = ref<InstanceType<typeof BookMenus> | null>(null);
 // 处理知识库点击
 const handleBookClick = (book: BookItem) => {
     console.log('点击知识库:', book)
@@ -130,6 +129,10 @@ const handleToggle = () => {
 // 如果收起状态执行了拖拽，则直接展开
 const collapseStartResize = () => {
     open.value = true;
+}
+const handleAddKnowledgeCb = (newId: string) => {
+    console.log('新增知识库', newId)
+    bookMenusRef.value?.refreshList();
 }
 // 监听展开收起变化，同步本地存储
 watch(open, (newVal: boolean) => {
