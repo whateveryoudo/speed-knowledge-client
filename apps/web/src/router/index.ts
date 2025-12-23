@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/login/index.vue'
-import Dashboard from '../views/dashboard/index.vue'
 import 'unocss'
 
 const router = createRouter({
@@ -18,7 +17,52 @@ const router = createRouter({
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: Dashboard,
+      component: () => import('../views/dashboard/index.vue'),
+      redirect: '/dashboard/start',
+      children: [
+        {
+          path: 'start',
+          component: () => import('../views/dashboard/start/index'),
+        },
+      ],
+    },
+    {
+      path: '/knowledge',
+      name: 'knowledge',
+      component: () => import('../views/knowledge/index.vue'),
+      redirect: '/knowledge/',
+      children: [
+        {
+          path: '/knowledge/',
+          component: () => import('../views/knowledge/Home.vue'),
+        },
+        {
+          path: '/knowledge/:slug',
+          component: () => import('../views/knowledge/Home.vue'),
+        },
+        {
+          path: '/knowledge/:slug/document/:document_slug',
+          component: () => import('../views/knowledge/document/index.vue'),
+        },
+      ],
+    },
+    {
+      path: '/knowledge/:slug/manage',
+      component: () => import('../views/knowledge/manage/index.vue'),
+      children: [
+        {
+          path: '/knowledge/:slug/manage/auth',
+          component: () => import('../views/knowledge/manage/AuthManage.vue'),
+          meta: {
+            menuKey: 'auth',
+          },
+        },
+      ],
+    },
+    // 邀请链接
+    {
+      path: '/knowledge/:slug/invite',
+      component: () => import('../views/knowledge/invite/index.vue'),
     },
   ],
 })

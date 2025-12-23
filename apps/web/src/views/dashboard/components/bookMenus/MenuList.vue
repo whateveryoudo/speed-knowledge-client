@@ -1,17 +1,15 @@
 <template>
-    <draggable :list="innerBooks" :animation="200"
-        :handle="dragHandleModeLocal === 'handle' ? '.drag-handle' : undefined" item-key="id" ghost-class="ghost-item"
+    <draggable v-model:list="innerBooks" :animation="200" handle=".drag-handle" item-key="id" ghost-class="ghost-item"
         chosen-class="chosen-item" drag-class="drag-item" @start="onDragStart" @end="onDragEnd">
         <template #item="{ element: book }">
-            <div class="book-item text-[var(--sd-text-body)] flex items-center h-[32px] my-[4px] px-[2px] rounded-[6px] hover:bg-[var(--sd-bg-primary-hover)] group"
+            <div class="menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)] group"
                 :class="{
                     'pr-2': !showMore,
                     'bg-[var(--sd-bg-primary-hover)]': activeBookKey === book.id,
-                    'cursor-move': dragHandleModeLocal === 'full',
-                    'cursor-pointer': dragHandleModeLocal === 'handle',
-                }" @click="!isDragging && handleBookClick(book)" @dblclick="toggleDragMode">
-                <a-button type="text" v-if="dragHandleModeLocal === 'handle'"
-                    class="shadow-btn-wrapper icon mr-1 cursor-move group-hover:opacity-100  opacity-0">
+                    'cursor-pointer': true,
+                }" @click="handleBookClick(book)">
+                <a-button type="text"
+                    class="shadow-btn-wrapper drag-handle icon mr-1 cursor-move group-hover:opacity-100  opacity-0">
                     <HolderOutlined />
                 </a-button>
                 <s-icon-font :type="book.icon" class="mr-2" svg-sprite style="width: 18px; height: 18px;" />
@@ -20,23 +18,31 @@
                     {{ book.name }}
                 </span>
                 <LockOutlined class="text-[12px]" v-if="book.is_public" />
-
-                <a-button type="text" class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0"
-                    v-if="showMore">
-                    <template #icon>
-                        <MoreOutlined />
+                <a-dropdown trigger="click">
+                    <a-button type="text"  @click.stop class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0"
+                        v-if="showMore">
+                        <template #icon>
+                            <MoreOutlined />
+                        </template>
+                    </a-button>
+                    <template #overlay>
+                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="menuItems"/>
                     </template>
-                </a-button>
+                </a-dropdown>
             </div>
         </template>
     </draggable>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, h } from 'vue'
 import draggable from 'vuedraggable'
-import { MenuOutlined, LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
+import { LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
 import { type KnowledgeItem } from '@sk/types'
+import { cloneDeep } from 'lodash-es'
+import { useRouter } from 'vue-router'
+import type { ItemType } from 'ant-design-vue'
+const router = useRouter()
 
 
 const props = withDefaults(defineProps<{
@@ -56,39 +62,43 @@ const emit = defineEmits<{
     'book-click': [book: KnowledgeItem]
     'drag-start': []
     'drag-end': []
+    'update:books': [books: KnowledgeItem[]]
 }>()
 
-const isDragging = ref(false)
-const dragHandleModeLocal = ref<'handle' | 'full'>(props.dragHandleMode)
 const activeBookKey = props.activeBookKey || ''
 const innerBooks = ref<KnowledgeItem[]>([])
 
-
-watch(() => props.dragHandleMode, (mode) => {
-    dragHandleModeLocal.value = mode
-})
-
-
-
+const menuItems = ref<ItemType[]>([
+    {
+        label: '权限',
+        key: 'auth',
+        icon: () => h(LockOutlined)
+    }
+])
+const handleMenuClick = (e: any, book: KnowledgeItem) => {
+    switch (e.key) {
+        case 'auth':
+            router.push(`/knowledge/${book.slug}/manage/auth`)
+            break
+        default:
+            break
+    }
+}
 const onDragStart = () => {
-    isDragging.value = true
     emit('drag-start')
 }
 
 const onDragEnd = () => {
-    isDragging.value = false
+    // 拖拽结束后，同步更新后的列表到父组件
+    // emit('update:books', innerBooks.value)
     emit('drag-end')
 }
 
-const toggleDragMode = () => {
-    dragHandleModeLocal.value = dragHandleModeLocal.value === 'handle' ? 'full' : 'handle'
-}
-
 const handleBookClick = (book: KnowledgeItem) => {
-    emit('update:activeBookKey', book.id)
+    router.push(`/knowledge/${book.slug}`)
 }
 
 watch(() => props.books, (newVal) => {
-    innerBooks.value = newVal
+    innerBooks.value = cloneDeep(newVal)
 }, { immediate: true })
 </script>

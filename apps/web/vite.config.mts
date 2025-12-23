@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig, Plugin } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import Unocss from '@unocss/vite'
@@ -11,10 +11,11 @@ import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import path from 'path'
 
 // https://vite.dev/config/
-export default (env: any) => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
   const apiProxyUrl = env.VITE_APP_PROXY_URL ?? 'http://localhost:8005'
   const apiBaseUrl = env.VITE_API_BASE_URL ?? '/api'
-  return defineConfig({
+  return {
     plugins: [
       vue(),
       vueJsx(),
@@ -39,7 +40,8 @@ export default (env: any) => {
     resolve: {
       alias: {
         '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
-        '@': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
+        '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
+        '@': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
       },
     },
     server: {
@@ -51,5 +53,5 @@ export default (env: any) => {
         },
       },
     },
-  })
-}
+  }
+})

@@ -4,8 +4,17 @@
     --sd-bg-secondary: #fafafa;
     --sd-border-light: rgba(0,0,0,.04);
     --sd-bg-primary-hover: #eff0f0;
+    --sd-text-primary: #262626;
     --sd-text-grey-900: #262626;
     --sd-border-grey-4: #e7e9e8;
+    --sd-grey-1: #fafafa;
+    --sd-grey-2: #f4f5f5;
     --sd-grey-7: #8a8f8d;
+    --sd-text-caption: #8a8f8d;
+    --sd-grey-5: #d8dad9;
+    --sd-grey-9: #262626;
+    --sd-grey-8: #585a5a;
     --sd-text-body: #585a5a;
+    --sd-red-1:#fbe4ea;
+    --sd-red-6:#df2a3f;
 }

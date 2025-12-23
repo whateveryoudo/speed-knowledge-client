@@ -8,6 +8,7 @@ import AddKnowledge from './AddKnowledge.vue'
 
 export default defineComponent({
     name: 'AddMenu',
+    emits: ['add-knowledge-cb'],
     setup(props, { emit }) {
         const openAddKnowledge = ref(false)
         const items = ref<ItemType[]>([

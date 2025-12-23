@@ -26,3 +26,27 @@ export interface KnowledgeGroupItem {
   created_at: string;
   updated_at: string;
 }
+export enum KnowledgeInvitationStatus {
+  ACTIVE = 1,
+  REVOKED = 2
+}
+export enum KnowledgeCollaboratorRole {
+  READ = 1,
+  EDIT = 2,
+  ADMIN = 3,
+}
+export interface KnowledgeInvitationBase {
+  knowledge_id: string;
+  token: string;
+  status: KnowledgeInvitationStatus;
+  role: KnowledgeCollaboratorRole;
+  need_approval: 0 | 1;
+}
+export interface KnowledgeInvitationResponse extends KnowledgeInvitationBase {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface KnowledgeInvitationUpdate extends Partial<KnowledgeInvitationBase> {
+  id: string;
+}

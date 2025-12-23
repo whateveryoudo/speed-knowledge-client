@@ -1,4 +1,3 @@
-<!-- 生成一个vue3模板 -->
 <template>
     <a-flex class="h-full">
         <s-collapse-hz expandDir="right" :needTransition="false" :showTriggerWhenCollapse="false" triggerMode="hover"
@@ -15,9 +14,7 @@
                             <a-button type="text" class="shadow-btn-wrapper">
                                 <BellOutlined />
                             </a-button>
-                            <a-button type="text" class="shadow-btn-wrapper">
-                                <img :src="AvatarDef" alt="avatar" class="w-[24px] h-[24px]" />
-                            </a-button>
+                            <UserSetting />
                         </a-space>
                     </a-flex>
                     <a-flex class="px-2" :gap="10">
@@ -61,7 +58,7 @@
                     <a-divider class="my-0 w-[30%]! min-w-auto mx-auto"></a-divider>
                     <StartMenus v-model:activeModuleKey="activeModuleKey" :expanded="false" />
                     <a-divider class="my-0 w-[30%]! min-w-auto mx-auto"></a-divider>
-                    <BookMenus v-model:books="books" v-model:activeBookKey="activeBookKey" :expanded="false" />
+                    <BookMenus v-model:activeBookKey="activeBookKey" :expanded="false" />
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
                     class="w-6px absolute top-0 right-0 bottom-0 border border-r border-r-solid border-[var(--sd-border-light)] cursor-col-resize"
@@ -79,7 +76,9 @@
                 </a-tooltip>
             </template>
         </s-collapse-hz>
-        我是右侧内容
+        <div class="flex-1 overflow-y-auto">
+            <router-view></router-view>
+        </div>
     </a-flex>
 
 </template>
@@ -88,21 +87,22 @@
 import { ref, watch } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
-import AvatarDef from '#sk-web/assets/images/avatar_def.png';
 import { BellOutlined, CaretRightOutlined, CaretLeftOutlined, ClockCircleOutlined, ClockCircleFilled, PlusOutlined } from '@ant-design/icons-vue';
-import BookMenus, { type BookItem } from './components/bookMenus/index.vue';
+import BookMenus from './components/bookMenus/index.vue';
 import StartMenus from './components/StartMenus';
+import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
+import UserSetting from './components/userSetting/index.vue';
 const DEFAULT_EXPAND_WIDTH = 253;
-const open = ref(!localStorage.getItem('speed_knowledge_expand') || localStorage.getItem('speed_knowledge_expand') === 'true');
+const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
 
-const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('speed_knowledge_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
+const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_dashboard_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {
         console.log('拖拽结束', width, height)
         // 这里存入到本地
-        localStorage.setItem('speed_knowledge_expand_width', width.toString());
+        localStorage.setItem('sk_dashboard_expand_width', width.toString());
     }
 })
 const openTooltip = ref(false);
@@ -112,12 +112,10 @@ const title = import.meta.env.VITE_SYS_TITLE;
 
 const activeModuleKey = ref('start');
 
-// 知识库数据
-const books = ref<BookItem[]>([])
 const activeBookKey = ref('')
 const bookMenusRef = ref<InstanceType<typeof BookMenus> | null>(null);
 // 处理知识库点击
-const handleBookClick = (book: BookItem) => {
+const handleBookClick = (book: KnowledgeItem) => {
     console.log('点击知识库:', book)
     // 这里可以添加路由跳转等逻辑
 }
@@ -136,7 +134,7 @@ const handleAddKnowledgeCb = (newId: string) => {
 }
 // 监听展开收起变化，同步本地存储
 watch(open, (newVal: boolean) => {
-    localStorage.setItem('speed_knowledge_expand', newVal ? 'true' : 'false');
+    localStorage.setItem('sk_dashboard_expand', newVal ? 'true' : 'false');
 })
 </script>
 

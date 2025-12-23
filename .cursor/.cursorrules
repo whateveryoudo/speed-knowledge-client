@@ -1,0 +1,77 @@
+# AJAX 请求处理规范
+
+## 必须使用 await-to-js 处理异步请求
+
+所有内部 AJAX 请求（API 调用）必须使用 `await-to-js` 库进行错误处理，禁止直接使用 try-catch 或直接 await。
+
+### 正确的使用方式：
+
+```typescript
+import { to } from 'await-to-js'
+import { knowledge as knowledgeApi } from '@sk/api'
+
+// ✅ 正确：使用 await-to-js
+const initKnowledge = async () => {
+  const [error, res] = await to(knowledgeApi.getKnowledgeDetail(slug.value as string))
+  if (!error) {
+    // 处理成功情况
+    knowledgeInfo.value = res.data
+  } else {
+    // 处理错误情况
+    console.error('获取知识库详情失败:', error)
+  }
+}
+```
+
+### 错误的使用方式：
+
+```typescript
+// ❌ 错误：直接使用 try-catch
+try {
+  const res = await knowledgeApi.getKnowledgeDetail(slug.value as string)
+  knowledgeInfo.value = res.data
+} catch (error) {
+  console.error('获取失败:', error)
+}
+
+// ❌ 错误：直接 await（没有错误处理）
+const res = await knowledgeApi.getKnowledgeDetail(slug.value as string)
+knowledgeInfo.value = res.data
+```
+
+### 规则说明
+
+1. **所有 API 调用必须使用 `await-to-js`**：
+   - 从 `@sk/api` 导入的 API 方法
+   - 任何 axios 请求
+   - 任何异步数据获取操作
+
+2. **错误处理模式**：
+   ```typescript
+   const [error, res] = await to(apiCall())
+   if (!error) {
+     // 成功处理：使用 res.data
+   } else {
+     // 错误处理：使用 error
+   }
+   ```
+
+3. **导入方式**：
+   ```typescript
+   import { to } from 'await-to-js'
+   ```
+
+### 示例场景
+
+- ✅ 获取数据：`const [error, res] = await to(api.getData())`
+- ✅ 创建数据：`const [error, res] = await to(api.createData(data))`
+- ✅ 更新数据：`const [error, res] = await to(api.updateData(id, data))`
+- ✅ 删除数据：`const [error, res] = await to(api.deleteData(id))`
+
+### 注意事项
+
+- 确保在文件顶部导入 `await-to-js`：`import { to } from 'await-to-js'`
+- 始终检查 `error` 是否为 null/undefined 来判断请求是否成功
+- 成功时使用 `res.data` 获取响应数据
+- 错误时根据业务需求进行错误处理（提示用户、记录日志等）
+

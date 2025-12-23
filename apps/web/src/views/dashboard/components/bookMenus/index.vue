@@ -1,7 +1,7 @@
 <template>
-  <div class="book-menus">
+  <div class="book-menus h-full">
     <!-- 展开态：一层菜单 + 可折叠的 MenuList -->
-    <div class="px-2" v-if="expanded">
+    <div class="px-2 h-full" v-if="expanded">
       <div
         class="book-header flex items-center rounded-[6px] h-[36px] pl-1 pr-3 cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200"
         :class="{ 'pl-3': bookList.length === 0 }" @click="toggleInner">
@@ -20,7 +20,7 @@
         <SkeletonList :loading="loading">
           <MenuList v-if="bookList.length > 0" :books="bookList" :active-book-key="activeBookKey"
             :drag-handle-mode="dragHandleMode" :show-more="true" @book-click="handleBookClick" @drag-start="onDragStart"
-            @drag-end="onDragEnd" />
+            @drag-end="onDragEnd" @update:books="bookList = $event" />
           <Empty0 hasTop v-else description="暂无知识库" />
         </SkeletonList>
       </Collapse>
@@ -41,7 +41,8 @@
             </div>
             <div class="book-list">
               <MenuList :books="bookList" :active-book-key="activeBookKey" :drag-handle-mode="dragHandleMode"
-                :show-more="false" @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd" />
+                :show-more="false" @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd"
+                @update:books="bookList = $event" />
             </div>
           </div>
         </template>
@@ -161,7 +162,7 @@ defineExpose({
   }
 
   .book-list {
-    max-height: calc(100vh - 300px);
+    max-height: calc(100% - 40px);
     overflow-y: auto;
     overflow-x: hidden;
   }
