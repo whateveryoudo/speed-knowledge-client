@@ -26,7 +26,7 @@
                 <a-form-item name="nickname" v-if="loginMode === 'register'">
                     <a-input v-model:value="form.nickname" placeholder="昵称(选填)" />
                 </a-form-item>
-                <p v-if="loginMode === 'register'">
+                <p v-if="loginMode === 'register'" class="mb-4">
                     已有账号？<a class="text-[var(--sd-link-color)]" @click="loginMode = 'login'">立即登录</a>
                 </p>
                 <p v-if="loginMode === 'login'" class="text-[var(--ant-color-text-tertiary)] mb-4">还没有账号？<a

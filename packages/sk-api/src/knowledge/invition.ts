@@ -3,6 +3,8 @@ import { knowledgePrefix } from "../path";
 import type {
   KnowledgeInvitationResponse,
   KnowledgeInvitationUpdate,
+  KnowledgeInvitationValidInfo,
+  KnowledgeCollaboratorResponse,
 } from "@sk/types";
 // 获取邀请token信息
 export const getInvitationToken = (
@@ -21,4 +23,17 @@ export const updateInvitationToken = (
   data: KnowledgeInvitationUpdate
 ): Promise<ResponseType<KnowledgeInvitationResponse>> => {
   return request.put(`${knowledgePrefix}/invitation/token`, data);
+};
+
+// 获取邀请有效链接信息
+export const getInvitationValidLinkInfo = (
+  token: string
+): Promise<ResponseType<KnowledgeInvitationValidInfo>> => {
+  return request.get(`${knowledgePrefix}/invitation/valid?invitation_token=${token}`);
+};
+
+export const applyJoinKnowledge = (
+  data: {invitation_token: string}
+): Promise<ResponseType<KnowledgeCollaboratorResponse>> => {
+  return request.post(`${knowledgePrefix}/invitation/apply`, data);
 };

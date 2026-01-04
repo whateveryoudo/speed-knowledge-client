@@ -28,12 +28,36 @@ export interface KnowledgeGroupItem {
 }
 export enum KnowledgeInvitationStatus {
   ACTIVE = 1,
-  REVOKED = 2
+  REVOKED = 2,
 }
 export enum KnowledgeCollaboratorRole {
   READ = 1,
   EDIT = 2,
   ADMIN = 3,
+}
+// 角色选项
+export const KnowledgeCollaboratorRoleOptions = [
+  {
+    label: "可阅读",
+    value: KnowledgeCollaboratorRole.READ,
+  },
+  {
+    label: "可编辑",
+    value: KnowledgeCollaboratorRole.EDIT,
+  },
+  {
+    label: "可管理",
+    value: KnowledgeCollaboratorRole.ADMIN,
+  },
+];
+export enum KnowledgeCollaboratorStatus {
+  PENDING = 1,
+  ACCEPTED = 2,
+}
+export enum KnowledgeCollaboratorSource {
+  CREATOR = 0,
+  INVITATION = 1,
+  SEARCH_JOIN = 2,
 }
 export interface KnowledgeInvitationBase {
   knowledge_id: string;
@@ -47,6 +71,28 @@ export interface KnowledgeInvitationResponse extends KnowledgeInvitationBase {
   created_at: string;
   updated_at: string;
 }
-export interface KnowledgeInvitationUpdate extends Partial<KnowledgeInvitationBase> {
+export interface KnowledgeInvitationUpdate
+  extends Partial<KnowledgeInvitationBase> {
   id: string;
+}
+export interface KnowledgeCollaboratorResponse {
+  id: string;
+  user_id: number;
+  knowledge_id: string;
+  role: KnowledgeCollaboratorRole;
+  status: KnowledgeCollaboratorStatus;
+  source: KnowledgeCollaboratorSource;
+  created_at: string;
+  updated_at: string;
+}
+// 邀请校验信息（用于邀请链接的一些显示）
+export interface KnowledgeInvitationValidInfo {
+  invitation: {
+    status: KnowledgeInvitationStatus;
+    knowledge_name: string;
+    knowledge_id: string;
+  };
+  collaborator: null | {
+    status: KnowledgeCollaboratorStatus;
+  };
 }

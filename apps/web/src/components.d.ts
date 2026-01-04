@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AAnchor: typeof import('ant-design-vue/es')['Anchor']
+    AAvatar: typeof import('ant-design-vue/es')['Avatar']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
@@ -30,6 +31,7 @@ declare module 'vue' {
     AProgress: typeof import('ant-design-vue/es')['Progress']
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
+    ArrowLeftOutlined: typeof import('@ant-design/icons-vue')['ArrowLeftOutlined']
     ASegmented: typeof import('ant-design-vue/es')['Segmented']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ASelectOption: typeof import('ant-design-vue/es')['SelectOption']
@@ -66,6 +68,7 @@ declare module 'vue' {
     IconTooling: typeof import('./components/icons/IconTooling.vue')['default']
     LeftOutlined: typeof import('@ant-design/icons-vue')['LeftOutlined']
     LockOutlined: typeof import('@ant-design/icons-vue')['LockOutlined']
+    NotFound: typeof import('./components/global/notFound/index.vue')['default']
     PersonSearch: typeof import('./components/personSearch/index.vue')['default']
     RedoOutlined: typeof import('@ant-design/icons-vue')['RedoOutlined']
     RightOutlined: typeof import('@ant-design/icons-vue')['RightOutlined']

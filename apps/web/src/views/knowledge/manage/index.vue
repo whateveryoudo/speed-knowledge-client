@@ -32,7 +32,7 @@
    </a-flex>
 </template>
 <script lang="ts" setup>
-import { ref, h, computed, watch, type VNode } from 'vue';
+import { ref, h, provide, computed, watch, type VNode } from 'vue';
 import {
    type KnowledgeItem,
 } from '@sk/types'
@@ -40,7 +40,7 @@ import { LockOutlined } from '@ant-design/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { to } from 'await-to-js'
 import { knowledge as knowledgeApi } from '@sk/api'
-
+import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
 const route = useRoute();
 const router = useRouter();
 const knowledgeSlug = computed(() => route.params.slug as string);
@@ -60,6 +60,7 @@ const knowledgeInfo = ref<KnowledgeItem>({
    created_at: '',
    updated_at: '',
 })
+provide(KNOWLEDGE_ID_KEY, computed(() => knowledgeInfo.value.id));
 type ItemType = {
    type?: 'group';
    label: string;
