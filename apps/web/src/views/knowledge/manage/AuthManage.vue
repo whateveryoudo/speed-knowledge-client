@@ -28,25 +28,48 @@
                 <template v-if="column.dataIndex === 'user'">
                     <a-space :size="15">
                         <img :src="record.user.avatar || defaultAvatar" class="w-[25px] h-[25px]" />
-                        <a-flex vertical>
+                        <a-flex vertical :gap="2">
                             <span>{{ record.user.nickname }}</span>
+                            <a-tag v-if="record.status === KnowledgeCollaboratorStatus.PENDING">申请加入</a-tag>
                             <span class="text-[var(--sd-text-caption)]">{{ record.user.username }}</span>
                         </a-flex>
                     </a-space>
                 </template>
                 <template v-else-if="column.dataIndex === 'role'">
-                    <span>{{KnowledgeCollaboratorRoleOptions.find(item => item.value === record.role)?.label ??
-                        '--'}}</span>
+                    <span v-if="record.source === KnowledgeCollaboratorSource.CREATOR">{{ formatRoleText(record.role)
+                        }}</span>
+                    <a-dropdown v-else trigger="click">
+                        <template #overlay>
+                            <a-menu class="py-2!" @click="(e: any) => handleRoleChange(record.id, { role: e.key })">
+                                <a-menu-item v-for="item in KnowledgeCollaboratorRoleOptions" :key="item.value">
+                                    <a-flex vertical :gap="2">
+                                        <span>{{ item.label }}</span>
+                                        <span class="text-[var(--sd-text-caption)]">{{ item.tip }}</span>
+                                    </a-flex>
+                                </a-menu-item>
+                            </a-menu>
+                        </template>
+                        <a-space class="cursor-pointer">
+                            {{ formatRoleText(record.role) }}
+                            <DownOutlined />
+                        </a-space>
+                    </a-dropdown>
                 </template>
                 <template v-else-if="column.dataIndex === 'operation'">
                     <!-- 创建者无操作项 -->
                     <template v-if="record.source !== KnowledgeCollaboratorSource.CREATOR">
-                        <a-space>
-                            <template #split>
-                                <a-divider type="vertical" />
-                            </template>
+                        <a-space v-if="record.status === KnowledgeCollaboratorStatus.PENDING">
+                            <a-space>
+                                <template #split>
+                                    <a-divider type="vertical" class="mx-1" />
+                                </template>
+                                <span @click="handleAudit(record.id, 'agree', record.user)"
+                                    class="cursor-pointer text-[var(--ant-color-primary)]">同意</span>
+                                <span @click="handleAudit(record.id, 'reject', record.user)"
+                                    class="cursor-pointer text-[var(--ant-color-error)]">拒绝</span>
+                            </a-space>
                         </a-space>
-                        <a-space>
+                        <a-space v-else>
                             <DeleteOutlined @click="handleDelete(record.id)" class="cursor-pointer" />
                         </a-space>
                     </template>
@@ -62,11 +85,14 @@
 import { ref, h, reactive, inject, watch } from 'vue';
 import { DeleteOutlined } from '@ant-design/icons-vue';
 import CollaboratorAdd from './components/CollaboratorAdd.vue';
-import { knowledge as knowledgeApi } from '@sk/api';
+import { knowledge as knowledgeApi, knowLedgeInvite as knowLedgeInviteApi } from '@sk/api';
 import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
 import { to } from 'await-to-js';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
-import { KnowledgeCollaboratorRoleOptions, KnowledgeCollaboratorSource, type KnowledgeCollaboratorResponse } from '@sk/types';
+import { message } from 'ant-design-vue';
+import { KnowledgeCollaboratorRoleOptions, KnowledgeCollaboratorSource, KnowledgeCollaboratorStatus, KnowledgeCollaboratorRole, type KnowledgeCollaboratorResponse } from '@sk/types';
+import type { Key } from 'ant-design-vue/es/table/interface';
+import type { UserInfo } from '@sk/types';
 const value = ref(false);
 const collaboratorAddVisible = ref(false);
 const knowledgeId = inject(KNOWLEDGE_ID_KEY, ref('')); // 父级注入
@@ -95,12 +121,36 @@ const radioStyle = reactive({
     lineHeight: '30px',
 });
 const data = ref();
-const selectedRowKeys = ref<string[]>([]);
-const onSelectChange = (selectedKeys: string[]) => {
+const selectedRowKeys = ref<Key[]>([]);
+const onSelectChange = (selectedKeys: Key[]) => {
     selectedRowKeys.value = selectedKeys;
 };
-const handleDelete = (id: string) => {
-    console.log(id);
+const handleDelete = async (id: string) => {
+    const [err] = await to(knowLedgeInviteApi.deleteCollaborator(id));
+    if (err) {
+        return;
+    }
+    message.success('移除成功');
+    getCollaboratorList(knowledgeId.value);
+};
+const handleRoleChange = async (id: string, info: Partial<KnowledgeCollaboratorResponse>) => {
+    const [err] = await to(knowLedgeInviteApi.updateCollaboratorInfo(id, info));
+    if (err) {
+        return;
+    }
+    message.success('设置成功');
+    getCollaboratorList(knowledgeId.value);
+};
+const formatRoleText = (role: KnowledgeCollaboratorRole) => {
+    return KnowledgeCollaboratorRoleOptions.find(item => item.value === role)?.label ?? '--';
+};
+const handleAudit = async (id: string, audit_status: 'agree' | 'reject', user: UserInfo) => {
+    const [err] = await to(knowLedgeInviteApi.auditCollaborator(id, { audit_status }));
+    if (err) {
+        return;
+    }
+    message.success(audit_status == 'agree' ? `已同意【${user.nickname}】加入` : `你拒绝了【${user.nickname}】加入`);
+    getCollaboratorList(knowledgeId.value); // 列表刷新
 };
 const getCollaboratorList = async (knowledgeId: string) => {
     collaboratorListLoading.value = true;

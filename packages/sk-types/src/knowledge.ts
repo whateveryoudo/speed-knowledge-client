@@ -40,14 +40,17 @@ export const KnowledgeCollaboratorRoleOptions = [
   {
     label: "可阅读",
     value: KnowledgeCollaboratorRole.READ,
+    tip: '仅拥有只读和评论权限'
   },
   {
     label: "可编辑",
     value: KnowledgeCollaboratorRole.EDIT,
+    tip: '拥有文档编辑权限'
   },
   {
     label: "可管理",
     value: KnowledgeCollaboratorRole.ADMIN,
+    tip: '拥有知识库所有权限权限'
   },
 ];
 export enum KnowledgeCollaboratorStatus {
@@ -71,10 +74,7 @@ export interface KnowledgeInvitationResponse extends KnowledgeInvitationBase {
   created_at: string;
   updated_at: string;
 }
-export interface KnowledgeInvitationUpdate
-  extends Partial<KnowledgeInvitationBase> {
-  id: string;
-}
+
 export interface KnowledgeCollaboratorResponse {
   id: string;
   user_id: number;

@@ -15,7 +15,7 @@
                         搜索添加
                     </li>
                 </ul>
-                <a-space v-else class="cursor-pointer h-[40px] leading-[40px]" @click="secondModalType = undefined">
+                <a-space v-else class="cursor-pointer h-[40px] leading-[40px]" @click="backToFirstModal">
                     <LeftOutlined style="font-size: 12px;" />
                     <span class="text-[16px]">{{ secondModalType === 'role' ? '协作权限' : '审批确认' }}</span>
                 </a-space>
@@ -24,7 +24,8 @@
                     @click="emit('update:visible', false)" />
             </a-flex>
         </template>
-        <div :class="['p-4', secondModalType ? 'pt-0' : '', secondModalType === 'need_approval' && 'pb-0']" v-if="source === KnowledgeCollaboratorSource.INVITATION">
+        <div :class="['p-4', secondModalType ? 'pt-0' : '', secondModalType === 'need_approval' && 'pb-0']"
+            v-if="source === KnowledgeCollaboratorSource.INVITATION">
             <div v-if="secondModalType">
                 <p class="text-[var(--sd-grey-8)] mb-4">{{ secondModalType === 'role' ? '可编辑，将拥有知识库的编辑权限。可阅读，仅拥有阅读和评论权限'
                     :
@@ -34,18 +35,20 @@
                     <div class="flex align-center justify-between cursor-pointer"
                         @click="handleUpdateTokenInfo({ 'role': KnowledgeCollaboratorRole.READ })">
                         <span>可阅读</span>
-                        <check-outlined v-if="tokenInfo.role === KnowledgeCollaboratorRole.READ" style="color: #00b96b;" />
+                        <check-outlined v-if="tokenInfo.role === KnowledgeCollaboratorRole.READ"
+                            style="color: #00b96b;" />
                     </div>
                     <div class="flex align-center justify-between cursor-pointer"
                         @click="handleUpdateTokenInfo({ 'role': KnowledgeCollaboratorRole.EDIT })">
                         <span>可编辑</span>
-                        <check-outlined v-if="tokenInfo.role === KnowledgeCollaboratorRole.EDIT" style="color: #00b96b;" />
+                        <check-outlined v-if="tokenInfo.role === KnowledgeCollaboratorRole.EDIT"
+                            style="color: #00b96b;" />
                     </div>
                 </a-flex>
                 <a-flex justify="space-between" align="center" v-if="secondModalType === 'need_approval'">
                     <span>提交申请后需审批确认</span>
                     <a-switch :checked="tokenInfo.need_approval === 1"
-                        @change="(checked: CheckedType) => handleUpdateTokenInfo({ 'need_approval': checked === 'true' ? 1 : 0 })" />
+                        @change="(checked: boolean) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
                 </a-flex>
 
             </div>
@@ -62,7 +65,7 @@
                 <a-flex vertical class="bg-[var(--sd-grey-1)] rounded-[8px] p-[6px] pt-[16px]">
                     <a-flex vertical>
                         <a-flex align="center" :gap="10" class="px-2 mb-2">
-                            <a-input class="flex-1" disabled :value="inviteUrl" :title="inviteUrl"/>
+                            <a-input class="flex-1" disabled :value="inviteUrl" :title="inviteUrl" />
                             <a-button class="shrink-0" @click="handleCopy()">复制链接</a-button>
                         </a-flex>
                         <div class="menu-item-base justify-between h-[40px]! hover:bg-[var(--sd-bg-primary-hover)]"
@@ -170,6 +173,10 @@ const inviteUrl = computed(() => {
 });
 const { copy } = useClipboard();
 const open = ref(false);
+const backToFirstModal = () => {
+    secondModalType.value = undefined;
+    getInvitationToken(); // 刷新邀请信息
+}
 const getInvitationToken = async () => {
     const [error, res] = await to(knowLedgeInviteApi.getInvitationToken(knowledgeSlug.value));
     if (error) {
@@ -182,14 +189,12 @@ const handleCopy = async () => {
     message.success('复制成功');
 }
 // 更新当前邀请信息
-const handleUpdateTokenInfo = async (value: any) => {
-    const [error, res] = await to(knowLedgeInviteApi.updateInvitationToken({
-        id: tokenInfo.value.id,
-        ...value,
-    }));
+const handleUpdateTokenInfo = async (attrs: Partial<KnowledgeInvitationResponse>) => {
+    const [error, res] = await to(knowLedgeInviteApi.updateInvitationToken(tokenInfo.value.id, attrs));
     if (error) {
         return;
     }
+    message.success('操作成功');
     tokenInfo.value = res.data;
 }
 const handleResetInvitationLink = async () => {

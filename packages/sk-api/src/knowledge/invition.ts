@@ -20,20 +20,49 @@ export const resetInvitationLink = (
 };
 // 修改邀请配置
 export const updateInvitationToken = (
-  data: KnowledgeInvitationUpdate
+  invite_id: string,
+  data: Partial<KnowledgeInvitationResponse>
 ): Promise<ResponseType<KnowledgeInvitationResponse>> => {
-  return request.put(`${knowledgePrefix}/invitation/token`, data);
+  return request.put(`${knowledgePrefix}/invitation/token/${invite_id}`, data);
 };
 
 // 获取邀请有效链接信息
 export const getInvitationValidLinkInfo = (
   token: string
 ): Promise<ResponseType<KnowledgeInvitationValidInfo>> => {
-  return request.get(`${knowledgePrefix}/invitation/valid?invitation_token=${token}`);
+  return request.get(
+    `${knowledgePrefix}/invitation/valid?invitation_token=${token}`
+  );
 };
 
-export const applyJoinKnowledge = (
-  data: {invitation_token: string}
-): Promise<ResponseType<KnowledgeCollaboratorResponse>> => {
+export const applyJoinKnowledge = (data: {
+  invitation_token: string;
+}): Promise<ResponseType<KnowledgeCollaboratorResponse>> => {
   return request.post(`${knowledgePrefix}/invitation/apply`, data);
+};
+
+export const deleteCollaborator = (
+  collaborator_id: string
+): Promise<ResponseType<void>> => {
+  return request.delete(`${knowledgePrefix}/collaborator/${collaborator_id}`);
+};
+
+export const updateCollaboratorInfo = (
+  collaborator_id: string,
+  data: Partial<KnowledgeCollaboratorResponse>
+): Promise<ResponseType<KnowledgeCollaboratorResponse>> => {
+  return request.put(
+    `${knowledgePrefix}/collaborator/${collaborator_id}`,
+    data
+  );
+};
+
+export const auditCollaborator = (
+  collaborator_id: string,
+  data: { audit_status: "agree" | "reject" }
+): Promise<ResponseType<KnowledgeCollaboratorResponse>> => {
+  return request.post(
+    `${knowledgePrefix}/collaborator/${collaborator_id}/audit`,
+    data
+  );
 };

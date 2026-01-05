@@ -82,5 +82,6 @@ declare module 'vue' {
     UnorderedListOutlined: typeof import('@ant-design/icons-vue')['UnorderedListOutlined']
     UpOutlined: typeof import('@ant-design/icons-vue')['UpOutlined']
     UsergroupAddOutlined: typeof import('@ant-design/icons-vue')['UsergroupAddOutlined']
+    UserOutlined: typeof import('@ant-design/icons-vue')['UserOutlined']
   }
 }

@@ -5,7 +5,8 @@
             <p class="text-[var(--sd-grey-9)] mb-4">申请加入知识库
                 <span class="text-[16px]">{{ invitationValidInfo.invitation.knowledge_name }}</span>
             </p>
-            <a-button type="primary" @click="applyJoinKnowledge" :loading="loading">申请加入</a-button>
+            <a-button type="primary" @click="applyJoinKnowledge" :loading="loading" :disabled="waitApproval">{{ waitApproval ? '已提交申请' : '申请加入' }}</a-button>
+            <p class="my-4 text-[var(--sd-text-caption)]" v-if="waitApproval">等待管理员审核</p>
         </a-flex>
     </a-card>
     <not-found v-else title="邀请链接已失效"/>
@@ -16,6 +17,7 @@ import AvatarDef from '#sk-web/assets/images/avatar_def.png';
 import { useRoute, useRouter } from 'vue-router';
 import { to } from 'await-to-js';
 import { knowLedgeInvite as knowledgeInviteApi } from '@sk/api';
+import { message } from 'ant-design-vue';
 import { type KnowledgeInvitationValidInfo, KnowledgeInvitationStatus, KnowledgeCollaboratorStatus } from '@sk/types';
 const route = useRoute();
 const router = useRouter();
@@ -31,6 +33,16 @@ const invitationValidInfo = reactive<KnowledgeInvitationValidInfo>({
     },
     collaborator: null
 });
+const waitApproval = ref(false);
+// 获取状态统一处理
+const handleInvitationValidInfo = () => {
+    if (invitationValidInfo.collaborator?.status === KnowledgeCollaboratorStatus.ACCEPTED) {
+        router.push(`/knowledge/${knowledgeSlug.value}`);
+    } else if (invitationValidInfo.collaborator?.status === KnowledgeCollaboratorStatus.PENDING) {
+        message.info('你已提交申请');
+        waitApproval.value = true;
+    }
+};
 const getInvitationValidLinkInfo = async (token: string) => {
     const [error, res] = await to(knowledgeInviteApi.getInvitationValidLinkInfo(token));
     if (error) {
@@ -41,10 +53,7 @@ const getInvitationValidLinkInfo = async (token: string) => {
     }
     invitationValidInfo.invitation = res.data.invitation;
     invitationValidInfo.collaborator = res.data.collaborator;
-    // 如果collaborator的status为ACCEPTED，则跳转到知识库页面
-    if (invitationValidInfo.collaborator?.status === KnowledgeCollaboratorStatus.ACCEPTED) {
-        router.push(`/knowledge/${knowledgeSlug.value}`);
-    }
+    handleInvitationValidInfo();
 };
 getInvitationValidLinkInfo(token.value);
 const applyJoinKnowledge = async () => {
@@ -58,9 +67,6 @@ const applyJoinKnowledge = async () => {
         return;
     }
     invitationValidInfo.collaborator = res.data;
-    // 如果collaborator的status为ACCEPTED，则跳转到知识库页面
-    if (invitationValidInfo.collaborator?.status === KnowledgeCollaboratorStatus.ACCEPTED) {
-        router.push(`/knowledge/${knowledgeSlug.value}`);
-    }
+    handleInvitationValidInfo();
 };
 </script>
