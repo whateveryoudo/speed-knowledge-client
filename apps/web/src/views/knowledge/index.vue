@@ -33,8 +33,8 @@
                         <a-dropdown>
                             <EllipsisOutlined />
                             <template #overlay>
-                                <a-menu>
-                                    <a-menu-item>
+                                <a-menu @click="handleMoreOpt">
+                                    <a-menu-item key="auth">
                                         <span>权限</span>
                                     </a-menu-item>
                                 </a-menu>
@@ -55,7 +55,7 @@
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
-                        <DocumentMenus :loading="documentLoading" :tree="documentTree"/>
+                        <DocumentMenus :loading="documentLoading" :tree="documentTree" />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -124,6 +124,13 @@ const handleAddDocumentCb = (newDocSlug: string) => {
     knowledgeStore.initDocumentTree();
     // 跳转对应链接
     router.push(`/knowledge/${slug.value}/document/${newDocSlug}`);
+}
+const handleMoreOpt = (e: any) => {
+    switch (e.key) {
+        case 'auth':
+            router.push(`/knowledge/${slug.value}/manage/auth`);
+            break;
+    }
 }
 // 监听展开收起变化，同步本地存储
 watch(open, (newVal: boolean) => {

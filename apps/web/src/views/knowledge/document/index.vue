@@ -6,6 +6,8 @@
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
             </span>
             <a-space>
+                有{{ collaborating_persons.length }}个人正在编辑,
+                {{ collaborating_persons.map((item: any) => item.name).join(',') }}
                 <a-tooltip title="收藏">
                     <a-button type="text" class="shadow-btn-wrapper">
 
@@ -13,14 +15,16 @@
 
                     </a-button>
                 </a-tooltip>
-                <a-button type="primary" @click="changeToEdit">编辑</a-button>
+                <a-button v-if="currentDocNode?.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
             </a-space>
         </a-flex>
         <div class="flex-1 pt-[52px]">
             <!-- 文档显示 -->
             <SpeedTiptapEditor v-if="documentInfo.id" :editable="currentDocNode?.mode === 'edit'"
                 :title="documentInfo.name" @update:title="knowledgeStore.handleUpdateDocumentName" scene="knowledge"
-                v-bind="editorProps" />
+                v-bind="editorProps" 
+                @update:collaborators="handleCollaboratorsChange"
+                />
         </div>
 
         <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]">
@@ -46,7 +50,7 @@ const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
 const { documentInfo, currentDocNode } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
-
+const collaborating_persons = ref<any[]>([]);
 const editorProps = computed(() => {
     return {
         antdToken: {
@@ -77,6 +81,8 @@ const editorProps = computed(() => {
         collaboration: {
             documentId: documentInfo.value.id,
             url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?userId=' + userInfo.value.id + '&documentId=' + documentInfo.value.id + '&userName=' + userInfo.value.username,// 请先启动后端服务
+            token: window.localStorage.getItem("access_token"),
+            user: userInfo.value
         }
         // 增加ai配置： 目前仅支持 豆包大模型 配置
         // ai: {
@@ -107,6 +113,11 @@ const changeToEdit = () => {
     knowledgeStore.updateDocumentAttrs(documentInfo.value.id, {
         mode: 'edit',
     })
+}
+// 监听协同人员变化(顶部显示)
+const handleCollaboratorsChange = (collaborators: any[]) => {
+    console.log(collaborators);
+    collaborating_persons.value = collaborators;
 }
 // 通过短链获取当前文档的详细信息
 knowledgeStore.initDocumentDetail()

@@ -19,7 +19,7 @@
                 <a-form-item name="verificateCode">
                     <a-input-group compact>
                         <a-input class="w-[calc(100%-92px)]!" v-model:value="form.verificateCode" placeholder="验证码" />
-                        <img class="w-[90px] h-[30px] border border-solid cursor-pointer border-[var(--ant-color-border)] border-l-0 rounded-[4px]"
+                        <img class="w-[90px] h-[32px] border border-solid cursor-pointer border-[var(--ant-color-border)] border-l-0 rounded-[4px]"
                             :src="verificateImg" @click="initVerificateCode" />
                     </a-input-group>
                 </a-form-item>
@@ -48,9 +48,10 @@ import { user as userApi, auth as authApi } from '@sk/api'
 import to from 'await-to-js'
 import { message } from 'ant-design-vue'
 import { useUserStore } from '#sk-web/store/useUserStore'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import logo from '#sk-web/assets/logo.png'
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const title = import.meta.env.VITE_SYS_TITLE
 const loginMode = ref<'login' | 'register'>('login')
@@ -183,7 +184,8 @@ const handleSubmit = async (values: FormData) => {
         // 将token存入localstorage
         localStorage.setItem('access_token', res.data.access_token)
         await userStore.getUserInfo()
-        router.push('/dashboard')
+        const redirect = route.query.redirect as string
+        router.push( redirect || '/dashboard')
         loading.value = false
     }
 }

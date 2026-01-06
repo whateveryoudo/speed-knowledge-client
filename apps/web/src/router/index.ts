@@ -75,7 +75,7 @@ router.beforeEach((to, from, next) => {
   } else {
     const access_token = localStorage.getItem('access_token')
     if (!access_token) {
-      next({ path: '/login' })
+      next({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
     } else {
       const redirectUrl = to.query.redirect as string
       if (redirectUrl) {
