@@ -11,6 +11,7 @@ export interface DocumentItem {
   userId: string;
   type: DocumentType
   name: string;
+  view_count: number;
   slug: string;
   is_public: boolean;
   knowledge_id: string;

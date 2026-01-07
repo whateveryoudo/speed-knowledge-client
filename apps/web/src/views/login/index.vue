@@ -43,7 +43,7 @@
 import { ref, computed } from 'vue'
 import type { AxiosError } from 'axios'
 import type { ResponseType } from '@sk/types'
-import { rges } from '#sk-web/utils/validate'
+import { rges } from '@sk/utils'
 import { user as userApi, auth as authApi } from '@sk/api'
 import to from 'await-to-js'
 import { message } from 'ant-design-vue'

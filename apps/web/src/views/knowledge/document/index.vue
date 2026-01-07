@@ -1,56 +1,68 @@
 <template>
     <a-flex vertical>
-        <a-flex justify="space-between" align="center" class="fixed z-10 right-0 top-0 h-[52px]  px-[14px]"
+        <a-flex justify="space-between" align="center"
+            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[20px] border-0  border-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: `${knowledgeSidebarWidth}px` }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
             </span>
             <a-space>
-                有{{ collaborating_persons.length }}个人正在编辑,
-                {{ collaborating_persons.map((item: any) => item.name).join(',') }}
+                <CollaboratingPersonAvatars v-if="currentDocNode?.mode === 'edit'"
+                    :collaborators="collaborating_persons" />
                 <a-tooltip title="收藏">
                     <a-button type="text" class="shadow-btn-wrapper">
-
                         <StarOutlined class="text-[18px]" />
-
                     </a-button>
                 </a-tooltip>
-                <a-button v-if="currentDocNode?.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
+                <a-button v-if="currentDocNode.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
+                <template v-if="currentDocNode.mode === 'edit'">
+                    <a-button>分享</a-button>
+                </template>
             </a-space>
         </a-flex>
         <div class="flex-1 pt-[52px]">
-            <!-- 文档显示 -->
-            <SpeedTiptapEditor v-if="documentInfo.id" :editable="currentDocNode?.mode === 'edit'"
+            <!-- 文档显示:追加key用于重置编辑器 -->
+            <SpeedTiptapEditor v-if="documentInfo.id" :json="documentContentJson" :key="currentDocNode.mode"
+                :editable="currentDocNode.mode === 'edit'" :menubar="currentDocNode.mode === 'edit'"
                 :title="documentInfo.name" @update:title="knowledgeStore.handleUpdateDocumentName" scene="knowledge"
-                v-bind="editorProps" 
-                @update:collaborators="handleCollaboratorsChange"
-                />
+                v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
         </div>
 
         <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]">
-            <a-space>
-                <a-tooltip title="更新时间于 2025-10-10 20:00:00">
+            <a-space :size="10">
+                <a-tooltip :title="`更新时间于 ${dayjs(documentInfo.content_updated_at).format('YYYY-MM-DD HH:mm:ss')}`">
                     <ClockCircleOutlined />
-                    今天 20:00
+                    {{ transformDatatimeToRecentText(documentInfo.content_updated_at) }}
+                </a-tooltip>
+                <a-tooltip :title="`文档浏览次数 ${documentInfo.view_count}`">
+                    <ReadOutlined />
+                    {{ documentInfo.view_count }}
                 </a-tooltip>
             </a-space>
         </a-flex>
     </a-flex>
 </template>
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { useUserStore } from '#sk-web/store/useUserStore';
 import { StarOutlined } from '@ant-design/icons-vue';
+import { transformDatatimeToRecentText } from '@sk/utils';
+import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
+import type { Collaborator, DocumentNodeTreeItem } from '@sk/types';
+import { to } from 'await-to-js';
+import { document as documentApi } from '@sk/api';
+import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
 const { documentInfo, currentDocNode } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
-const collaborating_persons = ref<any[]>([]);
+const collaborating_persons = ref<Collaborator[]>([]);
+const documentContentJson = ref<string | null>(null);
 const editorProps = computed(() => {
     return {
         antdToken: {
@@ -115,11 +127,27 @@ const changeToEdit = () => {
     })
 }
 // 监听协同人员变化(顶部显示)
-const handleCollaboratorsChange = (collaborators: any[]) => {
-    console.log(collaborators);
+const handleCollaboratorsChange = (collaborators: Collaborator[]) => {
     collaborating_persons.value = collaborators;
 }
 // 通过短链获取当前文档的详细信息
 knowledgeStore.initDocumentDetail()
+
+// 获取当前文档的内容信息
+const getDocumentContent = async (documentId: string) => {
+    const [error, res] = await to(documentApi.getDocumentContent(documentId))
+    if (error) {
+        return
+    }
+    documentContentJson.value = res.data ? JSON.parse(res.data) : null;
+}
+// 监听文档id变化，获取content
+watch(() => currentDocNode.value, (documentNode: DocumentNodeTreeItem) => {
+    if (documentNode.document_id && documentNode.mode === 'preview') {
+        getDocumentContent(documentNode.document_id)
+    }
+}, {
+    immediate: true,
+})
 </script>
 <style lang="less" scoped></style>

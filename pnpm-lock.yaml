@@ -165,7 +165,11 @@ importers:
 
   packages/sk-types: {}
 
-  packages/sk-utils: {}
+  packages/sk-utils:
+    dependencies:
+      dayjs:
+        specifier: ^1.11.19
+        version: 1.11.19
 
 packages:
 

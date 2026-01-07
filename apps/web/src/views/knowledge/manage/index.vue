@@ -2,8 +2,7 @@
    <a-flex class="h-screen">
       <a-flex vertical :gap="2"
          class="basis-[256px] h-full overflow-y-auto p-[16px] border border-solid border-r-1 border-color-[var(--sd-grey-2)]">
-         <div @click="goToKnowledge"
-            class='menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)]'>
+         <div @click="goToKnowledge" class='menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)]'>
             <LeftOutlined class="text-[12px]" />
             <s-icon-font :type="knowledgeInfo.icon" svg-sprite style="width: 18px; height: 18px;" />
             <a-tooltip :title="knowledgeInfo.name">

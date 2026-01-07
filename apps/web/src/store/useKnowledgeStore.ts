@@ -45,17 +45,35 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     slug: '',
     is_public: false,
     knowledge_id: '',
+    view_count: 0,
     content_updated_at: '',
     created_at: '',
     updated_at: '',
   })
+  const defaultDocumentNode: DocumentNodeTreeItem = {
+    id: '',
+    type: DocumentType.WORD,
+    document_slug: '',
+    title: '',
+    parent_id: '',
+    first_child_id: '',
+    document_id: '',
+    prev_id: '',
+    next_id: '',
+    knowledge_id: '',
+    created_at: '',
+    updated_at: '',
+    mode: 'preview',
+  }
   const documentLoading = ref(false)
   // 当前知识库下的文档树
   const documentTree = ref<DocumentNodeTreeItem[]>([])
   // 左侧选中的节点
   const currentDocNode = computed(() => {
-    return documentTree.value.find(
-      (item: DocumentNodeTreeItem) => item.document_slug === document_slug.value,
+    return (
+      documentTree.value.find(
+        (item: DocumentNodeTreeItem) => item.document_slug === document_slug.value,
+      ) || { ...defaultDocumentNode }
     )
   })
   const initDocumentTree = async () => {

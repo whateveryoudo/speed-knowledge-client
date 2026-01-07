@@ -8,7 +8,7 @@
                     <a-flex class="px-2 w-full" justify="space-between" align="center">
                         <a-space>
                             <img @click="router.push('/dashboard')" :src="Logo" alt="logo"
-                                class="w-[16px] cursor-pointer h-auto" />
+                                class="w-[16px] cursor-pointer h-auto relative top-[2px]" />
                             <RightOutlined class="text-xs" />
                             <span
                                 class="text-xs cursor-pointer text-[var(--sd-grey-7)] hover:text-[var(--sd-text-body)]"

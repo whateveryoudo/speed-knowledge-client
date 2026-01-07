@@ -1,6 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/**/*.ts", "src/**/*.tsx", "src/types/**/*.d.ts", "packages/**/*"],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/**/*.ts", "src/**/*.tsx", "src/types/**/*.d.ts", "packages/**/*", "../../packages/sk-utils/src/validate.ts"],
   "exclude": ["src/**/__tests__/*"],
   "baseUrl": ".",
   "compilerOptions": {

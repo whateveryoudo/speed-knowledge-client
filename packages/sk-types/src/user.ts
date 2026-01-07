@@ -15,3 +15,10 @@ export interface UserInfo {
     created_at: string
     updated_at: string
 }
+
+export interface Collaborator {
+    id: number;
+    name: string;
+    color: string;
+    avatar?: string;
+}

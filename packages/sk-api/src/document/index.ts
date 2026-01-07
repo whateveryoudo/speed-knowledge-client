@@ -22,3 +22,8 @@ export const getDocumentDetail = (
 export const updateDocument = (identifier: string, data: Record<string, any>): Promise<ResponseType<DocumentItem>> => {
   return request.put(`${documentPrefix}/${identifier}`, data);
 };
+// 获取文档内容（这里只是读取内容，不是文档其他信息）
+
+export const getDocumentContent = (documentId: string): Promise<ResponseType<any>> => {
+  return request.get(`${documentPrefix}/content/${documentId}`);
+};
