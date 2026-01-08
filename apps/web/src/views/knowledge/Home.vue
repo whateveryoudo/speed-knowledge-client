@@ -4,7 +4,7 @@
             <a-flex justify="space-between" align="center" class="mb-4">
                 <a-space>
                     <s-icon-font style="width: 38px; height: 38px;" svg-sprite type="icon-book-0"></s-icon-font>
-                    {{ knowledgeInfo.name }}
+                    <span class="text-[28px] font-700">{{ knowledgeInfo.name }}</span>
                 </a-space>
                 <a-space>
                     <a-button type="primary">
@@ -15,9 +15,8 @@
                     </a-button>
                     <knowledge-share />
                 </a-space>
-
             </a-flex>
-            <a-flex class="ml-[40px]" :gap="24">
+            <a-flex class="ml-[40px] mb-8" :gap="24">
                 <a-space>
                     <span>
                         <span class="text-[var(--sd-grey-8)] font-bold text-[18px]">1</span> <span
@@ -31,6 +30,8 @@
                     </span>
                 </a-space>
             </a-flex>
+            <SpeedTiptapEditor hide-border  :editorStyle="{ minHeight: 'auto' }" :content="welcomeContent" :editable="false"
+                :menubar="false" />
         </div>
     </div>
 </template>
@@ -41,7 +42,11 @@ import { useUserStore } from '#sk-web/store/useUserStore';
 import { StarOutlined } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import KnowledgeShare from './components/knowledgeShare/index.vue';
+import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
+
 const { knowledgeInfo } = storeToRefs(useKnowledgeStore());
+const welcomeContent = ref('<p><span data-name="wave" data-type="emoji">👋</span> <strong>欢迎来到知识库</strong></p><p style="padding-left: 1em;"> 知识库就像书一样，让多篇文档结构化，方便知识的创作与沉淀</p>');
+
 
 const handleStore = () => {
     // if (value === 1) {

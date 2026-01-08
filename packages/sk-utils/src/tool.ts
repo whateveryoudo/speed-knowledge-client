@@ -8,7 +8,7 @@ export const transformDatatimeToRecentText = (datetime: Date | string) => {
   } else {
     // 如果小于1小时，则显示为xx分钟前
     if (diffMinutes < 60) {
-      return `${diffMinutes}分钟前`;
+      return diffMinutes < 1 ? "刚刚" : `${diffMinutes}分钟前`;
     } else {
       const dayText = diffDays > 1 ? "昨天" : "今天";
       return `${dayText} ${dayjs(datetime).format("HH:mm")}`;

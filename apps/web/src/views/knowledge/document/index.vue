@@ -1,7 +1,7 @@
 <template>
     <a-flex vertical>
         <a-flex justify="space-between" align="center"
-            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[20px] border-0  border-solid border-b-[1px] border-b-[var(--sd-border-light)]"
+            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[20px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: `${knowledgeSidebarWidth}px` }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
@@ -51,18 +51,15 @@ import { useUserStore } from '#sk-web/store/useUserStore';
 import { StarOutlined } from '@ant-design/icons-vue';
 import { transformDatatimeToRecentText } from '@sk/utils';
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
-import type { Collaborator, DocumentNodeTreeItem } from '@sk/types';
-import { to } from 'await-to-js';
-import { document as documentApi } from '@sk/api';
+import type { Collaborator } from '@sk/types';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
-const { documentInfo, currentDocNode } = storeToRefs(knowledgeStore)
+const { documentInfo, currentDocNode, documentContentJson } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
-const documentContentJson = ref<string | null>(null);
 const editorProps = computed(() => {
     return {
         antdToken: {
@@ -130,22 +127,9 @@ const changeToEdit = () => {
 const handleCollaboratorsChange = (collaborators: Collaborator[]) => {
     collaborating_persons.value = collaborators;
 }
-// 通过短链获取当前文档的详细信息
-knowledgeStore.initDocumentDetail()
-
-// 获取当前文档的内容信息
-const getDocumentContent = async (documentId: string) => {
-    const [error, res] = await to(documentApi.getDocumentContent(documentId))
-    if (error) {
-        return
-    }
-    documentContentJson.value = res.data ? JSON.parse(res.data) : null;
-}
-// 监听文档id变化，获取content
-watch(() => currentDocNode.value, (documentNode: DocumentNodeTreeItem) => {
-    if (documentNode.document_id && documentNode.mode === 'preview') {
-        getDocumentContent(documentNode.document_id)
-    }
+watch(currentDocNode, () => {
+    // 通过短链获取当前文档的详细信息
+    knowledgeStore.initDocumentDetail()
 }, {
     immediate: true,
 })

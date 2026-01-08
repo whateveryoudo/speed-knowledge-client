@@ -91,6 +91,8 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>) => {
   // 监听外部变化
   watch(treeData, (newVal) => {
     transformedTree.value = cloneDeep(newVal)
+  }, {
+    deep: true,
   })
 
   return {
