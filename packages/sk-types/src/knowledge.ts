@@ -35,22 +35,67 @@ export enum KnowledgeCollaboratorRole {
   EDIT = 2,
   ADMIN = 3,
 }
+export enum KnowledgeIndexPageLayout {
+  CATALOG = "catalog",
+  CARD = "card",
+  COLUMN = "column",
+}
+export enum KnowledgeIndexPageSort {
+  CATALOG = "catalog",
+  CREATE_TIME = "create_time",
+  UPDATE_TIME = "update_time",
+  LIKE_COUNT = "like_count",
+}
+
 // 角色选项
 export const KnowledgeCollaboratorRoleOptions = [
   {
     label: "可阅读",
     value: KnowledgeCollaboratorRole.READ,
-    tip: '仅拥有只读和评论权限'
+    tip: "仅拥有只读和评论权限",
   },
   {
     label: "可编辑",
     value: KnowledgeCollaboratorRole.EDIT,
-    tip: '拥有文档编辑权限'
+    tip: "拥有文档编辑权限",
   },
   {
     label: "可管理",
     value: KnowledgeCollaboratorRole.ADMIN,
-    tip: '拥有知识库所有权限权限'
+    tip: "拥有知识库所有权限权限",
+  },
+];
+// 首页配置
+export const KnowledgeIndexPageLayoutOptions = [
+  {
+    label: "目录",
+    value: KnowledgeIndexPageLayout.CATALOG,
+  },
+  {
+    label: "卡片",
+    value: KnowledgeIndexPageLayout.CARD,
+  },
+  {
+    label: "专栏",
+    value: KnowledgeIndexPageLayout.COLUMN,
+  },
+];
+export const KnowledgeIndexPageSortOptions = [
+  {
+    label: "目录",
+    value: KnowledgeIndexPageSort.CATALOG,
+  },
+  {
+    label: "创建时间",
+    value: KnowledgeIndexPageSort.CREATE_TIME,
+  },
+  {
+    label: "更新时间",
+    value: KnowledgeIndexPageSort.UPDATE_TIME,
+  },
+  {
+    label: "点赞次数",
+    value: KnowledgeIndexPageSort.LIKE_COUNT,
   },
 ];
 export enum KnowledgeCollaboratorStatus {
@@ -95,4 +140,13 @@ export interface KnowledgeInvitationValidInfo {
   collaborator: null | {
     status: KnowledgeCollaboratorStatus;
   };
+}
+export interface KnowledgeIndexPageResponse extends KnowledgeItem {
+  word_count: number;
+  enable_catalog: boolean;
+  enable_custom_body: boolean;
+  enable_user_feed: boolean;
+  has_collected: boolean;
+  layout: KnowledgeIndexPageLayout;
+  sort: KnowledgeIndexPageSort;
 }

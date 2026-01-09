@@ -6,5 +6,15 @@ import * as knowledge from "./knowledge";
 import * as document from "./document";
 import * as knowLedgeInvite from "./knowledge/invition";
 import { initSkApiConfig } from "./request";
+
 export * from "./path";
-export { attachment, auth, common, user, knowledge, knowLedgeInvite, document, initSkApiConfig };
+export {
+  attachment,
+  auth,
+  common,
+  user,
+  knowledge,
+  knowLedgeInvite,
+  document,
+  initSkApiConfig,
+};

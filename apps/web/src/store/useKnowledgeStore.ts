@@ -50,7 +50,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     created_at: '',
     updated_at: '',
   })
-  const documentContentJson = ref<string | null>(null);
+  const documentContentJson = ref<string | null>(null)
 
   const defaultDocumentNode: DocumentNodeTreeItem = {
     id: '',
@@ -120,27 +120,32 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
   // 获取当前文档的内容信息
-const getDocumentContent = async (documentId: string) => {
-  const [error, res] = await to(documentApi.getDocumentContent(documentId))
-  if (error) {
+  const getDocumentContent = async (documentId: string) => {
+    const [error, res] = await to(documentApi.getDocumentContent(documentId))
+    if (error) {
       return
+    }
+    documentContentJson.value = res.data ? JSON.parse(res.data) : null
   }
-  documentContentJson.value = res.data ? JSON.parse(res.data) : null;
-}
   const initDocumentDetail = async () => {
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
       if (documentInfo.value.id && currentDocNode.value.mode === 'preview') {
         getDocumentContent(documentInfo.value.id)
-    }
+      }
     }
   }
-  // 文档更新
-  const handleUpdateDocumentName = async (text: string, cb?: any) => {
+  // 文档更新(追加触发方式：编辑器自身触发不用更新后端二进制文件)
+  const handleUpdateDocumentName = async (
+    text: string,
+    trigger: 'outer' | 'editor' = 'outer',
+    cb?: any,
+  ) => {
     const [error, res] = await to(
       documentApi.updateDocument(documentInfo.value.id, {
         name: text,
+        trigger,
       }),
     )
     if (!error) {
@@ -154,7 +159,7 @@ const getDocumentContent = async (documentId: string) => {
       }
     }
   }
- 
+
   return {
     // 状态
     documentInfo,
@@ -163,7 +168,7 @@ const getDocumentContent = async (documentId: string) => {
     documentTree,
     documentLoading,
     currentDocNode,
-    
+
     // 方法
     initKnowledge,
     initDocumentTree,

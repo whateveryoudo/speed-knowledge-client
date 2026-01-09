@@ -1,7 +1,7 @@
 <template>
     <a-flex vertical>
         <a-flex justify="space-between" align="center"
-            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[20px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
+            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: `${knowledgeSidebarWidth}px` }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
@@ -17,15 +17,21 @@
                 <a-button v-if="currentDocNode.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
                 <template v-if="currentDocNode.mode === 'edit'">
                     <a-button>分享</a-button>
+                    <a-tooltip title="文档会自动更新到阅读页">
+                        <a-button @click="knowledgeStore.updateDocumentAttrs(documentInfo.id, { mode: 'preview' })">
+                            保存
+                        </a-button>
+                    </a-tooltip>
                 </template>
             </a-space>
         </a-flex>
         <div class="flex-1 pt-[52px]">
             <!-- 文档显示:追加key用于重置编辑器 -->
-            <SpeedTiptapEditor v-if="documentInfo.id" :json="documentContentJson" :key="currentDocNode.mode"
+            <SpeedTiptapEditor v-if="currentDocNode.id" :json="documentContentJson" :key="currentDocNode.mode"
                 :editable="currentDocNode.mode === 'edit'" :menubar="currentDocNode.mode === 'edit'"
-                :title="documentInfo.name" @update:title="knowledgeStore.handleUpdateDocumentName" scene="knowledge"
-                v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
+                :title="documentInfo.name"
+                @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(val, 'editor')"
+                scene="knowledge" v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
         </div>
 
         <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]">
@@ -114,7 +120,7 @@ const editorProps = computed(() => {
     }
 })
 const toggleInputChange = (state: { text: string; flag: boolean }) => {
-    knowledgeStore.handleUpdateDocumentName(state.text, () => {
+    knowledgeStore.handleUpdateDocumentName(state.text, 'outer', () => {
         state.flag = false;
     })
 }
@@ -127,11 +133,19 @@ const changeToEdit = () => {
 const handleCollaboratorsChange = (collaborators: Collaborator[]) => {
     collaborating_persons.value = collaborators;
 }
-watch(currentDocNode, () => {
+watch(() => currentDocNode.value.id, (val: string) => {
     // 通过短链获取当前文档的详细信息
-    knowledgeStore.initDocumentDetail()
+    if (val) {
+        knowledgeStore.initDocumentDetail()
+    }
 }, {
     immediate: true,
+})
+// 切换重新请求内容
+watch(() => currentDocNode.value.mode, (val: 'edit' | 'preview') => {
+    if (val === 'preview') {
+        knowledgeStore.initDocumentDetail()
+    }
 })
 </script>
 <style lang="less" scoped></style>
