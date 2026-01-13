@@ -33,7 +33,8 @@
     </div>
 
     <div class="flex-1 overflow-y-auto">
-      <CatelogTree :loading="loading" :tree="tree" />
+      <CatelogTree :loading="loading" :tree="tree" @delete-document="emit('delete-document', $event)"
+        @rename-document="emit('rename-document', $event)" />
     </div>
   </a-flex>
 
@@ -52,7 +53,17 @@ const props = withDefaults(defineProps<{
 })
 const route = useRoute();
 const router = useRouter();
-
+const emit = defineEmits<{
+  (e: 'rename-document', params: {
+    id: string,
+    title: string,
+    cb: () => void
+  }): Promise<void>
+  (e: 'delete-document', params: {
+    id: string,
+    cb: () => void
+  }): Promise<void>
+}>();
 const handleHomeClick = () => {
   router.push(`/knowledge/${route.params.slug}`);
 }

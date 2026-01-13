@@ -25,4 +25,9 @@ export default defineConfigWithVueTs(
     files: ['src/**/__tests__/*'],
   },
   skipFormatting,
+  {
+    rules: {
+      'vue/no-v-model-argument': 'off',
+    },
+  },
 )

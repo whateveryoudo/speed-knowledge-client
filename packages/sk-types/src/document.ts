@@ -33,5 +33,6 @@ export interface DocumentNodeTreeItem {
   created_at: string;
   updated_at: string;
   mode: 'preview' | 'edit';
+  children?: DocumentNodeTreeItem[];
 }
 

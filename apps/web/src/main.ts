@@ -10,7 +10,7 @@ import SpeedComponents from 'speed-components-ui-dev/debug'
 import 'speed-components-ui/dist/style.css'
 import { useAntdCssVars } from 'speed-components-ui/hooks'
 import globalComponents from '#sk-web/components/global'
-import { attachment as attachmentApi, initSkApiConfig, attachmentPrefix } from '@sk/api'
+import { attachment as attachmentApi, initSkApiConfig, attachmentPrefix, apiVersion } from '@sk/api'
 import { message } from 'ant-design-vue'
 import 'uno.css'
 import '#sk-web/assets/base.less'
@@ -37,7 +37,37 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
-app.use(SpeedTiptapEditor)
+app.use(SpeedTiptapEditor, {
+  apis: {
+    fileDownload: attachmentApi.fileDownload,
+    fileUploadSingle: attachmentApi.fileUploadSingle,
+    // fileUploadMulti: attachmentApi.fileUploadMulti,
+    // fileDel: attachmentApi.fileDel,
+    // 主要用于图片预览
+    getPreviewUrl: (fileId: string) => {
+      const access_token = localStorage.getItem('access_token');
+      const appUrl = (import.meta as any).env.VITE_APP_PROXY_URL;
+      return `${appUrl}${apiVersion}/attachment/preview/${fileId}?access_token=${access_token}`
+    },
+    // 主要用于文件预览
+    getFilePreviewUrl: (fileId: string) => {
+      const access_token = localStorage.getItem('access_token');
+      const appUrl = (import.meta as any).env.VITE_APP_PROXY_URL;
+      return `${appUrl}${apiVersion}/attachment/onlyoffice/file-preview/${fileId}?access_token=${access_token}`
+    },
+  },
+  // 附件单条数据转换(image/file通用)
+  upload: {
+    transformFileItem: (item: any) => {
+      return {
+        id: item.id,
+        fileType: item.file_type,
+        fileSize: item.file_size,
+        fileName: item.file_name,
+      }
+    }
+  }
+})
 app.use(SpeedComponents, {
   apis: {
     fileUploadSingle: attachmentApi.fileUploadSingle,

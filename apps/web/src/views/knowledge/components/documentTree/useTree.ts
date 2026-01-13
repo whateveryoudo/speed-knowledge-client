@@ -12,6 +12,44 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>) => {
   const router = useRouter()
   const route = useRoute()
   const transformedTree = ref<DocumentNodeTreeItem[]>([])
+  // 使用 Map 统一管理所有节点的 UI 临时状态
+  type NodeUIState = {
+    showActions: boolean
+    moreOpen: boolean
+    addOpen: boolean
+    renaming: boolean
+  }
+
+  const nodeUIStateMap = ref<Map<string, NodeUIState>>(new Map())
+  /**
+   * 获取节点 UI 状态
+   */
+  const getNodeUIState = (nodeId: string, key: keyof NodeUIState): any => {
+    const state = nodeUIStateMap.value.get(nodeId)
+    if (!state) {
+      const defaultState: NodeUIState = {
+        showActions: false,
+        moreOpen: false,
+        addOpen: false,
+        renaming: false,
+      }
+      nodeUIStateMap.value.set(nodeId, defaultState)
+      return defaultState[key]
+    }
+    return state[key]
+  }
+  /**
+   * 设置节点 UI 状态
+   */
+  const setNodeUIState = (nodeId: string, updates: Partial<NodeUIState>) => {
+    const currentState = nodeUIStateMap.value.get(nodeId) || {
+      showActions: false,
+      moreOpen: false,
+      addOpen: false,
+      renaming: false,
+    }
+    nodeUIStateMap.value.set(nodeId, { ...currentState, ...updates })
+  }
 
   const activeKey = computed(() => {
     return (route.params.document_slug as string) || ''
@@ -89,11 +127,15 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>) => {
     transformedTree.value = data
   }
   // 监听外部变化
-  watch(treeData, (newVal) => {
-    transformedTree.value = cloneDeep(newVal)
-  }, {
-    deep: true,
-  })
+  watch(
+    treeData,
+    (newVal) => {
+      transformedTree.value = cloneDeep(newVal)
+    },
+    {
+      deep: true,
+    },
+  )
 
   return {
     transformedTree,
@@ -101,5 +143,7 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>) => {
     onDragEnter,
     handleTreeSelect,
     onDrop,
+    getNodeUIState,
+    setNodeUIState,
   }
 }

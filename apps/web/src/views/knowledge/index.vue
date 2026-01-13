@@ -55,7 +55,8 @@
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
-                        <DocumentMenus :loading="documentLoading" :tree="documentTree" />
+                        <DocumentMenus :loading="documentLoading" :tree="documentTree"
+                            @delete-document="handleDeleteDocument" @rename-document="handleRenameDocument" />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -119,11 +120,30 @@ const handleToggle = () => {
 const handleTogglePublic = () => {
     // TODO:
 }
-const handleAddDocumentCb = (newDocSlug: string) => {
+const handleAddDocumentCb = async (newDocSlug: string) => {
     console.log('新增文档', newDocSlug)
-    knowledgeStore.initDocumentTree();
+    await knowledgeStore.initDocumentTree();
+    // 这里修改当前知识库节点为编辑中
+    knowledgeStore.updateDocumentAttrs(newDocSlug, {
+        mode: 'edit',
+    })
     // 跳转对应链接
     router.push(`/knowledge/${slug.value}/document/${newDocSlug}`);
+}
+const handleDeleteDocument = async (params: {
+    id: string,
+    cb?: () => void
+}) => {
+    await knowledgeStore.deleteDocument(params.id);
+    params.cb && params.cb();
+}
+const handleRenameDocument = async (params: {
+    id: string,
+    title: string,
+    cb?: () => void
+}) => {
+    await knowledgeStore.handleUpdateDocumentName(params.id, params.title, 'outer', params.cb);
+    params.cb && params.cb();
 }
 const handleMoreOpt = (e: any) => {
     switch (e.key) {

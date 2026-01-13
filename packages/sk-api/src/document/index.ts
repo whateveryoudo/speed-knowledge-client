@@ -27,3 +27,8 @@ export const updateDocument = (identifier: string, data: Record<string, any>): P
 export const getDocumentContent = (documentId: string): Promise<ResponseType<any>> => {
   return request.get(`${documentPrefix}/content/${documentId}`);
 };
+
+// 删除文档
+export const deleteDocument = (documentId: string): Promise<ResponseType<any>> => {
+  return request.delete(`${documentPrefix}/${documentId}`);
+};

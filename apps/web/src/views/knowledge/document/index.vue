@@ -18,7 +18,7 @@
                 <template v-if="currentDocNode.mode === 'edit'">
                     <a-button>分享</a-button>
                     <a-tooltip title="文档会自动更新到阅读页">
-                        <a-button @click="knowledgeStore.updateDocumentAttrs(documentInfo.id, { mode: 'preview' })">
+                        <a-button @click="setPreviewMode">
                             保存
                         </a-button>
                     </a-tooltip>
@@ -27,14 +27,14 @@
         </a-flex>
         <div class="flex-1 pt-[52px]">
             <!-- 文档显示:追加key用于重置编辑器 -->
-            <SpeedTiptapEditor v-if="currentDocNode.id" :json="documentContentJson" :key="currentDocNode.mode"
-                :editable="currentDocNode.mode === 'edit'" :menubar="currentDocNode.mode === 'edit'"
-                :title="documentInfo.name"
-                @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(val, 'editor')"
+            <SpeedTiptapEditor v-if="knowledgeStore.showEditor" :json="documentContentJson"
+                :key="documentInfo.id + '-' + currentDocNode.mode" :editable="currentDocNode.mode === 'edit'"
+                :menubar="currentDocNode.mode === 'edit'" :title="documentInfo.name"
+                @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(documentInfo.id, val, 'editor')"
                 scene="knowledge" v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
         </div>
 
-        <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]">
+        <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]" v-if="currentDocNode.mode === 'preview'">
             <a-space :size="10">
                 <a-tooltip :title="`更新时间于 ${dayjs(documentInfo.content_updated_at).format('YYYY-MM-DD HH:mm:ss')}`">
                     <ClockCircleOutlined />
@@ -58,6 +58,7 @@ import { StarOutlined } from '@ant-design/icons-vue';
 import { transformDatatimeToRecentText } from '@sk/utils';
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
 import type { Collaborator } from '@sk/types';
+import { attachment as attachmentApi, apiVersion } from '@sk/api';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
@@ -70,28 +71,6 @@ const editorProps = computed(() => {
     return {
         antdToken: {
             colorPrimary: '#00b96b',
-        },
-        upload: {
-            // uploadApis: {
-            //     fileDownload: fileDownload,
-            //     fileUploadSingle: fileUploadSingle,
-            //     fileUploadMulti: fileUploadMulti,
-            //     fileDel: fileDel,
-            //     // 主要用于图片预览
-            //     getPreviewUrl: (fileId: string) => {
-            //         // 实际情况替换为实际地址(此处为本地启动的node附件服务)
-            //         const globalStore = useGlobalStore();
-            //         const token = globalStore.openJwt ? localStorage.getItem('speed-tiptap-token') : 'speed-test-token'; // 未开启jwt 则使用一个模拟值
-            //         return "//localhost:3005/attachment/preview/" + fileId + `?token=${token}`;
-            //     },
-            //     // 主要用于文件预览
-            //     getFilePreviewUrl: (fileId: string) => {
-            //         // 实际情况替换为实际地址(此处为本地启动的node附件服务)
-            //         const globalStore = useGlobalStore();
-            //         const token = globalStore.openJwt ? localStorage.getItem('speed-tiptap-token') : 'speed-test-token'; // 未开启jwt 则使用一个模拟值
-            //         return "//localhost:3005/onlyoffice/filePreview/" + fileId + `?token=${token}`;
-            //     },
-            // },
         },
         collaboration: {
             documentId: documentInfo.value.id,
@@ -120,7 +99,7 @@ const editorProps = computed(() => {
     }
 })
 const toggleInputChange = (state: { text: string; flag: boolean }) => {
-    knowledgeStore.handleUpdateDocumentName(state.text, 'outer', () => {
+    knowledgeStore.handleUpdateDocumentName(documentInfo.value.id, state.text, 'outer', () => {
         state.flag = false;
     })
 }
@@ -133,6 +112,10 @@ const changeToEdit = () => {
 const handleCollaboratorsChange = (collaborators: Collaborator[]) => {
     collaborating_persons.value = collaborators;
 }
+const setPreviewMode = () => {
+    knowledgeStore.updateDocumentAttrs(documentInfo.value.id, { mode: 'preview' })
+    knowledgeStore.initDocumentDetail(false)// 重新获取文档内容
+}
 watch(() => currentDocNode.value.id, (val: string) => {
     // 通过短链获取当前文档的详细信息
     if (val) {
@@ -141,11 +124,6 @@ watch(() => currentDocNode.value.id, (val: string) => {
 }, {
     immediate: true,
 })
-// 切换重新请求内容
-watch(() => currentDocNode.value.mode, (val: 'edit' | 'preview') => {
-    if (val === 'preview') {
-        knowledgeStore.initDocumentDetail()
-    }
-})
+
 </script>
 <style lang="less" scoped></style>
