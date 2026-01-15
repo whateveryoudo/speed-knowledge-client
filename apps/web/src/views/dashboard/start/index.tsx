@@ -7,10 +7,25 @@ import {
   Segmented,
   Table,
   type TableColumnType,
+  Space,
 } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { DownOutlined } from '@ant-design/icons-vue'
 import { Empty0 } from '#sk-web/components/global'
+import { dashboard as dashboardApi } from '@sk/api'
+import { transformDatatimeToRecentText } from '@sk/utils'
+// 注意:后面需要替换为包的
+import { useTable } from 'speed-components-ui-dev/debug/hooks'
+
+import {
+  documentHistoryTypeOptions,
+  documentTypeOptions,
+  type DashboardDocumentHistoryResponse,
+  DocumentHistoryType,
+  DocumentType,
+} from '@sk/types'
+import router from '#sk-web/router'
+import AddKnowledge from '../components/addMenu/AddKnowledge.vue'
 type MenuBtnItem = {
   label: string
   key: string
@@ -19,15 +34,9 @@ type MenuBtnItem = {
   overlay?: MenuBtnItem[]
 }
 
-type DocumentItem = {
-  title: string
-  space: string
-  created_at: string
-  key?: string
-}
 export default defineComponent({
   name: 'Start',
-  setup(props) {
+  setup(props, { emit }) {
     const startMenus = ref<MenuBtnItem[]>([
       {
         label: '新建文档',
@@ -49,35 +58,95 @@ export default defineComponent({
         desc: '使用知识库整理知识',
       },
     ])
-    const docListLoading = ref(false)
-    const dataSource = ref<DocumentItem[]>([])
-    const columns: TableColumnType<DocumentItem>[] = [
+    const openAddKnowledge = ref<boolean>(false)
+    const getDocumentTypeIcon = (type: DocumentType) => {
+      return documentTypeOptions.find((item) => item.value === type)?.icon
+    }
+    const columns: TableColumnType<DashboardDocumentHistoryResponse>[] = [
       {
         title: '文档标题',
-        dataIndex: 'title',
+        dataIndex: 'doc_name',
+        customRender: ({ record }: { record: DashboardDocumentHistoryResponse }) => {
+          return (
+            <Space>
+              <IconFont
+                svgSprite
+                type={getDocumentTypeIcon(record.doc_type)}
+                style={{ width: '22px', height: '22px' }}
+              />
+              <span
+                class="text-[var(--sd-text-primary)] cursor-pointer"
+                onClick={() => {
+                  router.push(
+                    `/knowledge/${record.doc_belong_knowledge_slug}/document/${record.doc_slug}`,
+                  )
+                }}
+              >
+                {record.doc_name}
+              </span>
+            </Space>
+          )
+        },
       },
       {
-        title: '文档空间/知识库',
-        dataIndex: 'space',
+        title: '创建者/知识库',
+        dataIndex: 'doc_belong_knowledge_name',
+        customRender: ({ record }: { text: string; record: DashboardDocumentHistoryResponse }) => {
+          // TODO:个人花园展示
+          return (
+            <span class="text-[var(--sd-text-caption)]">
+              {record.doc_creator}
+              <span class="mx-1">/</span>
+              <span
+                class="cursor-pointer"
+                onClick={() => {
+                  router.push(`/knowledge/${record.doc_belong_knowledge_slug}`)
+                }}
+              >
+                {record.doc_belong_knowledge_name}
+              </span>
+            </span>
+          )
+        },
       },
       {
-        title: '创建时间',
-        dataIndex: 'created_at',
+        title: '触发时间',
+        dataIndex: 'update_datetime',
+        customRender: ({ text }: { text: string }) => {
+          return (
+            <span class="text-[var(--sd-text-caption)]">{transformDatatimeToRecentText(text)}</span>
+          )
+        },
       },
     ]
-    const docType = ref<string>('edited')
-    const documentTypeOptions = ref([
-      { value: 'edited', label: '编辑过' },
-      { value: 'browsed', label: '浏览过' },
-    ])
+    const docType = ref<DocumentHistoryType>(DocumentHistoryType.EDIT)
+
     const curDocTypeName = computed(() => {
-      return documentTypeOptions.value.find((item) => item.value === docType.value)?.label
+      return documentHistoryTypeOptions.find((item) => item.value === docType.value)?.label
     })
+    const options = computed(() => {
+      return {
+        extraParams: {
+          history_type: docType.value,
+        },
+      }
+    })
+
+    const { dataSource, loading, getList, pagination } = useTable(
+      dashboardApi.getDocumentHistoryList,
+      options,
+    )
+
+    // 初始化列表
+    getList()
     const triggerRender = (item: MenuBtnItem) => (
-      <Flex
-        align="center"
-        gap={8}
-        class="relative px-4 py-[8px] rounded-[8px] border border-solid border-[var(--sd-border-grey-4)] cursor-pointer hover:bg-[var(--sd-bg-secondary)]"
+      <div
+        class="flex items-center relative px-4 py-[8px] rounded-[8px] border border-solid border-[var(--sd-border-grey-4)] cursor-pointer hover:bg-[var(--sd-bg-secondary)]"
+        onClick={() => {
+          if (item.key === 'knowledge') {
+            openAddKnowledge.value = true
+          }
+        }}
       >
         <IconFont
           type={item.icon}
@@ -92,7 +161,7 @@ export default defineComponent({
         {item.overlay && (
           <DownOutlined class="text-[12px] text-[var(--sd-text-grey-900)] opacity-60" />
         )}
-      </Flex>
+      </div>
     )
     const overlayRender = (overLayList: MenuBtnItem[]) => {
       return (
@@ -126,20 +195,23 @@ export default defineComponent({
           </div>
         </div>
         <h3 class="text-[18px] mt-6 mb-4">文档</h3>
-        <div class="w-fit">
+        <div class="w-fit mb-4">
           <Segmented
             value={docType.value}
-            onChange={(value: string | number) => {
-              docType.value = value as string
+            onChange={(value: any) => {
+              docType.value = value as DocumentHistoryType
+              getList()
             }}
-            options={documentTypeOptions.value}
+            options={documentHistoryTypeOptions}
           ></Segmented>
         </div>
         <Table
+          rowKey="id"
           columns={columns}
           dataSource={dataSource.value}
-          loading={docListLoading.value}
+          loading={loading.value}
           showHeader={false}
+          pagination={pagination.value}
           v-slots={{
             emptyText: () => (
               <Empty0
@@ -149,6 +221,12 @@ export default defineComponent({
             ),
           }}
         ></Table>
+
+        <AddKnowledge
+          open={openAddKnowledge.value}
+          onOk={(newSlug: string) => router.push(`/knowledge/${newSlug}`)}
+          onUpdate:open={(flag: boolean) => (openAddKnowledge.value = flag)}
+        />
       </Flex>
     )
   },

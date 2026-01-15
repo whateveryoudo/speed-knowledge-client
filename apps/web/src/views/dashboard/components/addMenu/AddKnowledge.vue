@@ -152,8 +152,8 @@ const handleOk = async () => {
             icon: form.value.icon,
         }
         const [error, res] = await to(knowledgeApi.addKnowledge(reqParams))
+        loading.value = false;
         if (error) {
-            loading.value = false;
             return
         }
         emit('update:open', false)

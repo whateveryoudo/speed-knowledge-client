@@ -17,6 +17,13 @@ export type ResponseType<T = any> = {
   [key: string]: any;
 };
 
+export type PaginationResponse<T = any> = {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
 type ApiOptions = {
   baseURL: string;
   onUnauthorized?: () => void;

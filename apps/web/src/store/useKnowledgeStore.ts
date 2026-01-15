@@ -153,7 +153,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
-      showLoading && message.loading('文档初始化中...', 0.5);
+      showLoading && currentDocNode.value.mode === 'edit' && message.loading('文档初始化中...', 0.5);
       showEditor.value = true;
       if (documentInfo.value.id && currentDocNode.value.mode === 'preview') {
         getDocumentContent(documentInfo.value.id)

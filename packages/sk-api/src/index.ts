@@ -4,6 +4,7 @@ import * as common from "./common";
 import * as user from "./user";
 import * as knowledge from "./knowledge";
 import * as document from "./document";
+import * as dashboard from "./dashboard";
 import * as knowLedgeInvite from "./knowledge/invition";
 import { initSkApiConfig } from "./request";
 
@@ -13,6 +14,7 @@ export {
   auth,
   common,
   user,
+  dashboard,
   knowledge,
   knowLedgeInvite,
   document,

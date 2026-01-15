@@ -13,7 +13,7 @@ export const login = (
     },
     transformRequest: [
       function (data: LoginParams) {
-        return new URLSearchParams(data).toString();
+        return new URLSearchParams(data as unknown as Record<string, string>).toString();
       },
     ],
   });

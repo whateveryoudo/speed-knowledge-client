@@ -9,7 +9,7 @@
                     'cursor-pointer': true,
                 }" @click="handleBookClick(book)">
                 <a-button type="text"
-                    class="shadow-btn-wrapper drag-handle icon mr-1 cursor-move group-hover:opacity-100  opacity-0">
+                    class="shadow-btn-wrapper drag-handle icon cursor-move group-hover:opacity-100  opacity-0">
                     <HolderOutlined />
                 </a-button>
                 <s-icon-font :type="book.icon" class="mr-2" svg-sprite style="width: 18px; height: 18px;" />

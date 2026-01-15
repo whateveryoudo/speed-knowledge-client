@@ -6,6 +6,14 @@ export enum DocumentNodeType {
 export enum DocumentType {
   WORD = "word"
 }
+
+export const documentTypeOptions = [
+  {
+    label: '文档',
+    value: DocumentType.WORD,
+    icon: 'icon-document',
+  },
+] as const
 export interface DocumentItem {
   id: string;
   userId: string;

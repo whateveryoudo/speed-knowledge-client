@@ -37,7 +37,7 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.use(router)
-app.use(SpeedTiptapEditor, {
+app.use((SpeedTiptapEditor as any), {
   apis: {
     fileDownload: attachmentApi.fileDownload,
     fileUploadSingle: attachmentApi.fileUploadSingle,
@@ -68,12 +68,23 @@ app.use(SpeedTiptapEditor, {
     }
   }
 })
-app.use(SpeedComponents, {
+app.use((SpeedComponents as any), {
   apis: {
     fileUploadSingle: attachmentApi.fileUploadSingle,
     getPreviewUrl: (attachmentId: string) => {
       return `${import.meta.env.VITE_APP_PROXY_URL}${attachmentPrefix}/preview/${attachmentId}?access_token=${localStorage.getItem('access_token')}`
     },
+  },
+  useLoadConfig: {
+    pageSizekey: 'page_size',
+  },
+  // 通用请求转换（分页结果）
+  transformRequsRes: (res: any) => {
+    return {
+      data: res.data?.items ?? [],
+      totalCount: res.data?.total ?? 0,
+      success: res.errCode === 0
+    }
   },
   // 附件单条数据转换
   transformFileItem: (item: any) => {

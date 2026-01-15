@@ -1,7 +1,7 @@
 <template>
     <a-flex vertical>
         <a-flex justify="space-between" align="center"
-            class="fixed z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
+            class="fixed bg-[#fff] z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: `${knowledgeSidebarWidth}px` }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
@@ -27,11 +27,13 @@
         </a-flex>
         <div class="flex-1 pt-[52px]">
             <!-- 文档显示:追加key用于重置编辑器 -->
-            <SpeedTiptapEditor v-if="knowledgeStore.showEditor" :json="documentContentJson"
-                :key="documentInfo.id + '-' + currentDocNode.mode" :editable="currentDocNode.mode === 'edit'"
-                :menubar="currentDocNode.mode === 'edit'" :title="documentInfo.name"
-                @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(documentInfo.id, val, 'editor')"
-                scene="knowledge" v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
+            <SkeletonList :loading="!knowledgeStore.showEditor" style="padding: 20px">
+                <SpeedTiptapEditor :json="documentContentJson" v-if="knowledgeStore.showEditor"
+                    :key="documentInfo.id + '-' + currentDocNode.mode" :editable="currentDocNode.mode === 'edit'"
+                    :menubar="currentDocNode.mode === 'edit'" :title="documentInfo.name"
+                    @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(documentInfo.id, val, 'editor')"
+                    scene="knowledge" v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
+            </SkeletonList>
         </div>
 
         <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]" v-if="currentDocNode.mode === 'preview'">
