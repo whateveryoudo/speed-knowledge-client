@@ -44,3 +44,10 @@ export interface DocumentNodeTreeItem {
   children?: DocumentNodeTreeItem[];
 }
 
+
+
+export interface DragDocumentParams {
+  action: 'moveAfter' | 'moveBefore' | 'prependChild',
+  node_id: string,
+  target_id: string
+}

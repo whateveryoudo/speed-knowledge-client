@@ -1,8 +1,8 @@
 <template>
     <SkeletonList :loading="loading">
-        <a-tree v-if="tree.length > 0" :selectedKeys="[activeKey]" :fieldNames="{ key: 'document_slug' }"
-            :virtual="false" class="speed-knowledge-tree" blockNode draggable :tree-data="transformedTree"
-            @dragenter="onDragEnter" @drop="onDrop" @select="handleTreeSelect">
+        <a-tree v-if="transformedTree.length > 0" :selectedKeys="[activeKey]" v-model:expandedKeys="expandedKeys"
+            :fieldNames="{ key: 'id' }" :virtual="false" class="speed-knowledge-tree" blockNode draggable
+            :tree-data="transformedTree" @dragenter="onDragEnter" @drop="onDrop" @select="handleTreeSelect">
             <template #title="{ dataRef: record }">
                 <a-input ref="renameInputRef" @blur="(e: any) => handleRenameBlur(e.target.value, record)" size="small"
                     v-if="getNodeUIState(record.id, 'renaming')" :value="record.title" />
@@ -44,8 +44,8 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref, h } from 'vue';
-import { type DocumentNodeTreeItem } from '@sk/types';
 import { useTree } from './useTree';
+import { type DragDocumentParams, type DocumentNodeTreeItem } from '@sk/types';
 import { documentMoreMenus } from './menus';
 import { Modal, message } from 'ant-design-vue';
 const props = withDefaults(defineProps<{
@@ -70,11 +70,15 @@ const emit = defineEmits<{
         id: string,
         cb: () => void
     }): Promise<void>
+    (e: 'drag-document-end', params: {
+        newTree: DocumentNodeTreeItem[],
+        operation: DragDocumentParams
+    }): Promise<void>
 }>();
-const { handleTreeSelect, onDrop, activeKey, transformedTree, onDragEnter,
+const { handleTreeSelect, onDrop, activeKey, transformedTree, onDragEnter, expandedKeys,
     getNodeUIState,
     setNodeUIState,
-} = useTree(cptTree)
+} = useTree(cptTree, emit)
 const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
     console.log(key)
     switch (key) {
@@ -155,6 +159,7 @@ const handleRenameBlur = async (value: string, record: DocumentNodeTreeItem) => 
 @tree-line-height: 32px;
 
 .speed-knowledge-tree.ant-tree {
+    padding: 8px 0;
     background: transparent;
 
     .ant-tree-switcher {

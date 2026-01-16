@@ -14,6 +14,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 // 获取当前知识库详情
 import { knowledge as knowledgeApi } from '@sk/api'
+import type { DragDocumentParams } from '@sk/types'
+import { arrayToTree } from '@sk/utils'
 export const useKnowledgeStore = defineStore('knowledge', () => {
   const router = useRouter()
   const route = useRoute()
@@ -72,19 +74,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   // 当前知识库下的文档树
   const documentTree = ref<DocumentNodeTreeItem[]>([])
   // 扁平化的文档树
-  const flattenDocumentTree = (tree: DocumentNodeTreeItem[]): DocumentNodeTreeItem[] => {
-    return tree.reduce((acc: DocumentNodeTreeItem[], item: DocumentNodeTreeItem) => {
-      acc.push(item)
-      if (item.children) {
-        acc.push(...flattenDocumentTree(item.children))
-      }
-      return acc
-    }, [])
-  }
+  const flattenDocumentTree = ref<DocumentNodeTreeItem[]>([])
   // 左侧选中的节点
   const currentDocNode = computed(() => {
     return (
-      documentTree.value.find(
+      flattenDocumentTree.value.find(
         (item: DocumentNodeTreeItem) => item.document_slug === document_slug.value,
       ) || { ...defaultDocumentNode }
     )
@@ -97,37 +91,35 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       return
     }
     documentLoading.value = false
-    const loopSetTempState = (
-      data: DocumentNodeTreeItem[],
-      tempState: Partial<DocumentNodeTreeItem>,
-    ) => {
-      data.forEach((item: DocumentNodeTreeItem) => {
-        Object.entries(tempState).forEach(([key, value]) => {
-          item[key as keyof DocumentNodeTreeItem] = value as never
-        })
-        if (item.children) {
-          loopSetTempState(item.children, tempState)
-        }
-      })
-      return data
-    }
+
     // 初始化一些 中间态
-    documentTree.value = res.data ? loopSetTempState(res.data, { mode: 'preview' }) : []
+
+    flattenDocumentTree.value = res.data
+      ? res.data.map((item) => ({ ...item, mode: 'preview' }))
+      : []
+    // 转换为树结构
+    documentTree.value = arrayToTree(flattenDocumentTree.value, {
+      useChainOrder: true,
+    })
+    console.log('documentTree.value', documentTree.value)
   }
 
   // 更新文档属性(支持通过id或slug更新)
   const updateDocumentAttrs = (identifier: string, attrs: Partial<DocumentNodeTreeItem>) => {
-    const index = documentTree.value.findIndex(
+    const index = flattenDocumentTree.value.findIndex(
       (item) => item.document_id === identifier || item.document_slug === identifier,
     )
     if (index !== -1) {
       Object.entries(attrs).forEach(([key, value]) => {
-        const item = documentTree.value[index]!
+        const item = flattenDocumentTree.value[index]!
         if (item) {
           item[key as keyof DocumentNodeTreeItem] = value as never
         }
       })
     }
+    documentTree.value = arrayToTree(flattenDocumentTree.value, {
+      useChainOrder: true,
+    })
   }
   const initKnowledge = async () => {
     const [error, res] = await to(
@@ -149,12 +141,12 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentContentJson.value = res.data ? JSON.parse(res.data) : null
   }
   const initDocumentDetail = async (showLoading = true) => {
-    showEditor.value = false;
+    showEditor.value = false
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
-      showLoading && currentDocNode.value.mode === 'edit' && message.loading('文档初始化中...', 0.5);
-      showEditor.value = true;
+      showLoading && currentDocNode.value.mode === 'edit' && message.loading('文档初始化中...', 0.5)
+      showEditor.value = true
       if (documentInfo.value.id && currentDocNode.value.mode === 'preview') {
         getDocumentContent(documentInfo.value.id)
       }
@@ -192,22 +184,22 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       // 如果删除不是当前选中，则不管
       return
     }
-    if (documentTree.value.length === 1) {
+    if (flattenDocumentTree.value.length === 1) {
       // 跳转知识库首页
       router.push(`/knowledge/${currentKnowledgeSlug.value}`)
       return
     }
-    const index = documentTree.value.findIndex((item) => item.id === nodeId)
+    const index = flattenDocumentTree.value.findIndex((item) => item.id === nodeId)
     if (index !== -1) {
       if (index === documentTree.value.length - 1) {
         // 如果是最后一项，则找上一个
-        const prevNode = documentTree.value[index - 1]
+        const prevNode = flattenDocumentTree.value[index - 1]
         if (prevNode) {
           router.push(`/knowledge/${currentKnowledgeSlug.value}/document/${prevNode.document_slug}`)
         }
       } else {
         // 找下一个
-        const nextNode = documentTree.value[index + 1]
+        const nextNode = flattenDocumentTree.value[index + 1]
         if (nextNode) {
           router.push(`/knowledge/${currentKnowledgeSlug.value}/document/${nextNode.document_slug}`)
         }
@@ -218,7 +210,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   // 删除文档
   const deleteDocument = async (document_id: string) => {
     // 查找当前文档对应的node节点
-    const node = flattenDocumentTree(documentTree.value).find(
+    const node = flattenDocumentTree.value.find(
       (item) => item.document_id === document_id,
     )
 
@@ -227,6 +219,17 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       setNextDocumentNode(node ? node.id : '')
       initDocumentTree()
     }
+  }
+  // 拖拽树结束
+  const handleDragDocumentEnd = async (params: {
+    newTree: DocumentNodeTreeItem[],
+    operation: DragDocumentParams
+  }) => {
+    const [error] = await to(documentApi.dragDocument(params.operation))
+    if (error) {
+      return
+    }
+    documentTree.value = params.newTree; // 同步最新的树
   }
 
   return {
@@ -244,6 +247,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     updateDocumentAttrs,
     initDocumentDetail,
     handleUpdateDocumentName,
+    handleDragDocumentEnd,
     deleteDocument,
   }
 })

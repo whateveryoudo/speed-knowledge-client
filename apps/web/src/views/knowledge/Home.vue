@@ -21,18 +21,20 @@
                 <a-space>
                     <span>
                         <span class="text-[var(--sd-grey-8)] font-bold text-[18px]">{{ knowledgeIndexPage.items_count
-                            }}</span> <span class="text-[var(--sd-grey-7)]">文档</span>
+                        }}</span> <span class="text-[var(--sd-grey-7)]">文档</span>
                     </span>
                 </a-space>
                 <a-space>
                     <span>
                         <span class="text-[var(--sd-grey-8)] font-bold text-[18px]">{{ knowledgeIndexPage.word_count
-                        }}</span> <span class="text-[var(--sd-grey-7)]">字</span>
+                            }}</span> <span class="text-[var(--sd-grey-7)]">字</span>
                     </span>
                 </a-space>
             </a-flex>
             <SpeedTiptapEditor hide-border :editorStyle="{ minHeight: 'auto' }" :content="welcomeContent"
                 :editable="false" :menubar="false" />
+            <!-- 大纲树显示 -->
+            <OutlineTree :loading="documentLoading" :tree="documentTree" />
         </div>
     </div>
 </template>
@@ -48,10 +50,10 @@ import { to } from 'await-to-js';
 import { knowledge as knowledgeApi, common as commonApi } from '@sk/api';
 import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort } from '@sk/types';
 import { useRouter } from 'vue-router';
-const { knowledgeInfo } = storeToRefs(useKnowledgeStore());
+import { OutlineTree } from './components/documentTree';
+const { knowledgeInfo, documentLoading, documentTree } = storeToRefs(useKnowledgeStore());
 const router = useRouter();
 const welcomeContent = ref('<p><span data-name="wave" data-type="emoji">👋</span> <strong>欢迎来到知识库</strong></p><p style="padding-left: 1em;"> 知识库就像书一样，让多篇文档结构化，方便知识的创作与沉淀</p>');
-
 const knowledgeIndexPage = ref<KnowledgeIndexPageResponse>({
     word_count: 0,
     enable_catalog: false,

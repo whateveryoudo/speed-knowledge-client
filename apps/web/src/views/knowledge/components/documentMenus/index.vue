@@ -34,7 +34,7 @@
 
     <div class="flex-1 overflow-y-auto">
       <CatelogTree :loading="loading" :tree="tree" @delete-document="emit('delete-document', $event)"
-        @rename-document="emit('rename-document', $event)" />
+        @rename-document="emit('rename-document', $event)" @drag-document-end="emit('drag-document-end', $event)" />
     </div>
   </a-flex>
 
@@ -42,7 +42,7 @@
 <script lang="ts" setup>
 import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { type DocumentNodeTreeItem } from '@sk/types';
+import { type DocumentNodeTreeItem, type DragDocumentParams } from '@sk/types';
 import { CatelogTree } from '../documentTree';
 const props = withDefaults(defineProps<{
   loading: boolean;
@@ -62,6 +62,10 @@ const emit = defineEmits<{
   (e: 'delete-document', params: {
     id: string,
     cb: () => void
+  }): Promise<void>
+  (e: 'drag-document-end', params: {
+    newTree: DocumentNodeTreeItem[],
+    operation: DragDocumentParams
   }): Promise<void>
 }>();
 const handleHomeClick = () => {

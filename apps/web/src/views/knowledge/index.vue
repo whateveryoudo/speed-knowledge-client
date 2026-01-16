@@ -56,7 +56,8 @@
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
                         <DocumentMenus :loading="documentLoading" :tree="documentTree"
-                            @delete-document="handleDeleteDocument" @rename-document="handleRenameDocument" />
+                            @delete-document="handleDeleteDocument" @rename-document="handleRenameDocument"
+                            @drag-document-end="knowledgeStore.handleDragDocumentEnd" />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -91,6 +92,7 @@ import { CaretRightOutlined, CaretLeftOutlined, RightOutlined } from '@ant-desig
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
+import { type DragEndParams } from './components/documentTree/useTree';
 
 import DocumentMenus from './components/documentMenus/index.vue';
 const DEFAULT_EXPAND_WIDTH = 253;
@@ -129,6 +131,10 @@ const handleAddDocumentCb = async (newDocSlug: string) => {
     })
     // 跳转对应链接
     router.push(`/knowledge/${slug.value}/document/${newDocSlug}`);
+}
+// 拖拽树结束
+const handleDragDocumentEnd = async (params: DragEndParams) => {
+    console.log('拖拽树结束', params)
 }
 const handleDeleteDocument = async (params: {
     id: string,
