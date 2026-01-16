@@ -1,5 +1,5 @@
 <template>
-    <a-flex vertical>
+    <a-flex vertical class="h-full">
         <a-flex justify="space-between" align="center"
             class="fixed bg-[#fff] z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: `${knowledgeSidebarWidth}px` }">
@@ -25,10 +25,12 @@
                 </template>
             </a-space>
         </a-flex>
-        <div class="flex-1 pt-[52px]">
+        <div>
             <!-- 文档显示:追加key用于重置编辑器 -->
-            <SkeletonList :loading="!knowledgeStore.showEditor" style="padding: 20px">
+            <SkeletonList :loading="!knowledgeStore.showEditor">
                 <SpeedTiptapEditor :json="documentContentJson" v-if="knowledgeStore.showEditor"
+                    :headerStyle="{ position: 'fixed', top: '52px', left: `${knowledgeSidebarWidth}px`, right: '0', zIndex: 10 }"
+                    :mainStyle="{ paddingTop: '92px' }"
                     :key="documentInfo.id + '-' + currentDocNode.mode" :editable="currentDocNode.mode === 'edit'"
                     :menubar="currentDocNode.mode === 'edit'" :title="documentInfo.name"
                     @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(documentInfo.id, val, 'editor')"

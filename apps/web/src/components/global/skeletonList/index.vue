@@ -7,13 +7,11 @@
  * @FilePath: \easycube-apps\packages\components\src\globalComponents\Empty.vue
 -->
 <template>
-    <div class="px-2">
-        <a-flex vertical :gap="10" v-if="loading">
-            <a-skeleton :loading="loading" v-for="i in count" :key="i" :active="true"
-                :paragraph="{ rows: perParagraphRows, width: '100%' }" />
-        </a-flex>
-        <slot v-else />
-    </div>
+    <a-flex vertical :gap="10" v-if="loading">
+        <a-skeleton :loading="loading" v-for="i in count" :key="i" :active="true"
+            :paragraph="{ rows: perParagraphRows, width: '100%' }" />
+    </a-flex>
+    <slot v-else />
 </template>
 
 <script lang="ts" setup>
