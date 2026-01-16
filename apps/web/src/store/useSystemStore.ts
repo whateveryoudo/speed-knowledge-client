@@ -13,10 +13,10 @@ export const useSystemStore = defineStore('system', () => {
       localStorage.getItem('sk_knowledge_expand') === 'true',
   )
 
-  // 设置知识库左侧宽度
-  const setKnowledgeSidebarWidth = (width: number) => {
+  // 设置知识库左侧宽度(isDrag: 是否是拖拽触发)
+  const setKnowledgeSidebarWidth = (width: number, isDrag = true) => {
     // 限制宽度范围
-    const clampedWidth = Math.max(200, Math.min(400, width))
+    const clampedWidth = isDrag ? Math.max(200, Math.min(400, width)) : width;
     knowledgeSidebarWidth.value = clampedWidth
     localStorage.setItem('sk_knowledge_expand_width', clampedWidth.toString())
   }

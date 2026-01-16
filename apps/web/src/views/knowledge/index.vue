@@ -92,7 +92,7 @@ import { CaretRightOutlined, CaretLeftOutlined, RightOutlined } from '@ant-desig
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
-import { type DragEndParams } from './components/documentTree/useTree';
+import { useSystemStore } from '#sk-web/store/useSystemStore';
 
 import DocumentMenus from './components/documentMenus/index.vue';
 const DEFAULT_EXPAND_WIDTH = 253;
@@ -101,13 +101,14 @@ const expandWrapRef = ref<HTMLElement | null>(null);
 const router = useRouter();
 const route = useRoute();
 const knowledgeStore = useKnowledgeStore()
+const systemStore = useSystemStore();
 const { knowledgeInfo, documentTree, documentLoading } = storeToRefs(knowledgeStore)
 const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_knowledge_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {
         console.log('拖拽结束', width, height)
         // 这里存入到本地
-        localStorage.setItem('sk_knowledge_expand_width', width.toString());
+        systemStore.setKnowledgeSidebarWidth(width);
     }
 })
 const openTooltip = ref(false);
@@ -117,6 +118,7 @@ const slug = computed(() => route.params.slug)
 const handleToggle = () => {
     open.value = !open.value;
     openTooltip.value = false;
+    systemStore.setKnowledgeSidebarWidth(open.value ? width.value : 0, false);
 }
 
 const handleTogglePublic = () => {
@@ -132,10 +134,7 @@ const handleAddDocumentCb = async (newDocSlug: string) => {
     // 跳转对应链接
     router.push(`/knowledge/${slug.value}/document/${newDocSlug}`);
 }
-// 拖拽树结束
-const handleDragDocumentEnd = async (params: DragEndParams) => {
-    console.log('拖拽树结束', params)
-}
+
 const handleDeleteDocument = async (params: {
     id: string,
     cb?: () => void
