@@ -136,15 +136,12 @@
     </s-full-modal>
 </template>
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { CloseOutlined, UsergroupAddOutlined, SyncOutlined, AuditOutlined, RightOutlined } from '@ant-design/icons-vue';
-import { to } from 'await-to-js'
 import { useRoute } from 'vue-router';
-import { knowLedgeInvite as knowLedgeInviteApi } from '@sk/api';
-import { useClipboard } from '@vueuse/core';
-import { message } from 'ant-design-vue';
 import PersonSearch from '#sk-web/components/personSearch/index.vue';
-import { type KnowledgeInvitationResponse, type UserInfo, KnowledgeCollaboratorSource, KnowledgeInvitationStatus, KnowledgeCollaboratorRole } from '@sk/types';
+import { useKnowledgeCollaborator } from './useKnowledgeCollaborator';
+import { KnowledgeCollaboratorSource, KnowledgeCollaboratorRole } from '@sk/types';
 const route = useRoute();
 const props = defineProps<{
     visible: boolean;
@@ -155,55 +152,17 @@ const emit = defineEmits<{
 const source = ref(KnowledgeCollaboratorSource.INVITATION);
 const secondModalType = ref<'role' | 'need_approval'>();
 const selectedUsers = ref<number[]>([]);
-const knowledgeSlug = computed(() => {
-    return route.params.slug as string;
-});
-const tokenInfo = ref<KnowledgeInvitationResponse>({
-    token: '',
-    status: KnowledgeInvitationStatus.ACTIVE,
-    role: KnowledgeCollaboratorRole.READ,
-    need_approval: 0,
-    knowledge_id: '',
-    id: '',
-    created_at: '',
-    updated_at: '',
-});
-const inviteUrl = computed(() => {
-    return `${window.location.origin}/knowledge/${knowledgeSlug.value}/invite?token=${tokenInfo.value.token}`;
-});
-const { copy } = useClipboard();
+const { tokenInfo, inviteUrl, handleCopy, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useKnowledgeCollaborator();
+
+
 const open = ref(false);
 const backToFirstModal = () => {
     secondModalType.value = undefined;
     getInvitationToken(); // 刷新邀请信息
 }
-const getInvitationToken = async () => {
-    const [error, res] = await to(knowLedgeInviteApi.getInvitationToken(knowledgeSlug.value));
-    if (error) {
-        return;
-    }
-    tokenInfo.value = res.data
-}
-const handleCopy = async () => {
-    await copy(inviteUrl.value);
-    message.success('复制成功');
-}
-// 更新当前邀请信息
-const handleUpdateTokenInfo = async (attrs: Partial<KnowledgeInvitationResponse>) => {
-    const [error, res] = await to(knowLedgeInviteApi.updateInvitationToken(tokenInfo.value.id, attrs));
-    if (error) {
-        return;
-    }
-    message.success('操作成功');
-    tokenInfo.value = res.data;
-}
-const handleResetInvitationLink = async () => {
-    const [error, res] = await to(knowLedgeInviteApi.resetInvitationLink(tokenInfo.value.id));
-    if (error) {
-        return;
-    }
-    tokenInfo.value = res.data;
-}
+
+
+
 watch(() => props.visible, (val: boolean) => {
     // 获取协作者链接信息
     if (val) {

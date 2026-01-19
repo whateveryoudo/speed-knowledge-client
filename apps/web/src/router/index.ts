@@ -24,34 +24,35 @@ const router = createRouter({
           path: 'start',
           component: () => import('../views/dashboard/start/index'),
         },
+        { path: 'team/:slug', component: () => import('../views/team/index.vue') },
       ],
     },
     {
-      path: '/knowledge',
+      path: '/:team_slug/knowledge',
       name: 'knowledge',
       component: () => import('../views/knowledge/index.vue'),
-      redirect: '/knowledge/',
+      redirect: '/:team_slug/knowledge/',
       children: [
         {
-          path: '/knowledge/',
+          path: '/:team_slug/knowledge/',
           component: () => import('../views/knowledge/Home.vue'),
         },
         {
-          path: '/knowledge/:slug',
+          path: '/:team_slug/knowledge/:slug',
           component: () => import('../views/knowledge/Home.vue'),
         },
         {
-          path: '/knowledge/:slug/document/:document_slug',
+          path: '/:team_slug/knowledge/:slug/document/:document_slug',
           component: () => import('../views/knowledge/document/index.vue'),
         },
       ],
     },
     {
-      path: '/knowledge/:slug/manage',
+      path: '/:team_slug/knowledge/:slug/manage',
       component: () => import('../views/knowledge/manage/index.vue'),
       children: [
         {
-          path: '/knowledge/:slug/manage/auth',
+          path: '/:team_slug/knowledge/:slug/manage/auth',
           component: () => import('../views/knowledge/manage/AuthManage.vue'),
           meta: {
             menuKey: 'auth',
@@ -61,7 +62,7 @@ const router = createRouter({
     },
     // 邀请链接
     {
-      path: '/knowledge/:slug/invite',
+      path: '/:team_slug/knowledge/:slug/invite',
       component: () => import('../views/knowledge/invite/index.vue'),
     },
   ],

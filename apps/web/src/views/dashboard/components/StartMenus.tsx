@@ -1,6 +1,6 @@
 import { defineComponent, ref } from 'vue'
 import type { ModuleMenuItem } from '../type'
-import { ClockCircleOutlined, ClockCircleFilled } from '@ant-design/icons-vue'
+import { ClockCircleOutlined, ClockCircleFilled, TeamOutlined, TeamFilled } from '@ant-design/icons-vue'
 import { Tooltip } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 
@@ -25,6 +25,12 @@ export default defineComponent({
         icon: () => <ClockCircleOutlined />,
         filledIcon: () => <ClockCircleFilled />,
       },
+      // {
+      //   title: '团队',
+      //   key: 'team',
+      //   icon: () => <TeamOutlined />,
+      //   filledIcon: () => <TeamOutlined />,
+      // }
     ])
 
     const handleModuleClick = (item: ModuleMenuItem) => {

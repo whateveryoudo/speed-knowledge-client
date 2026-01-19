@@ -69,7 +69,7 @@ const emit = defineEmits<{
   }): Promise<void>
 }>();
 const handleHomeClick = () => {
-  router.push(`/knowledge/${route.params.slug}`);
+  router.push(`/${route.params.team_slug as string}/knowledge/${route.params.slug as string}`);
 }
 
 const activeKey = computed(() => {

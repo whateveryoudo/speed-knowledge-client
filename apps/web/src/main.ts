@@ -1,8 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import store from './store'
 import SpeedTiptapEditor from 'speed-tiptap-editor-dev/debug'
 // import SpeedComponents from "speed-components-ui/components";
 // 先通过文件夹的方式，我需要调试speed-components-ui的组件,没问题了在切回到包的使用方式
@@ -33,9 +32,7 @@ initSkApiConfig({
   },
 })
 const app = createApp(App)
-const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
-app.use(pinia)
+app.use(store)
 app.use(router)
 app.use((SpeedTiptapEditor as any), {
   apis: {

@@ -2,12 +2,11 @@
     <draggable v-model:list="innerBooks" :animation="200" handle=".drag-handle" item-key="id" ghost-class="ghost-item"
         chosen-class="chosen-item" drag-class="drag-item" @start="onDragStart" @end="onDragEnd">
         <template #item="{ element: book }">
-            <div class="menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)] group"
-                :class="{
-                    'pr-2': !showMore,
-                    'bg-[var(--sd-bg-primary-hover)]': activeBookKey === book.id,
-                    'cursor-pointer': true,
-                }" @click="handleBookClick(book)">
+            <div class="menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)] group" :class="{
+                'pr-2': !showMore,
+                'bg-[var(--sd-bg-primary-hover)]': activeBookKey === book.id,
+                'cursor-pointer': true,
+            }" @click="handleBookClick(book)">
                 <a-button type="text"
                     class="shadow-btn-wrapper drag-handle icon cursor-move group-hover:opacity-100  opacity-0">
                     <HolderOutlined />
@@ -19,14 +18,14 @@
                 </span>
                 <LockOutlined class="text-[12px]" v-if="book.is_public" />
                 <a-dropdown trigger="click">
-                    <a-button type="text"  @click.stop class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0"
-                        v-if="showMore">
+                    <a-button type="text" @click.stop
+                        class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0" v-if="showMore">
                         <template #icon>
                             <MoreOutlined />
                         </template>
                     </a-button>
                     <template #overlay>
-                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="menuItems"/>
+                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="menuItems" />
                     </template>
                 </a-dropdown>
             </div>
@@ -78,7 +77,7 @@ const menuItems = ref<ItemType[]>([
 const handleMenuClick = (e: any, book: KnowledgeItem) => {
     switch (e.key) {
         case 'auth':
-            router.push(`/knowledge/${book.slug}/manage/auth`)
+            router.push(`/${book.team.slug}/knowledge/${book.slug}/manage/auth`)
             break
         default:
             break
@@ -95,7 +94,7 @@ const onDragEnd = () => {
 }
 
 const handleBookClick = (book: KnowledgeItem) => {
-    router.push(`/knowledge/${book.slug}`)
+    router.push(`/${book.team.slug}/knowledge/${book.slug}`)
 }
 
 watch(() => props.books, (newVal) => {

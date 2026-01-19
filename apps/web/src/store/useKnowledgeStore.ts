@@ -232,6 +232,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentTree.value = params.newTree; // 同步最新的树
   }
 
+
   return {
     // 状态
     documentInfo,

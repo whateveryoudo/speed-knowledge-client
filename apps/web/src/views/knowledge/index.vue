@@ -84,7 +84,7 @@
 </template>
 
 <script lang="tsx" setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { useRouter, useRoute } from 'vue-router';
@@ -132,7 +132,7 @@ const handleAddDocumentCb = async (newDocSlug: string) => {
         mode: 'edit',
     })
     // 跳转对应链接
-    router.push(`/knowledge/${slug.value}/document/${newDocSlug}`);
+    router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/document/${newDocSlug}`);
 }
 
 const handleDeleteDocument = async (params: {
@@ -153,7 +153,7 @@ const handleRenameDocument = async (params: {
 const handleMoreOpt = (e: any) => {
     switch (e.key) {
         case 'auth':
-            router.push(`/knowledge/${slug.value}/manage/auth`);
+            router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/manage/auth`);
             break;
     }
 }
@@ -161,7 +161,10 @@ const handleMoreOpt = (e: any) => {
 watch(open, (newVal: boolean) => {
     localStorage.setItem('sk_knowledge_expand', newVal ? 'true' : 'false');
 })
-
+onMounted(() => {
+    // 重置store
+    knowledgeStore.$reset();
+})
 
 knowledgeStore.initKnowledge();
 </script>

@@ -72,8 +72,8 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>, emit: any
   const handleTreeSelect = (_: any, e: { selected: boolean; node: any }) => {
     console.log(e.node)
     if (e.node.document_slug) {
-      router.push(`/knowledge/${route.params.slug}/document/${e.node.document_slug}`)
-    }
+      router.push(`/${route.params.team_slug as string}/knowledge/${route.params.slug as string}/document/${e.node.document_slug}`)
+    } 
   }
 
   const onDragEnter = (info: AntTreeNodeDragEnterEvent) => {
@@ -158,12 +158,18 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>, emit: any
     })
   }
   const initExpandedKeys = () => {
-    // 这里要判断一下
+    // 这里要判断一下(增加逻辑，第一次请求的话，展开所有节点的第一层)
+    if (!hasInitialized.value) {
+      expandedKeys.value = transformedTree.value.map((item) => item.id)
+    }
     if (expandedKeys.value.includes(activeKey.value)) return // 如果已经展开了，则不重新展开
-    expandedKeys.value = getNodePath(transformedTree.value, activeKey.value, {
-      onlyKey: true,
-      excludeSelf: true,
-    }) as string[]
+    if (activeKey.value) {
+      const activeKeyPaths = getNodePath(transformedTree.value, activeKey.value, {
+        onlyKey: true,
+        excludeSelf: true,
+      })
+      expandedKeys.value = [...new Set([...expandedKeys.value, ...activeKeyPaths])] as string[]
+    }
   }
   // 监听外部变化
   watch(
@@ -171,20 +177,15 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>, emit: any
     (newVal) => {
       transformedTree.value = cloneDeep(newVal)
       // 初始化展开keys
-      if (activeKey.value && !hasInitialized.value) {
+      if (!hasInitialized.value && newVal.length > 0) {
         initExpandedKeys()
         hasInitialized.value = true
+      } else {
+        expandedKeys.value = [];
       }
-    },
-    {
-      deep: true,
-      immediate: true, // 初始化时立即执行（防止切换会首页不显示）
-    },
-  )
-  watch(activeKey, () => {
-    if (activeKey.value) {
-      initExpandedKeys()
-    }
+  }, {
+    deep: true,
+    immediate: true, // 初始化时立即执行（防止切换会首页不显示）
   })
   return {
     transformedTree,

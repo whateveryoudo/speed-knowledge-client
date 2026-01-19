@@ -1,3 +1,4 @@
+import type { TeamItem } from './team';
 export interface KnowledgeCreate {
   name: string;
   description?: string;
@@ -8,6 +9,7 @@ export interface KnowledgeCreate {
 export interface KnowledgeItem extends KnowledgeCreate {
   id: string;
   user_id: number;
+  team: TeamItem;
   slug: string;
   cover_url: any;
   is_public: boolean;

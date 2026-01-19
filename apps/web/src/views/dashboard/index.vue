@@ -27,7 +27,8 @@
                         <AddMenu @add-knowledge-cb="handleAddKnowledgeCb" />
                     </a-flex>
 
-                    <StartMenus v-model:activeModuleKey="activeModuleKey" />
+                    <StartMenus :activeModuleKey="activeModuleKey"
+                        @update:activeModuleKey="handleUpdateActiveModuleKey" />
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库菜单 -->
@@ -93,10 +94,11 @@ import StartMenus from './components/StartMenus';
 import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
 import UserSetting from './components/userSetting/index.vue';
+import { useRouter } from 'vue-router';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
-
+const router = useRouter();
 const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_dashboard_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {
@@ -136,6 +138,16 @@ const handleAddKnowledgeCb = (newId: string) => {
 watch(open, (newVal: boolean) => {
     localStorage.setItem('sk_dashboard_expand', newVal ? 'true' : 'false');
 })
+
+// 起始菜单点击
+const handleUpdateActiveModuleKey = (key: string) => {
+    activeModuleKey.value = key;
+    if (key === 'team') {
+        router.push(`/dashboard/team/ykx_test1`);
+    } else {
+        router.push(`/dashboard/start`);
+    }
+}
 </script>
 
 <style lang="less" scoped></style>

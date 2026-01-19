@@ -84,7 +84,7 @@
 <script lang="ts" setup>
 import { ref, h, reactive, inject, watch } from 'vue';
 import { DeleteOutlined } from '@ant-design/icons-vue';
-import CollaboratorAdd from './components/CollaboratorAdd.vue';
+import CollaboratorAdd from '../components/knowledgeCollaborator/CollaboratorAdd.vue';
 import { knowledge as knowledgeApi, knowLedgeInvite as knowLedgeInviteApi } from '@sk/api';
 import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
 import { to } from 'await-to-js';

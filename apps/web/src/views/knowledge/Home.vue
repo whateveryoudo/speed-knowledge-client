@@ -43,7 +43,7 @@ import { ref, watch, h } from 'vue';
 import { storeToRefs } from 'pinia';
 import { StarOutlined, StarFilled } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
-import KnowledgeShare from './components/knowledgeShare/index.vue';
+import KnowledgeShare from './components/knowledgeCollaborator/KnowledgeShare.vue';
 import { message } from 'ant-design-vue';
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
 import { to } from 'await-to-js';
