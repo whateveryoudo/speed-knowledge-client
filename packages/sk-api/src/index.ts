@@ -7,7 +7,7 @@ import * as document from "./document";
 import * as dashboard from "./dashboard";
 import * as knowLedgeInvite from "./knowledge/invition";
 import { initSkApiConfig } from "./request";
-
+import * as space from "./space";
 export * from "./path";
 export {
   attachment,
@@ -19,4 +19,5 @@ export {
   knowLedgeInvite,
   document,
   initSkApiConfig,
+  space,
 };

@@ -19,13 +19,15 @@ initSkApiConfig({
   onUnauthorized: () => {
     // TODO:更多的清空处理
     localStorage.removeItem('access_token')
-    router.push({
-      path: '/login',
-      query: {
-        // 添加重定向参数
-        redirect: window.location.pathname + window.location.search,
-      },
-    })
+    if (router.currentRoute.value.path !== '/login') {
+      router.push({
+        path: '/login',
+        query: {
+          // 添加重定向参数
+          redirect: window.location.pathname + window.location.search,
+        },
+      })
+    }
   },
   onError: (msg: string) => {
     message.error(msg)

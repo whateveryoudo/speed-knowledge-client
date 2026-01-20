@@ -1,6 +1,6 @@
 // store/useKnowledgeStore.ts
 // 存放当前进入的知识库相关信息
-import { defineStore } from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import {
   type KnowledgeItem,
@@ -16,9 +16,11 @@ import { message } from 'ant-design-vue'
 import { knowledge as knowledgeApi } from '@sk/api'
 import type { DragDocumentParams } from '@sk/types'
 import { arrayToTree } from '@sk/utils'
+import { useUserStore } from './useUserStore'
 export const useKnowledgeStore = defineStore('knowledge', () => {
   const router = useRouter()
   const route = useRoute()
+  const userStore = useUserStore()
   // 当前知识库信息
   const knowledgeInfo = ref<KnowledgeItem>({
     id: '',
@@ -34,6 +36,21 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     content_updated_at: '',
     created_at: '',
     updated_at: '',
+    team: {
+      id: '',
+      name: '',
+      slug: '',
+      description: '',
+      icon: '',
+      visibility: true,
+      owner_id: 0,
+      space_id: '',
+      created_at: '',
+      updated_at: '',
+    },
+  })  
+  const breadcrumbName = computed(() => {
+    return knowledgeInfo.value.team.owner_id === userStore.userInfo.id ? '个人知识库' : knowledgeInfo.value.team.name
   })
   const currentKnowledgeSlug = computed(() => route.params.slug as string)
   const document_slug = computed(() => {
@@ -241,6 +258,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentTree,
     documentLoading,
     currentDocNode,
+    breadcrumbName,
     showEditor,
     // 方法
     initKnowledge,

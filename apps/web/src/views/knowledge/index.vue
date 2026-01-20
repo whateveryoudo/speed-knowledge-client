@@ -12,7 +12,7 @@
                             <RightOutlined class="text-xs" />
                             <span
                                 class="text-xs cursor-pointer text-[var(--sd-grey-7)] hover:text-[var(--sd-text-body)]"
-                                @click="router.push('/dashboard')">个人知识库</span>
+                                @click="router.push('/dashboard')">{{ breadcrumbName }}</span>
                         </a-space>
                     </a-flex>
                     <a-flex class="px-2 w-full" justify="space-between" align="center">
@@ -102,7 +102,7 @@ const router = useRouter();
 const route = useRoute();
 const knowledgeStore = useKnowledgeStore()
 const systemStore = useSystemStore();
-const { knowledgeInfo, documentTree, documentLoading } = storeToRefs(knowledgeStore)
+const { knowledgeInfo, documentTree, documentLoading, breadcrumbName } = storeToRefs(knowledgeStore)
 const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_knowledge_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {

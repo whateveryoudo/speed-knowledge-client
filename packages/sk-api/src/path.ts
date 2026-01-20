@@ -6,3 +6,4 @@ export const knowledgePrefix = `${apiVersion}/knowledge`
 export const documentPrefix = `${apiVersion}/document`
 export const documentNodePrefix = `${apiVersion}/document-node`
 export const dashboardPrefix = `${apiVersion}/dashboard`
+export const spacePrefix = `${apiVersion}/space`
