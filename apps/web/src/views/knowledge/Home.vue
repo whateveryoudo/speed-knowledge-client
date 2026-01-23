@@ -7,7 +7,8 @@
                     <span class="text-[28px] font-700">{{ knowledgeInfo.name }}</span>
                 </a-space>
                 <a-space>
-                    <a-button @click="handleCollect">
+                    <a-button
+                        @click="handleCollect(knowledgeIndexPage.has_collected, { identifier: knowledgeInfo.id, resource_type: CollectResourceType.KNOWLEDGE, onSuccess: () => { knowledgeIndexPage.has_collected = !knowledgeIndexPage.has_collected; } })">
                         <template #icon>
                             <StarFilled v-if="knowledgeIndexPage.has_collected" style="color: var(--sd-yellow-6);" />
                             <StarOutlined v-else />
@@ -51,8 +52,9 @@ import { knowledge as knowledgeApi, common as commonApi } from '@sk/api';
 import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort } from '@sk/types';
 import { useRouter } from 'vue-router';
 import { OutlineTree } from './components/documentTree';
+import { useCollect } from './hooks/useCollect';
+const { handleCollect } = useCollect();
 const { knowledgeInfo, documentLoading, documentTree } = storeToRefs(useKnowledgeStore());
-const router = useRouter();
 const welcomeContent = ref('<p><span data-name="wave" data-type="emoji">👋</span> <strong>欢迎来到知识库</strong></p><p style="padding-left: 1em;"> 知识库就像书一样，让多篇文档结构化，方便知识的创作与沉淀</p>');
 const knowledgeIndexPage = ref<KnowledgeIndexPageResponse>({
     word_count: 0,
@@ -64,34 +66,7 @@ const knowledgeIndexPage = ref<KnowledgeIndexPageResponse>({
     sort: KnowledgeIndexPageSort.CATALOG,
     ...knowledgeInfo.value,
 });
-const handleCollect = async () => {
-    const hasCollect = knowledgeIndexPage.value.has_collected;
-    if (hasCollect) {
-        const [error] = await to(commonApi.removeCollect({ identifier: knowledgeInfo.value.id, resource_type: CollectResourceType.KNOWLEDGE }));
-        if (!error) {
-            message.success('取消收藏成功');
-            knowledgeIndexPage.value.has_collected = false;
-        }
-    } else {
-        const [error] = await to(commonApi.addCollect({ identifier: knowledgeInfo.value.id, resource_type: CollectResourceType.KNOWLEDGE }));
-        if (!error) {
-            message.success(h('span', {
-            }, [
-                '收藏成功,请前往',
-                h('a', {
-                    href: '#',
-                    class: 'text-blue-500 cursor-pointer',
-                    onClick: (e: Event) => {
-                        e.preventDefault();
-                        router.push('/collect');
-                    }
-                }, '收藏夹'),
-                '查看'
-            ]));
-            knowledgeIndexPage.value.has_collected = true;
-        }
-    }
-};
+
 // 获取知识库首页信息
 watch(() => knowledgeInfo.value.id, async (knowledgeId: string) => {
     if (knowledgeId) {

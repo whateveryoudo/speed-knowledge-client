@@ -88,6 +88,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchOutlined: typeof import('@ant-design/icons-vue')['SearchOutlined']
     SkeletonList: typeof import('./components/global/skeletonList/index.vue')['default']
+    StarFilled: typeof import('@ant-design/icons-vue')['StarFilled']
     SyncOutlined: typeof import('@ant-design/icons-vue')['SyncOutlined']
     TeamOutlined: typeof import('@ant-design/icons-vue')['TeamOutlined']
     UndoOutlined: typeof import('@ant-design/icons-vue')['UndoOutlined']

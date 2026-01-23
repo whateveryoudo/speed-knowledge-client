@@ -180,8 +180,6 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>, emit: any
       if (!hasInitialized.value && newVal.length > 0) {
         initExpandedKeys()
         hasInitialized.value = true
-      } else {
-        expandedKeys.value = [];
       }
   }, {
     deep: true,

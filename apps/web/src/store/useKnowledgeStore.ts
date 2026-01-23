@@ -63,6 +63,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     type: DocumentType.WORD,
     name: '',
     slug: '',
+    has_collected: false,
     is_public: false,
     knowledge_id: '',
     view_count: 0,

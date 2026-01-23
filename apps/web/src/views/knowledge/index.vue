@@ -33,10 +33,7 @@
                         <a-dropdown>
                             <EllipsisOutlined />
                             <template #overlay>
-                                <a-menu @click="handleMoreOpt">
-                                    <a-menu-item key="auth">
-                                        <span>权限</span>
-                                    </a-menu-item>
+                                <a-menu @click="handleMoreOpt" :items="manageMenus">
                                 </a-menu>
                             </template>
                         </a-dropdown>
@@ -84,11 +81,11 @@
 </template>
 
 <script lang="tsx" setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, type VNode, h } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { useRouter, useRoute } from 'vue-router';
-import { CaretRightOutlined, CaretLeftOutlined, RightOutlined } from '@ant-design/icons-vue';
+import { CaretRightOutlined, CaretLeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
@@ -114,7 +111,19 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
 const openTooltip = ref(false);
 const documentMenusRef = ref<InstanceType<typeof DocumentMenus> | null>(null);
 const slug = computed(() => route.params.slug)
-
+type ItemType = {
+   type?: 'group';
+   label: string;
+   key: string;
+   icon?: () => VNode;
+}
+const manageMenus = ref<ItemType[]>([
+   {
+      label: '权限',
+      key: 'auth',
+      icon: () => h(LockOutlined)
+   }
+]);
 const handleToggle = () => {
     open.value = !open.value;
     openTooltip.value = false;

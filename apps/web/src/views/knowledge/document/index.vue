@@ -10,8 +10,10 @@
                 <CollaboratingPersonAvatars v-if="currentDocNode?.mode === 'edit'"
                     :collaborators="collaborating_persons" />
                 <a-tooltip title="收藏">
-                    <a-button type="text" class="shadow-btn-wrapper">
-                        <StarOutlined class="text-[18px]" />
+                    <a-button type="text" class="shadow-btn-wrapper"
+                        @click="handleCollect(documentInfo.has_collected, { identifier: documentInfo.id, resource_type: CollectResourceType.DOCUMENT, onSuccess: () => { documentInfo.has_collected = !documentInfo.has_collected; } })">
+                        <StarFilled v-if="documentInfo.has_collected" style="color: var(--sd-yellow-6);" />
+                        <StarOutlined v-else />
                     </a-button>
                 </a-tooltip>
                 <a-button v-if="currentDocNode.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
@@ -61,8 +63,10 @@ import { useUserStore } from '#sk-web/store/useUserStore';
 import { StarOutlined } from '@ant-design/icons-vue';
 import { transformDatatimeToRecentText } from '@sk/utils';
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
-import type { Collaborator } from '@sk/types';
-import { attachment as attachmentApi, apiVersion, aiPrefix } from '@sk/api';
+import { useCollect } from '../hooks/useCollect';
+import { type Collaborator, CollectResourceType } from '@sk/types';
+
+import { attachment as attachmentApi, apiVersion } from '@sk/api';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
@@ -71,6 +75,7 @@ const knowledgeStore = useKnowledgeStore();
 const { documentInfo, currentDocNode, documentContentJson } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
+const { handleCollect } = useCollect();
 const editorProps = computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion;
     return {

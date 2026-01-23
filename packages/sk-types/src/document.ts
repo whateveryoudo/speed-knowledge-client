@@ -19,6 +19,7 @@ export interface DocumentItem {
   userId: string;
   type: DocumentType
   name: string;
+  has_collected: boolean;
   view_count: number;
   slug: string;
   is_public: boolean;

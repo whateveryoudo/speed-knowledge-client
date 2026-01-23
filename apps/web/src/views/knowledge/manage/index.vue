@@ -34,6 +34,7 @@
 import { ref, h, provide, computed, watch, type VNode } from 'vue';
 import {
    type KnowledgeItem,
+   type TeamItem,
 } from '@sk/types'
 import { LockOutlined } from '@ant-design/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -56,6 +57,7 @@ const knowledgeInfo = ref<KnowledgeItem>({
    is_public: false,
    items_count: 0,
    content_updated_at: '',
+   team: {} as TeamItem,
    created_at: '',
    updated_at: '',
 })
@@ -84,8 +86,9 @@ const handleClick = (item: ItemType) => {
       router.push(`/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
    }
 };
+const teamSlug = computed(() => knowledgeInfo.value.team.slug);
 const goToKnowledge = () => {
-   router.push(`/knowledge/${knowledgeSlug.value}`)
+   router.push(`/${teamSlug.value}/knowledge/${knowledgeSlug.value}`)
 }
 const initKnowledge = async () => {
    const [error, res] = await to(
