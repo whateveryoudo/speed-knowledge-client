@@ -39,7 +39,7 @@
                 </div>
             </template>
         </a-tree>
-        <Empty0 hasTop v-else description="暂无文档" />
+        <Empty0 v-else description="暂无文档" />
     </SkeletonList>
 </template>
 <script lang="ts" setup>

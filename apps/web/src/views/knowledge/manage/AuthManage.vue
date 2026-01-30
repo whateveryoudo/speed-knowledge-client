@@ -20,8 +20,8 @@
         <a-table :columns="columns" row-key="id" :data-source="data" :row-selection="{
             selectedRowKeys,
             onChange: onSelectChange,
-            getCheckboxProps: (record: KnowledgeCollaboratorResponse) => ({
-                disabled: record.source === KnowledgeCollaboratorSource.CREATOR,
+            getCheckboxProps: (record: CollaboratorResponse) => ({
+                disabled: record.source === CollaboratorSource.CREATOR,
             })
         }" :pagination="false" :loading="collaboratorListLoading">
             <template #bodyCell="{ column, record }">
@@ -30,14 +30,14 @@
                         <img :src="record.user.avatar || defaultAvatar" class="w-[25px] h-[25px]" />
                         <a-flex vertical :gap="2">
                             <span>{{ record.user.nickname }}</span>
-                            <a-tag v-if="record.status === KnowledgeCollaboratorStatus.PENDING">申请加入</a-tag>
+                            <a-tag v-if="record.status === CollaboratorStatus.PENDING">申请加入</a-tag>
                             <span class="text-[var(--sd-text-caption)]">{{ record.user.username }}</span>
                         </a-flex>
                     </a-space>
                 </template>
                 <template v-else-if="column.dataIndex === 'role'">
-                    <span v-if="record.source === KnowledgeCollaboratorSource.CREATOR">{{ formatRoleText(record.role)
-                        }}</span>
+                    <span v-if="record.source === CollaboratorSource.CREATOR">{{ formatRoleText(record.role)
+                    }}</span>
                     <a-dropdown v-else trigger="click">
                         <template #overlay>
                             <a-menu class="py-2!" @click="(e: any) => handleRoleChange(record.id, { role: e.key })">
@@ -57,8 +57,8 @@
                 </template>
                 <template v-else-if="column.dataIndex === 'operation'">
                     <!-- 创建者无操作项 -->
-                    <template v-if="record.source !== KnowledgeCollaboratorSource.CREATOR">
-                        <a-space v-if="record.status === KnowledgeCollaboratorStatus.PENDING">
+                    <template v-if="record.source !== CollaboratorSource.CREATOR">
+                        <a-space v-if="record.status === CollaboratorStatus.PENDING">
                             <a-space>
                                 <template #split>
                                     <a-divider type="vertical" class="mx-1" />
@@ -85,12 +85,12 @@
 import { ref, h, reactive, inject, watch } from 'vue';
 import { DeleteOutlined } from '@ant-design/icons-vue';
 import CollaboratorAdd from '../components/knowledgeCollaborator/CollaboratorAdd.vue';
-import { knowledge as knowledgeApi, knowLedgeInvite as knowLedgeInviteApi } from '@sk/api';
+import { knowledge as knowledgeApi, collaborator as collaboratorApi } from '@sk/api';
 import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
 import { to } from 'await-to-js';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
 import { message } from 'ant-design-vue';
-import { KnowledgeCollaboratorRoleOptions, KnowledgeCollaboratorSource, KnowledgeCollaboratorStatus, KnowledgeCollaboratorRole, type KnowledgeCollaboratorResponse } from '@sk/types';
+import { KnowledgeCollaboratorRoleOptions, CollaboratorSource, CollaboratorStatus, CollaboratorRole, type CollaboratorResponse, CollaboratorResourceType } from '@sk/types';
 import type { Key } from 'ant-design-vue/es/table/interface';
 import type { UserInfo } from '@sk/types';
 const value = ref(false);
@@ -126,26 +126,26 @@ const onSelectChange = (selectedKeys: Key[]) => {
     selectedRowKeys.value = selectedKeys;
 };
 const handleDelete = async (id: string) => {
-    const [err] = await to(knowLedgeInviteApi.deleteCollaborator(id));
+    const [err] = await to(collaboratorApi.deleteCollaborator(id));
     if (err) {
         return;
     }
     message.success('移除成功');
     getCollaboratorList(knowledgeId.value);
 };
-const handleRoleChange = async (id: string, info: Partial<KnowledgeCollaboratorResponse>) => {
-    const [err] = await to(knowLedgeInviteApi.updateCollaboratorInfo(id, info));
+const handleRoleChange = async (id: string, info: Partial<CollaboratorResponse>) => {
+    const [err] = await to(collaboratorApi.updateCollaboratorInfo(id, info));
     if (err) {
         return;
     }
     message.success('设置成功');
     getCollaboratorList(knowledgeId.value);
 };
-const formatRoleText = (role: KnowledgeCollaboratorRole) => {
+const formatRoleText = (role: CollaboratorRole) => {
     return KnowledgeCollaboratorRoleOptions.find(item => item.value === role)?.label ?? '--';
 };
 const handleAudit = async (id: string, audit_status: 'agree' | 'reject', user: UserInfo) => {
-    const [err] = await to(knowLedgeInviteApi.auditCollaborator(id, { audit_status }));
+    const [err] = await to(collaboratorApi.auditCollaborator(id, { audit_status }));
     if (err) {
         return;
     }
@@ -154,7 +154,7 @@ const handleAudit = async (id: string, audit_status: 'agree' | 'reject', user: U
 };
 const getCollaboratorList = async (knowledgeId: string) => {
     collaboratorListLoading.value = true;
-    const [err, res] = await to(knowledgeApi.getCollaboratorList(knowledgeId));
+    const [err, res] = await to(collaboratorApi.getCollaboratorList(CollaboratorResourceType.KNOWLEDGE, knowledgeId));
     collaboratorListLoading.value = false;
     if (err) {
         return;

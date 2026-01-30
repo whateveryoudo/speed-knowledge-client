@@ -7,3 +7,4 @@ export const documentPrefix = `${apiVersion}/document`
 export const documentNodePrefix = `${apiVersion}/document-node`
 export const dashboardPrefix = `${apiVersion}/dashboard`
 export const spacePrefix = `${apiVersion}/space`
+export const collaboratorPrefix = `${apiVersion}/collaborator`

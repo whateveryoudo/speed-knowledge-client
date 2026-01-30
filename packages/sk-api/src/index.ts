@@ -5,7 +5,7 @@ import * as user from "./user";
 import * as knowledge from "./knowledge";
 import * as document from "./document";
 import * as dashboard from "./dashboard";
-import * as knowLedgeInvite from "./knowledge/invition";
+import * as collaborator from "./collaborator";
 import { initSkApiConfig } from "./request";
 import * as space from "./space";
 export * from "./path";
@@ -16,7 +16,7 @@ export {
   user,
   dashboard,
   knowledge,
-  knowLedgeInvite,
+  collaborator,
   document,
   initSkApiConfig,
   space,

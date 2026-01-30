@@ -5,7 +5,6 @@ import type {
   KnowledgeGroupItem,
   KnowledgeCreate,
   DocumentNodeTreeItem,
-  KnowledgeCollaboratorResponse,
   KnowledgeIndexPageResponse
 } from "@sk/types";
 
@@ -52,11 +51,7 @@ export const getDocumentNodesTreeById = (
   return request.get(`${knowledgePrefix}/${knowledge_id}/document/tree`);
 };
 
-export const getCollaboratorList = (
-  knowledge_id: string
-): Promise<ResponseType<KnowledgeCollaboratorResponse[]>> => {
-  return request.get(`${knowledgePrefix}/${knowledge_id}/collaborator/list`);
-};
+
 
 // 获取知识库首页信息
 export const getKnowledgeIndexPage = (

@@ -1,4 +1,5 @@
 import type { TeamItem } from './team';
+import { CollaboratorRole } from './collaborator';
 export interface KnowledgeCreate {
   name: string;
   description?: string;
@@ -28,15 +29,7 @@ export interface KnowledgeGroupItem {
   created_at: string;
   updated_at: string;
 }
-export enum KnowledgeInvitationStatus {
-  ACTIVE = 1,
-  REVOKED = 2,
-}
-export enum KnowledgeCollaboratorRole {
-  READ = 1,
-  EDIT = 2,
-  ADMIN = 3,
-}
+
 export enum KnowledgeIndexPageLayout {
   CATALOG = "catalog",
   CARD = "card",
@@ -53,17 +46,17 @@ export enum KnowledgeIndexPageSort {
 export const KnowledgeCollaboratorRoleOptions = [
   {
     label: "可阅读",
-    value: KnowledgeCollaboratorRole.READ,
+    value: CollaboratorRole.READ,
     tip: "仅拥有只读和评论权限",
   },
   {
     label: "可编辑",
-    value: KnowledgeCollaboratorRole.EDIT,
+    value: CollaboratorRole.EDIT,
     tip: "拥有文档编辑权限",
   },
   {
     label: "可管理",
-    value: KnowledgeCollaboratorRole.ADMIN,
+    value: CollaboratorRole.ADMIN,
     tip: "拥有知识库所有权限权限",
   },
 ];
@@ -100,49 +93,7 @@ export const KnowledgeIndexPageSortOptions = [
     value: KnowledgeIndexPageSort.LIKE_COUNT,
   },
 ];
-export enum KnowledgeCollaboratorStatus {
-  PENDING = 1,
-  ACCEPTED = 2,
-}
-export enum KnowledgeCollaboratorSource {
-  CREATOR = 0,
-  INVITATION = 1,
-  SEARCH_JOIN = 2,
-}
-export interface KnowledgeInvitationBase {
-  knowledge_id: string;
-  token: string;
-  status: KnowledgeInvitationStatus;
-  role: KnowledgeCollaboratorRole;
-  need_approval: 0 | 1;
-}
-export interface KnowledgeInvitationResponse extends KnowledgeInvitationBase {
-  id: string;
-  created_at: string;
-  updated_at: string;
-}
 
-export interface KnowledgeCollaboratorResponse {
-  id: string;
-  user_id: number;
-  knowledge_id: string;
-  role: KnowledgeCollaboratorRole;
-  status: KnowledgeCollaboratorStatus;
-  source: KnowledgeCollaboratorSource;
-  created_at: string;
-  updated_at: string;
-}
-// 邀请校验信息（用于邀请链接的一些显示）
-export interface KnowledgeInvitationValidInfo {
-  invitation: {
-    status: KnowledgeInvitationStatus;
-    knowledge_name: string;
-    knowledge_id: string;
-  };
-  collaborator: null | {
-    status: KnowledgeCollaboratorStatus;
-  };
-}
 export interface KnowledgeIndexPageResponse extends KnowledgeItem {
   word_count: number;
   enable_catalog: boolean;

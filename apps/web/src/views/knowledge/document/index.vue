@@ -9,16 +9,17 @@
             <a-space>
                 <CollaboratingPersonAvatars v-if="currentDocNode?.mode === 'edit'"
                     :collaborators="collaborating_persons" />
-                <a-tooltip title="收藏">
+                <CollaboratorAddPopver />
+                <a-tooltip title="收藏" class="mr-2">
                     <a-button type="text" class="shadow-btn-wrapper"
                         @click="handleCollect(documentInfo.has_collected, { identifier: documentInfo.id, resource_type: CollectResourceType.DOCUMENT, onSuccess: () => { documentInfo.has_collected = !documentInfo.has_collected; } })">
                         <StarFilled v-if="documentInfo.has_collected" style="color: var(--sd-yellow-6);" />
                         <StarOutlined v-else />
                     </a-button>
                 </a-tooltip>
+                <DocumentShare />
                 <a-button v-if="currentDocNode.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
                 <template v-if="currentDocNode.mode === 'edit'">
-                    <a-button>分享</a-button>
                     <a-tooltip title="文档会自动更新到阅读页">
                         <a-button @click="setPreviewMode">
                             保存
@@ -65,7 +66,7 @@ import { transformDatatimeToRecentText } from '@sk/utils';
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
 import { useCollect } from '../hooks/useCollect';
 import { type Collaborator, CollectResourceType } from '@sk/types';
-
+import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator';
 import { attachment as attachmentApi, apiVersion } from '@sk/api';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
