@@ -65,7 +65,9 @@ app.use((SpeedTiptapEditor as any), {
         fileName: item.file_name,
       }
     }
-  }
+  },
+  theme: 'light',
+  antdToken: () => ({}),
 })
 app.use((SpeedComponents as any), {
   apis: {
@@ -95,14 +97,7 @@ app.use((SpeedComponents as any), {
     }
   },
 })
-// 使用 Ant Design Vue CSS 变量
-const { cleanup } = useAntdCssVars()
 
-// 在应用卸载时清理
-app.unmount = () => {
-  cleanup?.()
-  app.unmount()
-}
 
 app.use(globalComponents)
 app.mount('#app')

@@ -58,6 +58,7 @@ export interface InvitationValidInfo {
         knowledge_id?: string;
         document_name?: string;
         document_id?: string;
+        invitate_type: CollaboratorResourceType;
     };
     collaborator: null | {
         status: CollaboratorStatus;

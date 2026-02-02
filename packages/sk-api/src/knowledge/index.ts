@@ -37,11 +37,12 @@ export const updateKnowledge = (
 ): Promise<ResponseType<KnowledgeItem>> => {
   return request.put(`${knowledgePrefix}/update`, data);
 };
-// 通过短链/id获取知识库详情
+// 通过短链/id获取知识库详情(silent: 是否静默)
 export const getKnowledgeDetail = (
-  identifier: string
+  identifier: string,
+  silent: boolean = false
 ): Promise<ResponseType<KnowledgeItem>> => {
-  return request.get(`${knowledgePrefix}/${identifier}`);
+  return request.get(`${knowledgePrefix}/${identifier}`, { headers: { silent } });
 };
 
 // 通过知识库id查询文档节点树

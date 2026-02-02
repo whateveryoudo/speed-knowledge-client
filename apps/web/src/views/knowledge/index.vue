@@ -1,7 +1,7 @@
 <template>
-    <a-flex class="h-full">
-        <s-collapse-hz expandDir="right" triggerMode="hover" v-model:open="open" expandAttrBefore="flex: 0 0 10px"
-            :expandAttrAfter="`flex: 0 0 ${width}px`" fixed-trigger-expand-after>
+    <a-flex v-if="!knowledgeError" class="h-full">
+        <s-collapse-hz v-if="showKnowledgeLeftPanel" expandDir="right" triggerMode="hover" v-model:open="open"
+            expandAttrBefore="flex: 0 0 10px" :expandAttrAfter="`flex: 0 0 ${width}px`" fixed-trigger-expand-after>
             <template #expand-render>
                 <a-flex vertical gap="small" ref="expandWrapRef"
                     class="h-full relative pt-2 bg-[var(--sd-bg-secondary)]">
@@ -76,8 +76,9 @@
         <div class="flex-1 overflow-y-auto">
             <router-view></router-view>
         </div>
+        <!-- 拦截操作 -->
     </a-flex>
-
+    <not-found v-else :title="knowledgeError.errMessage" />
 </template>
 
 <script lang="tsx" setup>
@@ -99,7 +100,7 @@ const router = useRouter();
 const route = useRoute();
 const knowledgeStore = useKnowledgeStore()
 const systemStore = useSystemStore();
-const { knowledgeInfo, documentTree, documentLoading, breadcrumbName } = storeToRefs(knowledgeStore)
+const { knowledgeInfo, knowledgeError, documentTree, documentLoading, breadcrumbName, showKnowledgeLeftPanel } = storeToRefs(knowledgeStore)
 const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_knowledge_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {
@@ -110,19 +111,19 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
 })
 const openTooltip = ref(false);
 const documentMenusRef = ref<InstanceType<typeof DocumentMenus> | null>(null);
-const slug = computed(() => route.params.slug)
+const slug = computed(() => route.params.knowledge_slug)
 type ItemType = {
-   type?: 'group';
-   label: string;
-   key: string;
-   icon?: () => VNode;
+    type?: 'group';
+    label: string;
+    key: string;
+    icon?: () => VNode;
 }
 const manageMenus = ref<ItemType[]>([
-   {
-      label: '权限',
-      key: 'auth',
-      icon: () => h(LockOutlined)
-   }
+    {
+        label: '权限',
+        key: 'auth',
+        icon: () => h(LockOutlined)
+    }
 ]);
 const handleToggle = () => {
     open.value = !open.value;

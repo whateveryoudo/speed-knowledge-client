@@ -60,7 +60,7 @@
                     <a-flex justify="space-between" align="center" v-if="secondModalType === 'need_approval'">
                         <span>提交申请后需审批确认</span>
                         <a-switch :checked="tokenInfo.need_approval === 1"
-                            @change="(checked: boolean) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
+                            @change="(checked: boolean | string | number) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
                     </a-flex>
                 </div>
                 <a-flex v-if="showLinkPanel && !secondModalType" vertical class="rounded-[8px]">
@@ -113,27 +113,30 @@
     </a-popover>
 </template>
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { UsergroupAddOutlined, SyncOutlined, AuditOutlined, RightOutlined } from '@ant-design/icons-vue';
 import { useRoute } from 'vue-router';
 import { LinkOutlined, TeamOutlined } from '@ant-design/icons-vue';
 import { useCollaborator } from '../../hooks/useCollaborator';
 import { useRouter } from 'vue-router';
-import { CollaboratorRole } from '@sk/types';
+import { CollaboratorRole, CollaboratorResourceType } from '@sk/types';
 const route = useRoute();
 const router = useRouter();
 
 const secondModalType = ref<'role' | 'need_approval'>();
-
-const { tokenInfo, inviteUrl, handleCopy, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator();
-const showLinkPanel = ref(false);
-const knowledgeSlug = computed(() => {
-    return route.params.slug as string;
-});
 const team_slug = computed(() => {
     return route.params.team_slug as string;
 });
-
+const documentSlug = computed(() => {
+    return route.params.document_slug as string;
+});
+const options = computed(() => ({
+    resourceType: CollaboratorResourceType.DOCUMENT,
+    resourceSlug: documentSlug.value,
+    teamSlug: team_slug.value,
+}));
+const { tokenInfo, inviteUrl, handleCopy, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
+const showLinkPanel = ref(false);
 
 const handleOpenChange = (val: boolean) => {
     if (val) {

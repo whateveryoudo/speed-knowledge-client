@@ -5,18 +5,22 @@ body {
   margin: 0;
   padding: 0;
 }
+
 * {
   box-sizing: border-box;
 }
+
 li,
 ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
+
 p {
   margin: 0;
 }
+
 h1,
 h2,
 h3,
@@ -54,3 +58,18 @@ h6 {
   }
 }
 
+// 一些antd组件的样式覆盖(禁用显示)
+.ant-btn-primary[disabled] {
+  opacity: .3;
+}
+
+.ant-btn-primary[disabled],
+.ant-btn-primary[disabled]:hover,
+.ant-btn-primary[disabled]:focus,
+.ant-btn-primary[disabled]:active {
+  color: var(--sd-ant-color-primary);
+  background: var(--sd-ant-color-primary-bg);
+  border-color: var(--sd-ant-color-primary-bg);
+  text-shadow: none;
+  box-shadow: none;
+}

@@ -72,7 +72,7 @@ export const useTree = (treeData: ComputedRef<DocumentNodeTreeItem[]>, emit: any
   const handleTreeSelect = (_: any, e: { selected: boolean; node: any }) => {
     console.log(e.node)
     if (e.node.document_slug) {
-      router.push(`/${route.params.team_slug as string}/knowledge/${route.params.slug as string}/document/${e.node.document_slug}`)
+      router.push(`/${route.params.team_slug as string}/knowledge/${route.params.knowledge_slug as string}/document/${e.node.document_slug}`)
     } 
   }
 

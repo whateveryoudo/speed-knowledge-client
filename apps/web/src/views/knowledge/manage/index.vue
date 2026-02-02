@@ -40,10 +40,9 @@ import { LockOutlined } from '@ant-design/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { to } from 'await-to-js'
 import { knowledge as knowledgeApi } from '@sk/api'
-import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
 const route = useRoute();
 const router = useRouter();
-const knowledgeSlug = computed(() => route.params.slug as string);
+const knowledgeSlug = computed(() => route.params.knowledge_slug as string);
 // 当前知识库信息
 const knowledgeInfo = ref<KnowledgeItem>({
    id: '',
@@ -61,7 +60,6 @@ const knowledgeInfo = ref<KnowledgeItem>({
    created_at: '',
    updated_at: '',
 })
-provide(KNOWLEDGE_ID_KEY, computed(() => knowledgeInfo.value.id));
 type ItemType = {
    type?: 'group';
    label: string;
@@ -83,7 +81,7 @@ const manageMenus = ref<ItemType[]>([
 const selectedKey = ref<string>('');
 const handleClick = (item: ItemType) => {
    if (item.key === 'auth') {
-      router.push(`/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
+      router.push(`/${teamSlug.value}/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
    }
 };
 const teamSlug = computed(() => knowledgeInfo.value.team.slug);

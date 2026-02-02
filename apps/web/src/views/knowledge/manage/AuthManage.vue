@@ -17,7 +17,7 @@
                 <a-button @click="collaboratorAddVisible = true">添加</a-button>
             </a-space>
         </a-flex>
-        <a-table :columns="columns" row-key="id" :data-source="data" :row-selection="{
+        <a-table :columns="columns" row-key="id" :data-source="collaboratorList" :row-selection="{
             selectedRowKeys,
             onChange: onSelectChange,
             getCheckboxProps: (record: CollaboratorResponse) => ({
@@ -37,7 +37,7 @@
                 </template>
                 <template v-else-if="column.dataIndex === 'role'">
                     <span v-if="record.source === CollaboratorSource.CREATOR">{{ formatRoleText(record.role)
-                    }}</span>
+                        }}</span>
                     <a-dropdown v-else trigger="click">
                         <template #overlay>
                             <a-menu class="py-2!" @click="(e: any) => handleRoleChange(record.id, { role: e.key })">
@@ -82,25 +82,26 @@
     </a-flex>
 </template>
 <script lang="ts" setup>
-import { ref, h, reactive, inject, watch } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { DeleteOutlined } from '@ant-design/icons-vue';
+import { useRoute } from 'vue-router';
 import CollaboratorAdd from '../components/knowledgeCollaborator/CollaboratorAdd.vue';
-import { knowledge as knowledgeApi, collaborator as collaboratorApi } from '@sk/api';
-import { KNOWLEDGE_ID_KEY } from '#sk-web/context/keys';
-import { to } from 'await-to-js';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
-import { message } from 'ant-design-vue';
 import { KnowledgeCollaboratorRoleOptions, CollaboratorSource, CollaboratorStatus, CollaboratorRole, type CollaboratorResponse, CollaboratorResourceType } from '@sk/types';
 import type { Key } from 'ant-design-vue/es/table/interface';
-import type { UserInfo } from '@sk/types';
+import { useCollaborator } from '../hooks/useCollaborator';
 const value = ref(false);
 const collaboratorAddVisible = ref(false);
-const knowledgeId = inject(KNOWLEDGE_ID_KEY, ref('')); // 父级注入
-
+const route = useRoute();
+const options = computed(() => ({
+    resourceType: CollaboratorResourceType.KNOWLEDGE,
+    resourceSlug: route.params.knowledge_slug as string,
+    teamSlug: route.params.team_slug as string,
+}));
+const { collaboratorList, collaboratorListLoading, getCollaboratorList, handleAudit, handleDelete, handleRoleChange } = useCollaborator(options);
 const handleSearch = (value: string) => {
     console.log(value);
 };
-const collaboratorListLoading = ref(false);
 const columns = ref([
     {
         title: '用户',
@@ -120,48 +121,13 @@ const radioStyle = reactive({
     height: '30px',
     lineHeight: '30px',
 });
-const data = ref();
 const selectedRowKeys = ref<Key[]>([]);
 const onSelectChange = (selectedKeys: Key[]) => {
     selectedRowKeys.value = selectedKeys;
 };
-const handleDelete = async (id: string) => {
-    const [err] = await to(collaboratorApi.deleteCollaborator(id));
-    if (err) {
-        return;
-    }
-    message.success('移除成功');
-    getCollaboratorList(knowledgeId.value);
-};
-const handleRoleChange = async (id: string, info: Partial<CollaboratorResponse>) => {
-    const [err] = await to(collaboratorApi.updateCollaboratorInfo(id, info));
-    if (err) {
-        return;
-    }
-    message.success('设置成功');
-    getCollaboratorList(knowledgeId.value);
-};
 const formatRoleText = (role: CollaboratorRole) => {
     return KnowledgeCollaboratorRoleOptions.find(item => item.value === role)?.label ?? '--';
 };
-const handleAudit = async (id: string, audit_status: 'agree' | 'reject', user: UserInfo) => {
-    const [err] = await to(collaboratorApi.auditCollaborator(id, { audit_status }));
-    if (err) {
-        return;
-    }
-    message.success(audit_status == 'agree' ? `已同意【${user.nickname}】加入` : `你拒绝了【${user.nickname}】加入`);
-    getCollaboratorList(knowledgeId.value); // 列表刷新
-};
-const getCollaboratorList = async (knowledgeId: string) => {
-    collaboratorListLoading.value = true;
-    const [err, res] = await to(collaboratorApi.getCollaboratorList(CollaboratorResourceType.KNOWLEDGE, knowledgeId));
-    collaboratorListLoading.value = false;
-    if (err) {
-        return;
-    }
-    data.value = res.data;
-};
-watch(knowledgeId, (val: string) => {
-    getCollaboratorList(val);
-});
+getCollaboratorList();
+
 </script>

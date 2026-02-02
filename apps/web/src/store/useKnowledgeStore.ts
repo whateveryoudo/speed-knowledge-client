@@ -48,14 +48,17 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       created_at: '',
       updated_at: '',
     },
-  })  
+  })
+  const knowledgeError = ref<{ errMessage: string } | null>(null)
+  const showKnowledgeLeftPanel = ref(true); // 是否显示知识库左侧面板（默认显示,仅有文档权限下不显示）
   const breadcrumbName = computed(() => {
     return knowledgeInfo.value.team.owner_id === userStore.userInfo.id ? '个人知识库' : knowledgeInfo.value.team.name
   })
-  const currentKnowledgeSlug = computed(() => route.params.slug as string)
+  const currentKnowledgeSlug = computed(() => route.params.knowledge_slug as string)
   const document_slug = computed(() => {
     return (route.params.document_slug as string) || ''
   })
+  const documentError = ref<{ errMessage: string } | null>(null)
   // 当前选中的文档
   const documentInfo = ref<DocumentItem>({
     id: '',
@@ -101,7 +104,21 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       ) || { ...defaultDocumentNode }
     )
   })
-
+  // 构建一个中间态（这里不去动之前的currentDocNode，构建一个类似的结构，组合一下）
+  const currentDocState = computed(() => {
+    return showKnowledgeLeftPanel.value ? currentDocNode.value : {
+      id: 'doc_node',
+      type: DocumentType.WORD,
+      document_slug: document_slug.value,
+      title: documentInfo.value.name,
+      parent_id: '',
+      first_child_id: '',
+      document_id: documentInfo.value.id,
+      prev_id: '',
+      next_id: '',
+      mode: 'preview',
+    }
+  })
   const initDocumentTree = async () => {
     documentLoading.value = true
     const [error, res] = await to(knowledgeApi.getDocumentNodesTreeById(knowledgeInfo.value.id))
@@ -141,13 +158,26 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
   const initKnowledge = async () => {
     const [error, res] = await to(
-      knowledgeApi.getKnowledgeDetail(currentKnowledgeSlug.value as string),
+      knowledgeApi.getKnowledgeDetail(currentKnowledgeSlug.value as string, !!document_slug.value),
     )
     console.log('获取知识库列表:', res)
     if (!error) {
       knowledgeInfo.value = res.data
       // 获取知识库下面的文档树
       initDocumentTree()
+    } else {
+      if (!document_slug.value) {
+        const errorRes = (error as any)?.response?.data as {
+          errCode: number;
+          errMessage?: string;
+        };
+        if (errorRes?.errCode === 403) {
+          knowledgeError.value = { errMessage: errorRes.errMessage || '你无权访问此知识库' }
+        }
+      } else {
+        // 如果是文档访问，则不显示左侧面板
+        showKnowledgeLeftPanel.value = false
+      }
     }
   }
   // 获取当前文档的内容信息
@@ -167,6 +197,14 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       showEditor.value = true
       if (documentInfo.value.id && currentDocNode.value.mode === 'preview') {
         getDocumentContent(documentInfo.value.id)
+      }
+    } else {
+      const errorRes = (error as any)?.response?.data as {
+        errCode: number;
+        errMessage?: string;
+      };
+      if (errorRes?.errCode === 403) {
+        documentError.value = { errMessage: errorRes.errMessage || '你无权访问此文档' }
       }
     }
   }
@@ -253,13 +291,16 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
 
   return {
     // 状态
-    documentInfo,
-    documentContentJson,
     knowledgeInfo,
+    knowledgeError,
+    documentInfo,
+    documentError,
+    documentContentJson,
     documentTree,
     documentLoading,
-    currentDocNode,
+    currentDocState,
     breadcrumbName,
+    showKnowledgeLeftPanel,
     showEditor,
     // 方法
     initKnowledge,

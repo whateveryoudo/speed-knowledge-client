@@ -6,7 +6,7 @@
  * @LastEditors: Bwrong
  * @LastEditTime: 2024-05-10 14:28:52
  */
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 
 // 统一配置请求返回数据类型
 export type ResponseType<T = any> = {
@@ -56,18 +56,18 @@ const request = axios.create({
 });
 
 request.interceptors.request.use(
-  (config: any) => {
+  (config: AxiosRequestConfig<any>) => {
     config.baseURL = apiOptions.baseURL;
     // 其他请求优先使用路由守卫写入的 token；无则回退到测试 token
     const token = localStorage.getItem("access_token");
-    config.headers["Authorization"] = `Bearer ${token}`;
+    config.headers && (config.headers["Authorization"] = `Bearer ${token}`);
     return config;
   },
   (err) => Promise.reject(err)
 );
 
 request.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse<ResponseType>) => {
     const {
       data,
       config: { responseType },
@@ -87,12 +87,12 @@ request.interceptors.response.use(
     }
   },
   (error: AxiosError) => {
-    if ((error.config as any).notShowErrorMessage) return;
+    if (error.response?.config?.headers?.silent) return Promise.reject(error);;
     if (error.response) {
       apiOptions.onError?.(
         (error.response.data as any)?.errMessage! ||
-          HTTP_CODE[error.response.status as keyof typeof HTTP_CODE] ||
-          "服务器开小差啦，请稍后再试"
+        HTTP_CODE[error.response.status as keyof typeof HTTP_CODE] ||
+        "服务器开小差啦，请稍后再试"
       );
       if (error.response.status === 401) {
         apiOptions.onUnauthorized?.();

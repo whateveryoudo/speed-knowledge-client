@@ -47,7 +47,7 @@
                     <a-flex justify="space-between" align="center" v-if="secondModalType === 'need_approval'">
                         <span>提交申请后需审批确认</span>
                         <a-switch :checked="tokenInfo.need_approval === 1"
-                            @change="(checked: boolean) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
+                            @change="(checked: boolean | string | number) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
                     </a-flex>
 
                 </div>
@@ -137,12 +137,12 @@
     </s-full-modal>
 </template>
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { CloseOutlined, UsergroupAddOutlined, SyncOutlined, AuditOutlined, RightOutlined } from '@ant-design/icons-vue';
 import { useRoute } from 'vue-router';
 import PersonSearch from '#sk-web/components/personSearch/index.vue';
 import { useCollaborator } from '../../hooks/useCollaborator';
-import { CollaboratorSource, CollaboratorRole } from '@sk/types';
+import { CollaboratorSource, CollaboratorRole, CollaboratorResourceType } from '@sk/types';
 const route = useRoute();
 const props = defineProps<{
     visible: boolean;
@@ -153,7 +153,12 @@ const emit = defineEmits<{
 const source = ref(CollaboratorSource.INVITATION);
 const secondModalType = ref<'role' | 'need_approval'>();
 const selectedUsers = ref<number[]>([]);
-const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator();
+const options = computed(() => ({
+    resourceType: CollaboratorResourceType.KNOWLEDGE,
+    resourceSlug: route.params.knowledge_slug as string,
+    teamSlug: route.params.team_slug as string,
+}));
+const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
 
 
 const open = ref(false);

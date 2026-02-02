@@ -1,3 +1,4 @@
+import { CollaboratorRole } from "./collaborator";
 // 节点类型：目前只有目录和DOC
 export enum DocumentNodeType {
   TITLE = "TITLE",
@@ -14,6 +15,25 @@ export const documentTypeOptions = [
     icon: 'icon-document',
   },
 ] as const
+
+// 角色选项
+export const DocumentCollaboratorRoleOptions = [
+  {
+    label: "可阅读",
+    value: CollaboratorRole.READ,
+    tip: "仅拥有只读和评论权限",
+  },
+  {
+    label: "可编辑",
+    value: CollaboratorRole.EDIT,
+    tip: "拥有文档编辑权限",
+  },
+  {
+    label: "可管理",
+    value: CollaboratorRole.ADMIN,
+    tip: "拥有文档所有权限权限",
+  },
+];
 export interface DocumentItem {
   id: string;
   userId: string;

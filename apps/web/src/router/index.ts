@@ -24,7 +24,7 @@ const router = createRouter({
           path: 'start',
           component: () => import('../views/dashboard/start/index'),
         },
-        { path: 'team/:slug', component: () => import('../views/team/index.vue') },
+        { path: 'team/:team_slug', component: () => import('../views/team/index.vue') },
       ],
     },
     {
@@ -38,21 +38,22 @@ const router = createRouter({
           component: () => import('../views/knowledge/Home.vue'),
         },
         {
-          path: '/:team_slug/knowledge/:slug',
+          path: '/:team_slug/knowledge/:knowledge_slug',
           component: () => import('../views/knowledge/Home.vue'),
         },
         {
-          path: '/:team_slug/knowledge/:slug/document/:document_slug',
+          path: '/:team_slug/knowledge/:knowledge_slug/document/:document_slug',
           component: () => import('../views/knowledge/document/index.vue'),
         },
+
       ],
     },
     {
-      path: '/:team_slug/knowledge/:slug/manage',
+      path: '/:team_slug/knowledge/:knowledge_slug/manage',
       component: () => import('../views/knowledge/manage/index.vue'),
       children: [
         {
-          path: '/:team_slug/knowledge/:slug/manage/auth',
+          path: '/:team_slug/knowledge/:knowledge_slug/manage/auth',
           component: () => import('../views/knowledge/manage/AuthManage.vue'),
           meta: {
             menuKey: 'auth',
@@ -62,9 +63,10 @@ const router = createRouter({
     },
     // 邀请链接
     {
-      path: '/:team_slug/knowledge/:slug/invite',
-      component: () => import('../views/knowledge/invite/index.vue'),
+      path: '/:team_slug/:resource_type/:resource_slug/invite',
+      component: () => import('../views/invite/index.vue'),
     },
+
   ],
 })
 

@@ -1,25 +1,27 @@
 <template>
-    <a-flex vertical class="h-full">
+
+    <a-flex v-if="!documentError" vertical class="h-full">
         <a-flex justify="space-between" align="center"
             class="fixed bg-[#fff] z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
-            :style="{ left: `${knowledgeSidebarWidth}px` }">
+            :style="{ left: showKnowledgeLeftPanel ? `${knowledgeSidebarWidth}px` : '0' }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
             </span>
             <a-space>
-                <CollaboratingPersonAvatars v-if="currentDocNode?.mode === 'edit'"
+                <CollaboratingPersonAvatars v-if="currentDocState?.mode === 'edit'"
                     :collaborators="collaborating_persons" />
                 <CollaboratorAddPopver />
                 <a-tooltip title="收藏" class="mr-2">
                     <a-button type="text" class="shadow-btn-wrapper"
                         @click="handleCollect(documentInfo.has_collected, { identifier: documentInfo.id, resource_type: CollectResourceType.DOCUMENT, onSuccess: () => { documentInfo.has_collected = !documentInfo.has_collected; } })">
-                        <StarFilled v-if="documentInfo.has_collected" style="color: var(--sd-yellow-6);" />
-                        <StarOutlined v-else />
+                        <StarFilled v-if="documentInfo.has_collected"
+                            style="font-size: 18px;color: var(--sd-yellow-6);" />
+                        <StarOutlined v-else style="font-size: 18px;" />
                     </a-button>
                 </a-tooltip>
                 <DocumentShare />
-                <a-button v-if="currentDocNode.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
-                <template v-if="currentDocNode.mode === 'edit'">
+                <a-button v-if="currentDocState.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
+                <template v-if="currentDocState.mode === 'edit'">
                     <a-tooltip title="文档会自动更新到阅读页">
                         <a-button @click="setPreviewMode">
                             保存
@@ -28,20 +30,21 @@
                 </template>
             </a-space>
         </a-flex>
-        <div>
+        <div class="pt-[52px]">
             <!-- 文档显示:追加key用于重置编辑器 -->
-            <SkeletonList :loading="!knowledgeStore.showEditor">
+            <SkeletonList :loading="!knowledgeStore.showEditor"
+                :style="!knowledgeStore.showEditor ? { padding: '20px 50px' } : {}">
                 <SpeedTiptapEditor :json="documentContentJson" v-if="knowledgeStore.showEditor"
                     :headerStyle="{ position: 'fixed', top: '52px', left: `${knowledgeSidebarWidth}px`, right: '0', zIndex: 10 }"
-                    :mainStyle="{ paddingTop: '92px' }" :key="documentInfo.id + '-' + currentDocNode.mode"
-                    :editable="currentDocNode.mode === 'edit'" :menubar="currentDocNode.mode === 'edit'"
+                    :mainStyle="{ paddingTop: '40px' }" :key="documentInfo.id + '-' + currentDocState.mode"
+                    :editable="currentDocState.mode === 'edit'" :menubar="currentDocState.mode === 'edit'"
                     :title="documentInfo.name"
                     @update:title="(val: string) => knowledgeStore.handleUpdateDocumentName(documentInfo.id, val, 'editor')"
                     scene="knowledge" v-bind="editorProps" @update:collaborators="handleCollaboratorsChange" />
             </SkeletonList>
         </div>
 
-        <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]" v-if="currentDocNode.mode === 'preview'">
+        <a-flex class="w-[1000px] mx-auto text-[var(--sd-grey-7)]" v-if="currentDocState.mode === 'preview'">
             <a-space :size="10">
                 <a-tooltip :title="`更新时间于 ${dayjs(documentInfo.content_updated_at).format('YYYY-MM-DD HH:mm:ss')}`">
                     <ClockCircleOutlined />
@@ -54,6 +57,7 @@
             </a-space>
         </a-flex>
     </a-flex>
+    <not-found v-else :title="documentError.errMessage" />
 </template>
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
@@ -73,7 +77,7 @@ import dayjs from 'dayjs';
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
-const { documentInfo, currentDocNode, documentContentJson } = storeToRefs(knowledgeStore)
+const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPanel, documentError } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
@@ -127,7 +131,7 @@ const setPreviewMode = () => {
     knowledgeStore.updateDocumentAttrs(documentInfo.value.id, { mode: 'preview' })
     knowledgeStore.initDocumentDetail(false)// 重新获取文档内容
 }
-watch(() => currentDocNode.value.id, (val: string) => {
+watch(() => currentDocState.value.id, (val: string) => {
     // 通过短链获取当前文档的详细信息
     if (val) {
         knowledgeStore.initDocumentDetail()

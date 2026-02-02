@@ -49,13 +49,13 @@ export const getInvitationValidLinkInfo = (
 export const applyJoinKnowledge = (data: {
   invitation_token: string;
 }): Promise<ResponseType<CollaboratorResponse>> => {
-  return request.post(`${knowledgePrefix}/invitation/apply`, data);
+  return request.post(`${collaboratorPrefix}/invitation/apply`, data);
 };
 
 export const deleteCollaborator = (
   collaborator_id: string
 ): Promise<ResponseType<void>> => {
-  return request.delete(`${knowledgePrefix}/collaborator/${collaborator_id}`);
+  return request.delete(`${collaboratorPrefix}/collaborator/${collaborator_id}`);
 };
 
 export const updateCollaboratorInfo = (
@@ -63,7 +63,7 @@ export const updateCollaboratorInfo = (
   data: Partial<CollaboratorResponse>
 ): Promise<ResponseType<CollaboratorResponse>> => {
   return request.put(
-    `${knowledgePrefix}/collaborator/${collaborator_id}`,
+    `${collaboratorPrefix}/collaborator/${collaborator_id}`,
     data
   );
 };
@@ -73,7 +73,7 @@ export const auditCollaborator = (
   data: { audit_status: "agree" | "reject" }
 ): Promise<ResponseType<CollaboratorResponse>> => {
   return request.post(
-    `${knowledgePrefix}/collaborator/${collaborator_id}/audit`,
+    `${collaboratorPrefix}/${collaborator_id}/audit`,
     data
   );
 };

@@ -63,7 +63,7 @@
                         <a-flex justify="space-between" align="center" v-if="secondModalType === 'need_approval'">
                             <span>提交申请后需审批确认</span>
                             <a-switch :checked="tokenInfo.need_approval === 1"
-                                @change="(checked: boolean) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
+                                @change="(checked: boolean | string | number) => handleUpdateTokenInfo({ 'need_approval': checked ? 1 : 0 })" />
                         </a-flex>
                     </div>
                     <a-flex v-if="showLinkPanel && !secondModalType" vertical class="rounded-[8px]">
@@ -122,20 +122,25 @@ import { UsergroupAddOutlined, SyncOutlined, AuditOutlined, RightOutlined } from
 import { useRoute } from 'vue-router';
 import { LinkOutlined, TeamOutlined } from '@ant-design/icons-vue';
 import { useCollaborator } from '../../hooks/useCollaborator';
-import { CollaboratorSource, CollaboratorRole } from '@sk/types';
+import { CollaboratorSource, CollaboratorRole, CollaboratorResourceType } from '@sk/types';
 import { useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 const secondModalType = ref<'role' | 'need_approval'>();
-
-const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator();
-const showLinkPanel = ref(false);
 const knowledgeSlug = computed(() => {
-    return route.params.slug as string;
+    return route.params.knowledge_slug as string;
 });
 const team_slug = computed(() => {
     return route.params.team_slug as string;
 });
+const options = computed(() => ({
+    resourceType: CollaboratorResourceType.KNOWLEDGE,
+    resourceSlug: knowledgeSlug.value,
+    teamSlug: team_slug.value,
+}));
+const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
+const showLinkPanel = ref(false);
+
 
 const handleOpenChange = (val: boolean) => {
     if (val) {

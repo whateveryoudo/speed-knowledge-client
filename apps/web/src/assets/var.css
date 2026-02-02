@@ -2,7 +2,7 @@
     --sd-border-primary: #e7e9e8;
     --sd-link-color: #117cee;
     --sd-bg-secondary: #fafafa;
-    --sd-border-light: rgba(0,0,0,.04);
+    --sd-border-light: rgba(0, 0, 0, .04);
     --sd-bg-primary-hover: #eff0f0;
     --sd-text-primary: #262626;
     --sd-text-grey-900: #262626;
@@ -15,7 +15,11 @@
     --sd-grey-9: #262626;
     --sd-grey-8: #585a5a;
     --sd-text-body: #585a5a;
-    --sd-red-1:#fbe4ea;
-    --sd-red-6:#df2a3f;
-    --sd-yellow-6:#ecaa04;
+    --sd-red-1: #fbe4ea;
+    --sd-red-6: #df2a3f;
+    --sd-yellow-6: #ecaa04;
+
+    /* 一些复写antd 的样式变量 */
+    --sd-ant-color-primary: #fff;
+    --sd-ant-color-primary-bg: #00b96b;
 }

@@ -1,1 +1,0 @@
-export const KNOWLEDGE_ID_KEY = Symbol('knowledge_id_key');

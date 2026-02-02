@@ -1,12 +1,12 @@
 <template>
-    <a-popover trigger="click" v-model:visible="visible" :overlayStyle="{ width: '440px' }" placement="bottomRight"
+    <a-popover trigger="click" v-model:open="open" :overlayStyle="{ width: '440px' }" placement="bottomRight"
         :arrow="false">
         <template #content>
-            <CollaboratorAddMain v-if="visible" />
+            <CollaboratorAddMain v-if="open" />
         </template>
         <a-tooltip title="协作">
             <a-button type="text" class="shadow-btn-wrapper">
-                <UsergroupAddOutlined />
+                <UsergroupAddOutlined style="font-size: 18px;" />
             </a-button>
         </a-tooltip>
     </a-popover>
@@ -15,7 +15,7 @@
 import { ref } from 'vue';
 import { UsergroupAddOutlined } from '@ant-design/icons-vue';
 import CollaboratorAddMain from './CollaboratorAddMain.vue';
-const visible = ref(false);
+const open = ref(false);
 
 
 </script>
