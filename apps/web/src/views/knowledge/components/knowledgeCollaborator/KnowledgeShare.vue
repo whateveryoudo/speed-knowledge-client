@@ -135,7 +135,7 @@ const team_slug = computed(() => {
 });
 const options = computed(() => ({
     resourceType: CollaboratorResourceType.KNOWLEDGE,
-    resourceSlug: knowledgeSlug.value,
+    knowledgeSlug: knowledgeSlug.value,
     teamSlug: team_slug.value,
 }));
 const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);

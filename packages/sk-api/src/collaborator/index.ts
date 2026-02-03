@@ -14,7 +14,13 @@ export const getCollaboratorList = (
 ): Promise<ResponseType<CollaboratorResponse[]>> => {
   return request.get(`${collaboratorPrefix}/${resource_type}/${resource_identifier}/list`);
 };
-
+// 获取待审批数量
+export const getToAuditCount = (
+  resource_type: CollaboratorResourceType,
+  resource_identifier: string,
+): Promise<ResponseType<number>> => {
+  return request.get(`${collaboratorPrefix}/${resource_type}/${resource_identifier}/to_audit_count`);
+};
 
 // 获取邀请token信息
 export const getInvitationToken = (

@@ -1,3 +1,4 @@
+import type { UserInfo } from "./user";
 // 邀请状态 1: 有效 2: 失效
 export enum InvitationStatus {
     ACTIVE = 1,
@@ -44,7 +45,13 @@ export interface CollaboratorResponse {
     id: string;
     user_id: number;
     knowledge_id: string;
+    knowledge_slug: string;
+    document_slug?: string;
+    document_id?: string;
+    document_name?: string;
+    target_type: CollaboratorResourceType;
     role: CollaboratorRole;
+    user: UserInfo;
     status: CollaboratorStatus;
     source: CollaboratorSource;
     created_at: string;
@@ -58,7 +65,9 @@ export interface InvitationValidInfo {
         knowledge_id?: string;
         document_name?: string;
         document_id?: string;
+        role: CollaboratorRole;
         invitate_type: CollaboratorResourceType;
+        need_approval: 0 | 1;
     };
     collaborator: null | {
         status: CollaboratorStatus;

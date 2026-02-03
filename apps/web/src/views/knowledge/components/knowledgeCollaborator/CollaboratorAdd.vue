@@ -155,7 +155,7 @@ const secondModalType = ref<'role' | 'need_approval'>();
 const selectedUsers = ref<number[]>([]);
 const options = computed(() => ({
     resourceType: CollaboratorResourceType.KNOWLEDGE,
-    resourceSlug: route.params.knowledge_slug as string,
+    knowledgeSlug: route.params.knowledge_slug as string,
     teamSlug: route.params.team_slug as string,
 }));
 const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);

@@ -61,12 +61,16 @@ const router = createRouter({
         },
       ],
     },
-    // 邀请链接
+    // 邀请链接-知识库
     {
-      path: '/:team_slug/:resource_type/:resource_slug/invite',
-      component: () => import('../views/invite/index.vue'),
+      path: '/:team_slug/:resource_type/:knowledge_slug/invite',
+      component: () => import('../views/invite/KnowledgeInvite.vue'),
     },
-
+    // 邀请链接-文档
+    {
+      path: '/:team_slug/:resource_type/:knowledge_slug/:document_slug/invite',
+      component: () => import('../views/invite/DocumentInvite.vue'),
+    },
   ],
 })
 

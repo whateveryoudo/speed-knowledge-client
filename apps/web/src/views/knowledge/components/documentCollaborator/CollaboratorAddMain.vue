@@ -1,7 +1,7 @@
 <template>
     <a-flex class="px-2" align="center" justify="space-between">
-        <a-space class="cursor-pointer h-[40px] leading-[40px]" @click="backToFirstModal">
-            <LeftOutlined style="font-size: 12px;" />
+        <a-space class="cursor-pointer h-[40px] leading-[40px]" @click="handleBack">
+            <LeftOutlined v-if="showBackIcon" style="font-size: 12px;" />
             <span class="text-[16px]">文档协作者</span>
         </a-space>
     </a-flex>
@@ -9,15 +9,26 @@
     <div class="p-2">
         <PersonSearch class="mb-5" v-model:value="selectedUsers" />
         <!-- 显示已经添加的协作者列表 -->
-        <a-flex align="center" justify="space-between" v-for="record in collaboratorList" :key="record.id">
+        <a-flex align="center" class="mb-2" justify="space-between" v-for="record in collaboratorList" :key="record.id">
             <template v-for="column in columns" :key="column.dataIndex">
                 <div v-if="column.dataIndex === 'user'" :style="{ width: column.width }">
                     <a-space :size="15">
                         <img :src="record.user.avatar || defaultAvatar" class="w-[25px] h-[25px]" />
-                        <a-flex vertical :gap="2">
-                            <span>{{ record.user.nickname }}</span>
-                            <a-tag v-if="record.status === CollaboratorStatus.PENDING">申请加入</a-tag>
-                            <span class="text-[var(--sd-text-caption)]">{{ record.user.username }}</span>
+                        <a-flex vertical>
+                            <span class="truncate">{{ record.user.nickname }}<span
+                                    class="ml-1 text-[var(--sd-text-caption)]" v-if="record.user.username">({{
+                                        record.user.username }})</span></span>
+                            <span v-if="record.status === CollaboratorStatus.PENDING">
+                                <span class="text-[var(--sd-text-caption)] text-[12px]">申请权限</span>
+                                <span class="ml-1">
+                                    {{ formatRoleText(record.role) }}
+                                </span>
+                            </span>
+
+                            <!-- 如果是知识库协作者，则显示在知识库中的角色 -->
+                            <span class="text-[12px]"
+                                v-if="record.target_type === CollaboratorResourceType.KNOWLEDGE">知识库{{
+                                    formatRoleText(record.role) }}员</span>
                         </a-flex>
                     </a-space>
                 </div>
@@ -27,7 +38,7 @@
                     <template v-if="record.status === CollaboratorStatus.PENDING">
                         <a-space>
                             <template #split>
-                                <a-divider type="vertical" class="mx-1" />
+                                <a-divider type="vertical" class="mx-0" />
                             </template>
                             <span @click="handleAudit(record.id, 'agree', record.user)"
                                 class="cursor-pointer text-[var(--ant-color-primary)]">同意</span>
@@ -36,20 +47,24 @@
                         </a-space>
                     </template>
                     <template v-else>
-                        <span v-if="record.source === CollaboratorSource.CREATOR">{{ formatRoleText(record.role)
+                        <span
+                            v-if="record.source === CollaboratorSource.CREATOR || record.target_type === CollaboratorResourceType.KNOWLEDGE"
+                            class="text-[var(--sd-text-caption)]">{{ formatRoleText(record.role)
                             }}</span>
                         <a-dropdown v-else trigger="click">
                             <template #overlay>
-                                <a-menu class="py-2!" @click="(e: any) => handleMenuClick(record.id, e.key)">
+                                <a-menu class="py-2!" @click="(e: any) => handleMenuClick(record.id, e.key as never)">
                                     <a-menu-item v-for="item in moreMenuOptions" :key="item.value">
                                         <a-flex vertical :gap="2">
-                                            <span>{{ item.label }}</span>
+                                            <span
+                                                :class="[(item as any).type === 'danger' ? 'text-[var(--sd-red-6)]' : '']">{{
+                                                    item.label }}</span>
                                             <span class="text-[var(--sd-text-caption)]">{{ item.tip }}</span>
                                         </a-flex>
                                     </a-menu-item>
                                 </a-menu>
                             </template>
-                            <a-space class="cursor-pointer">
+                            <a-space class="cursor-pointer ">
                                 {{ formatRoleText(record.role) }}
                                 <DownOutlined />
                             </a-space>
@@ -68,15 +83,20 @@ import PersonSearch from '#sk-web/components/personSearch/index.vue';
 import { useCollaborator } from '../../hooks/useCollaborator';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
 import { CollaboratorSource, CollaboratorRole, CollaboratorResourceType, DocumentCollaboratorRoleOptions, CollaboratorStatus } from '@sk/types';
-import { useToggle } from '@vueuse/core'
+
+const props = defineProps<{
+    showBackIcon?: boolean
+}>();
+const emit = defineEmits<{
+    (e: 'close'): void
+}>();
 const route = useRoute();
 
-const source = ref(CollaboratorSource.INVITATION);
-const secondModalType = ref<'role' | 'need_approval'>();
 const selectedUsers = ref<number[]>([]);
 const options = computed(() => ({
     resourceType: CollaboratorResourceType.DOCUMENT,
-    resourceSlug: route.params.document_slug as string,
+    documentSlug: route.params.document_slug as string,
+    knowledgeSlug: route.params.knowledge_slug as string,
     teamSlug: route.params.team_slug as string,
 }));
 const { tokenInfo, inviteUrl, handleCopy, handleAudit, handleRoleChange, handleDelete, getCollaboratorList, collaboratorList, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
@@ -102,12 +122,12 @@ const handleMenuClick = (collaboratorId: string, key: CollaboratorRole & 'delete
             handleDelete(collaboratorId);
             break;
     }
-    handleRoleChange(collaboratorId, { role: key });
 }
 const moreMenuOptions = computed(() => [
-    ...DocumentCollaboratorRoleOptions,
+    // 这里排除admin，文档不支持配置管理员
+    ...DocumentCollaboratorRoleOptions.filter(item => item.value !== CollaboratorRole.ADMIN),
     {
-        label: '删除',
+        label: '移除',
         value: 'delete',
         type: 'danger',
         tip: '移除该协作者'
@@ -116,9 +136,10 @@ const moreMenuOptions = computed(() => [
 const formatRoleText = (role: CollaboratorRole) => {
     return DocumentCollaboratorRoleOptions.find(item => item.value === role)?.label ?? '--';
 }
-const backToFirstModal = () => {
-    secondModalType.value = undefined;
-    getInvitationToken(); // 刷新邀请信息
+const handleBack = () => {
+    if (props.showBackIcon) {
+        emit('close');
+    }
 }
 // 获取协作者列表
 getCollaboratorList()

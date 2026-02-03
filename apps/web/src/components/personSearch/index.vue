@@ -1,5 +1,5 @@
 <template>
-    <a-select :value="value" mode="multiple" placeholder="请输入用户名/昵称" style="width: 100%"
+    <a-select size="large" :value="value" mode="multiple" placeholder="请输入用户名/昵称" style="width: 100%"
         :filter-option="false" :fieldNames="{ label: 'nickname', value: 'id', }" option-label-prop="children"
         :not-found-content="fetching ? undefined : null" :options="data" @search="fetchUser"
         @update:value="handleUpdateValue">

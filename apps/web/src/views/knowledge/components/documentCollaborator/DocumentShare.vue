@@ -1,8 +1,9 @@
 <template>
-    <a-popover trigger="click" @open-change="handleOpenChange" :overlayStyle="{ width: '440px' }" placement="bottomRight" :arrow="false">
+    <a-popover trigger="click" @open-change="handleOpenChange" :overlayStyle="{ width: '440px' }"
+        placement="bottomRight" :arrow="false">
         <template #content>
             <div class="p-2">
-                <div v-if="!showLinkPanel">
+                <div v-if="!showLinkPanel && !showCollaboratorList">
                     <p class="mb-4">当前文档为私密，仅自己和协作者可访问</p>
                     <a-flex align="center" :gap="10" justify="space-between">
                         <a-flex align="center" :gap="10">
@@ -16,19 +17,23 @@
                         </a-flex>
                         <a-space>
                             <a-tooltip title="链接添加协作者">
-                                <a-button type="text" shape="circle" @click="showLinkPanel = true">
+                                <a-button type="text" class="bg-[var(--sd-grey-2)]!" shape="circle"
+                                    @click="showLinkPanel = true">
                                     <template #icon>
                                         <LinkOutlined />
                                     </template>
                                 </a-button>
                             </a-tooltip>
                             <a-tooltip title="查看所有协作者">
-                                <a-button type="text" shape="circle"
-                                    @click="router.push(`/${team_slug}/knowledge/${knowledgeSlug}/manage/auth`)">
-                                    <template #icon>
-                                        <TeamOutlined />
-                                    </template>
-                                </a-button>
+                                <a-badge :dot="toAuditCount > 0" :offset="[-5, 3]">
+                                    <a-button type="text" class="bg-[var(--sd-grey-2)]!" shape="circle"
+                                        @click="toggleShowCollaboratorList()">
+                                        <template #icon>
+                                            <TeamOutlined />
+                                        </template>
+                                    </a-button>
+                                </a-badge>
+
                             </a-tooltip>
                         </a-space>
                     </a-flex>
@@ -47,14 +52,12 @@
                         <div class="flex align-center justify-between cursor-pointer"
                             @click="handleUpdateTokenInfo({ 'role': CollaboratorRole.READ })">
                             <span>可阅读</span>
-                            <check-outlined v-if="tokenInfo.role === CollaboratorRole.READ"
-                                style="color: #00b96b;" />
+                            <check-outlined v-if="tokenInfo.role === CollaboratorRole.READ" style="color: #00b96b;" />
                         </div>
                         <div class="flex align-center justify-between cursor-pointer"
                             @click="handleUpdateTokenInfo({ 'role': CollaboratorRole.EDIT })">
                             <span>可编辑</span>
-                            <check-outlined v-if="tokenInfo.role === CollaboratorRole.EDIT"
-                                style="color: #00b96b;" />
+                            <check-outlined v-if="tokenInfo.role === CollaboratorRole.EDIT" style="color: #00b96b;" />
                         </div>
                     </a-flex>
                     <a-flex justify="space-between" align="center" v-if="secondModalType === 'need_approval'">
@@ -107,6 +110,8 @@
                         </a-flex>
                     </a-flex>
                 </a-flex>
+                <!-- 显示协作人员列表 -->
+                <CollaboratorAddMain v-if="showCollaboratorList" @close="toggleShowCollaboratorList()" showBackIcon />
             </div>
         </template>
         <a-button>分享</a-button>
@@ -120,6 +125,8 @@ import { LinkOutlined, TeamOutlined } from '@ant-design/icons-vue';
 import { useCollaborator } from '../../hooks/useCollaborator';
 import { useRouter } from 'vue-router';
 import { CollaboratorRole, CollaboratorResourceType } from '@sk/types';
+import CollaboratorAddMain from './CollaboratorAddMain.vue';
+import { useToggle } from '@vueuse/core'
 const route = useRoute();
 const router = useRouter();
 
@@ -130,17 +137,22 @@ const team_slug = computed(() => {
 const documentSlug = computed(() => {
     return route.params.document_slug as string;
 });
+const knowledgeSlug = computed(() => {
+    return route.params.knowledge_slug as string;
+});
 const options = computed(() => ({
     resourceType: CollaboratorResourceType.DOCUMENT,
-    resourceSlug: documentSlug.value,
+    documentSlug: documentSlug.value,
+    knowledgeSlug: knowledgeSlug.value,
     teamSlug: team_slug.value,
 }));
-const { tokenInfo, inviteUrl, handleCopy, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
+const { tokenInfo, inviteUrl, getToAuditCount, toAuditCount, handleCopy, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
 const showLinkPanel = ref(false);
-
+const [showCollaboratorList, toggleShowCollaboratorList] = useToggle(false);
 const handleOpenChange = (val: boolean) => {
     if (val) {
         getInvitationToken()
+        getToAuditCount()
     }
 };
 </script>

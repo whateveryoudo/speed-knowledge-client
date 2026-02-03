@@ -11,13 +11,17 @@ import { useClipboard } from '@vueuse/core';
 import { useToggle } from '@vueuse/core';
 interface IOptions {
     resourceType: CollaboratorResourceType;
-    resourceSlug: string;
+    documentSlug?: string;
+    knowledgeSlug: string;
     teamSlug: string;
 }
 export const useCollaborator = (options: ComputedRef<IOptions>) => {
     const [collaboratorListLoading, toggleCollaboratorListLoading] = useToggle(false);
     const [resetLoading, toggleResetLoading] = useToggle(false);
-    const { resourceType, resourceSlug, teamSlug } = options.value;
+    const { resourceType, knowledgeSlug, documentSlug, teamSlug } = options.value;
+    const toAuditCount = ref(0);
+    // 模板短链
+    const resourceSlug = resourceType === CollaboratorResourceType.KNOWLEDGE ? knowledgeSlug : documentSlug;
     const tokenInfo = ref<InvitationResponse>({
         token: '',
         status: InvitationStatus.ACTIVE,
@@ -32,12 +36,12 @@ export const useCollaborator = (options: ComputedRef<IOptions>) => {
     const collaboratorList = ref<CollaboratorResponse[]>([]);
     const { copy } = useClipboard();
     const inviteUrl = computed(() => {
-        return `${window.location.origin}/${teamSlug}/${resourceType}/${resourceSlug}/invite?token=${tokenInfo.value.token}`;
+        return resourceType === CollaboratorResourceType.KNOWLEDGE ? `${window.location.origin}/${teamSlug}/${resourceType}/${knowledgeSlug}/invite?token=${tokenInfo.value.token}` : `${window.location.origin}/${teamSlug}/${resourceType}/${knowledgeSlug}/${documentSlug}/invite?token=${tokenInfo.value.token}`;
     });
 
 
     const getInvitationToken = async () => {
-        const [error, res] = await to(collaboratorApi.getInvitationToken(resourceType, resourceSlug));
+        const [error, res] = await to(collaboratorApi.getInvitationToken(resourceType, resourceSlug!));
         if (error) {
             return;
         }
@@ -93,13 +97,22 @@ export const useCollaborator = (options: ComputedRef<IOptions>) => {
 
     const getCollaboratorList = async () => {
         toggleCollaboratorListLoading(true);
-        const [err, res] = await to(collaboratorApi.getCollaboratorList(resourceType, resourceSlug));
+        const [err, res] = await to(collaboratorApi.getCollaboratorList(resourceType, resourceSlug!));
         toggleCollaboratorListLoading(false);
         if (err) {
             return;
         }
         collaboratorList.value = res.data;
     };
+
+    // 获取待审批数量
+    const getToAuditCount = async () => {
+        const [err, res] = await to(collaboratorApi.getToAuditCount(resourceType, resourceSlug!));
+        if (err) {
+            return;
+        }
+        toAuditCount.value = res.data;
+    }
 
     return {
         resetLoading,
@@ -111,11 +124,13 @@ export const useCollaborator = (options: ComputedRef<IOptions>) => {
         getInvitationToken,
         handleUpdateTokenInfo,
         handleResetInvitationLink,
+        toAuditCount,
 
 
         getCollaboratorList,
         handleDelete,
         handleAudit,
         handleRoleChange,
+        getToAuditCount
     }
 }

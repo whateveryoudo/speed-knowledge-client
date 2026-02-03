@@ -95,7 +95,7 @@ const collaboratorAddVisible = ref(false);
 const route = useRoute();
 const options = computed(() => ({
     resourceType: CollaboratorResourceType.KNOWLEDGE,
-    resourceSlug: route.params.knowledge_slug as string,
+    knowledgeSlug: route.params.knowledge_slug as string,
     teamSlug: route.params.team_slug as string,
 }));
 const { collaboratorList, collaboratorListLoading, getCollaboratorList, handleAudit, handleDelete, handleRoleChange } = useCollaborator(options);
