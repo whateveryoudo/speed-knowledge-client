@@ -6,6 +6,8 @@ export interface KnowledgeCreate {
   cover_url?: any;
   group_id: string;
   icon: string;
+  team_id: string;
+  space_id: string;
 }
 export interface KnowledgeItem extends KnowledgeCreate {
   id: string;

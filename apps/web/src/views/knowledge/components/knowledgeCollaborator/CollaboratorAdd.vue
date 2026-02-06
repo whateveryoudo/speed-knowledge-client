@@ -160,7 +160,6 @@ const options = computed(() => ({
 }));
 const { tokenInfo, inviteUrl, handleCopy, resetLoading, getInvitationToken, handleUpdateTokenInfo, handleResetInvitationLink } = useCollaborator(options);
 
-
 const open = ref(false);
 const backToFirstModal = () => {
     secondModalType.value = undefined;

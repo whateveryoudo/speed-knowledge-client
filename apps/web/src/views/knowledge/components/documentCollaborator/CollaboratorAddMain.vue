@@ -9,70 +9,74 @@
     <div class="p-2">
         <PersonSearch class="mb-5" v-model:value="selectedUsers" />
         <!-- 显示已经添加的协作者列表 -->
-        <a-flex align="center" class="mb-2" justify="space-between" v-for="record in collaboratorList" :key="record.id">
-            <template v-for="column in columns" :key="column.dataIndex">
-                <div v-if="column.dataIndex === 'user'" :style="{ width: column.width }">
-                    <a-space :size="15">
-                        <img :src="record.user.avatar || defaultAvatar" class="w-[25px] h-[25px]" />
-                        <a-flex vertical>
-                            <span class="truncate">{{ record.user.nickname }}<span
-                                    class="ml-1 text-[var(--sd-text-caption)]" v-if="record.user.username">({{
-                                        record.user.username }})</span></span>
-                            <span v-if="record.status === CollaboratorStatus.PENDING">
-                                <span class="text-[var(--sd-text-caption)] text-[12px]">申请权限</span>
-                                <span class="ml-1">
-                                    {{ formatRoleText(record.role) }}
+        <div class="max-h-[500px] overflow-y-auto">
+            <a-flex align="center" class="mb-2" justify="space-between" v-for="record in collaboratorList"
+                :key="record.id">
+                <template v-for="column in columns" :key="column.dataIndex">
+                    <div v-if="column.dataIndex === 'user'" :style="{ width: column.width }">
+                        <a-space :size="15">
+                            <img :src="record.user.avatar || defaultAvatar" class="w-[25px] h-[25px]" />
+                            <a-flex vertical>
+                                <span class="truncate">{{ record.user.nickname }}<span
+                                        class="ml-1 text-[var(--sd-text-caption)]" v-if="record.user.username">({{
+                                            record.user.username }})</span></span>
+                                <span v-if="record.status === CollaboratorStatus.PENDING">
+                                    <span class="text-[var(--sd-text-caption)] text-[12px]">申请权限</span>
+                                    <span class="ml-1">
+                                        {{ formatRoleText(record.role) }}
+                                    </span>
                                 </span>
-                            </span>
 
-                            <!-- 如果是知识库协作者，则显示在知识库中的角色 -->
-                            <span class="text-[12px]"
-                                v-if="record.target_type === CollaboratorResourceType.KNOWLEDGE">知识库{{
-                                    formatRoleText(record.role) }}员</span>
-                        </a-flex>
-                    </a-space>
-                </div>
-                <template v-else-if="column.dataIndex === 'operation'">
-
-                    <!-- 创建者无操作项 -->
-                    <template v-if="record.status === CollaboratorStatus.PENDING">
-                        <a-space>
-                            <template #split>
-                                <a-divider type="vertical" class="mx-0" />
-                            </template>
-                            <span @click="handleAudit(record.id, 'agree', record.user)"
-                                class="cursor-pointer text-[var(--ant-color-primary)]">同意</span>
-                            <span @click="handleAudit(record.id, 'reject', record.user)"
-                                class="cursor-pointer text-[var(--ant-color-error)]">拒绝</span>
+                                <!-- 如果是知识库协作者，则显示在知识库中的角色 -->
+                                <span class="text-[12px]"
+                                    v-if="record.target_type === CollaboratorResourceType.KNOWLEDGE">知识库{{
+                                        formatRoleText(record.role) }}员</span>
+                            </a-flex>
                         </a-space>
-                    </template>
-                    <template v-else>
-                        <span
-                            v-if="record.source === CollaboratorSource.CREATOR || record.target_type === CollaboratorResourceType.KNOWLEDGE"
-                            class="text-[var(--sd-text-caption)]">{{ formatRoleText(record.role)
-                            }}</span>
-                        <a-dropdown v-else trigger="click">
-                            <template #overlay>
-                                <a-menu class="py-2!" @click="(e: any) => handleMenuClick(record.id, e.key as never)">
-                                    <a-menu-item v-for="item in moreMenuOptions" :key="item.value">
-                                        <a-flex vertical :gap="2">
-                                            <span
-                                                :class="[(item as any).type === 'danger' ? 'text-[var(--sd-red-6)]' : '']">{{
-                                                    item.label }}</span>
-                                            <span class="text-[var(--sd-text-caption)]">{{ item.tip }}</span>
-                                        </a-flex>
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                            <a-space class="cursor-pointer ">
-                                {{ formatRoleText(record.role) }}
-                                <DownOutlined />
+                    </div>
+                    <template v-else-if="column.dataIndex === 'operation'">
+
+                        <!-- 创建者无操作项 -->
+                        <template v-if="record.status === CollaboratorStatus.PENDING">
+                            <a-space>
+                                <template #split>
+                                    <a-divider type="vertical" class="mx-0" />
+                                </template>
+                                <span @click="handleAudit(record.id, 'agree', record.user)"
+                                    class="cursor-pointer text-[var(--ant-color-primary)]">同意</span>
+                                <span @click="handleAudit(record.id, 'reject', record.user)"
+                                    class="cursor-pointer text-[var(--ant-color-error)]">拒绝</span>
                             </a-space>
-                        </a-dropdown>
+                        </template>
+                        <template v-else>
+                            <span
+                                v-if="record.source === CollaboratorSource.CREATOR || record.target_type === CollaboratorResourceType.KNOWLEDGE"
+                                class="text-[var(--sd-text-caption)]">{{ formatRoleText(record.role)
+                                }}</span>
+                            <a-dropdown v-else trigger="click">
+                                <template #overlay>
+                                    <a-menu class="py-2!"
+                                        @click="(e: any) => handleMenuClick(record.id, e.key as never)">
+                                        <a-menu-item v-for="item in moreMenuOptions" :key="item.value">
+                                            <a-flex vertical :gap="2">
+                                                <span
+                                                    :class="[(item as any).type === 'danger' ? 'text-[var(--sd-red-6)]' : '']">{{
+                                                        item.label }}</span>
+                                                <span class="text-[var(--sd-text-caption)]">{{ item.tip }}</span>
+                                            </a-flex>
+                                        </a-menu-item>
+                                    </a-menu>
+                                </template>
+                                <a-space class="cursor-pointer ">
+                                    {{ formatRoleText(record.role) }}
+                                    <DownOutlined />
+                                </a-space>
+                            </a-dropdown>
+                        </template>
                     </template>
                 </template>
-            </template>
-        </a-flex>
+            </a-flex>
+        </div>
     </div>
 </template>
 <script lang="ts" setup>

@@ -60,7 +60,7 @@ import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
 import { knowledge as knowledgeApi } from '@sk/api'
 import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate } from '@sk/types'
 import to from 'await-to-js'
-
+import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 interface Props {
     open?: boolean
 }
@@ -72,11 +72,14 @@ interface FormValues {
     group_id?: string
     icon: string
     cover?: any[]
+    team_id?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
     open: false
 })
+
+const spaceStore = useSpaceStore();
 
 const emit = defineEmits<{
     (e: 'update:open', value: boolean): void
@@ -91,6 +94,7 @@ const form = ref<FormValues>({
     name: '',
     description: '',
     cover: [],
+    team_id: undefined, // test,后续支持团队选择
     group_id: undefined,
     icon: 'icon-book-0',
 })
@@ -119,6 +123,7 @@ watch(() => props.open, (val) => {
             description: '',
             group_id: undefined,
             icon: 'icon-book-0',
+            team_id: '1bc00c0d-8408-442a-9a9a-5c3aa726a127',
             cover: []
         }
         formRef.value?.clearValidate()
@@ -150,6 +155,8 @@ const handleOk = async () => {
             cover_url: form.value.cover?.[0],
             group_id: form.value?.group_id ?? '',
             icon: form.value.icon,
+            team_id: form.value.team_id,
+            space_id: spaceStore.spaceInfo.id,
         }
         const [error, res] = await to(knowledgeApi.addKnowledge(reqParams))
         loading.value = false;
