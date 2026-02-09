@@ -25,7 +25,7 @@
                         </template>
                     </a-button>
                     <template #overlay>
-                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="menuItems" />
+                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="getMenuItems(book)" />
                     </template>
                 </a-dropdown>
             </div>
@@ -36,11 +36,12 @@
 <script setup lang="ts">
 import { ref, watch, h } from 'vue'
 import draggable from 'vuedraggable'
-import { LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
+import { LockOutlined, HolderOutlined, MoreOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { type KnowledgeItem } from '@sk/types'
 import { cloneDeep } from 'lodash-es'
 import { useRouter } from 'vue-router'
 import type { ItemType } from 'ant-design-vue'
+import { KnowledgeAbility } from '@sk/types'
 const router = useRouter()
 
 
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<{
     activeBookKey?: string
     dragHandleMode?: 'handle' | 'full'
     showMore?: boolean
+
 }>(), {
     books: () => [],
     activeBookKey: '',
@@ -66,14 +68,25 @@ const emit = defineEmits<{
 
 const activeBookKey = props.activeBookKey || ''
 const innerBooks = ref<KnowledgeItem[]>([])
+const getMenuItems = (book: KnowledgeItem): (ItemType & { hidden?: boolean })[] => {
+    console.log(book?.ability)
+    return [
+        {
+            label: '权限',
+            key: 'auth',
+            icon: () => h(LockOutlined)
+        },
+        { type: 'divider' as const, hidden: !book?.ability?.[KnowledgeAbility.DELETE_BOOK] },
+        {
+            label: '删除',
+            danger: true,
+            key: 'delete',
+            icon: () => h(DeleteOutlined),
+            hidden: !book?.ability?.[KnowledgeAbility.DELETE_BOOK]
+        }
+    ].filter((item) => !item.hidden)
+}
 
-const menuItems = ref<ItemType[]>([
-    {
-        label: '权限',
-        key: 'auth',
-        icon: () => h(LockOutlined)
-    }
-])
 const handleMenuClick = (e: any, book: KnowledgeItem) => {
     switch (e.key) {
         case 'auth':

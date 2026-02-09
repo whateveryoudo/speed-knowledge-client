@@ -1,5 +1,6 @@
 import type { TeamItem } from './team';
 import { CollaboratorRole } from './collaborator';
+import type { Ability } from './index';
 export interface KnowledgeCreate {
   name: string;
   description?: string;
@@ -20,8 +21,18 @@ export interface KnowledgeItem extends KnowledgeCreate {
   content_updated_at: string;
   created_at: string;
   updated_at: string;
+  ability?: Record<Ability, boolean>;
 }
 
+export enum KnowledgeAbility {
+  CREATE_BOOK = 'create_book', // 创建知识库(这个权限不应该出现在这层，先定死吧，目前只有个人空间)
+  DELETE_BOOK = 'delete_book',
+  CREATE_BOOK_COLLABORATOR = 'create_book_collaborator',
+  EXPORT_BOOK = 'export_book',
+  MODIFY_BOOK_SETTING = 'modify_book_setting',
+  SHARE_BOOK = 'share_book',
+  MODIFY_BOOK_PERMISSION = 'modify_book_permission',
+}
 export interface KnowledgeGroupItem {
   id: string;
   user_id: number;

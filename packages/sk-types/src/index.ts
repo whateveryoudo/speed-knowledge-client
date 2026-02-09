@@ -1,3 +1,5 @@
+import { KnowledgeAbility } from './knowledge'
+import { DocumentAbility } from './document'
 export * from './user'
 export * from './auth'
 export * from './knowledge'
@@ -5,6 +7,8 @@ export * from './response'
 export * from './document'
 export * from './common'
 export * from './dashboard'
-export * from './team'  
+export * from './team'
 export * from './space'
 export * from './collaborator'
+// 能力类型（联合）
+export type Ability = KnowledgeAbility | DocumentAbility
