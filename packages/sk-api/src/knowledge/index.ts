@@ -25,12 +25,7 @@ export const addKnowledge = (
 ): Promise<ResponseType<string>> => {
   return request.post(`${knowledgePrefix}/`, data);
 };
-// 删除知识库
-export const deleteKnowledge = (
-  id: string
-): Promise<ResponseType<KnowledgeItem>> => {
-  return request.delete(`${knowledgePrefix}/${id}`);
-};
+
 // 修改知识库
 export const updateKnowledge = (
   data: KnowledgeItem
@@ -50,6 +45,13 @@ export const getDocumentNodesTreeById = (
   knowledge_id: string
 ): Promise<ResponseType<DocumentNodeTreeItem[]>> => {
   return request.get(`${knowledgePrefix}/${knowledge_id}/document/tree`);
+};
+
+// 删除知识库
+export const deleteKnowledge = (
+  slug: string
+): Promise<ResponseType<Boolean>> => {
+  return request.delete(`${knowledgePrefix}/${slug}`);
 };
 
 

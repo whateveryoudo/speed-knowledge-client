@@ -59,6 +59,7 @@ import avatarDef from '#sk-web/assets/images/avatar_def.png'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
 import { knowledge as knowledgeApi } from '@sk/api'
 import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate } from '@sk/types'
+import { useKnowledgeList } from '../../composables/useKnowledgeListContext'
 import to from 'await-to-js'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 interface Props {
@@ -80,10 +81,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const spaceStore = useSpaceStore();
-
+const { initKnowledgeList } = useKnowledgeList()
 const emit = defineEmits<{
     (e: 'update:open', value: boolean): void
-    (e: 'ok', newId: string): void
 }>()
 
 const formRef = ref<FormInstance>()
@@ -164,7 +164,7 @@ const handleOk = async () => {
             return
         }
         emit('update:open', false)
-        emit('ok', res.data)
+        initKnowledgeList()
     } catch (error) {
         console.error('表单验证失败:', error)
     }

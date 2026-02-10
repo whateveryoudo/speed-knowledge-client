@@ -24,11 +24,10 @@
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu @add-knowledge-cb="handleAddKnowledgeCb" />
+                        <AddMenu/>
                     </a-flex>
 
-                    <StartMenus :activeModuleKey="activeModuleKey"
-                        @update:activeModuleKey="handleUpdateActiveModuleKey" />
+                    <StartMenus />
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库菜单 -->
@@ -59,7 +58,7 @@
                     <a-divider class="my-0 w-[30%]! min-w-auto mx-auto"></a-divider>
                     <StartMenus v-model:activeModuleKey="activeModuleKey" :expanded="false" />
                     <a-divider class="my-0 w-[30%]! min-w-auto mx-auto"></a-divider>
-                    <BookMenus v-model:activeBookKey="activeBookKey" :expanded="false" />
+                    <BookMenus :expanded="false" />
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
                     class="w-6px absolute top-0 right-0 bottom-0 border border-r border-r-solid border-[var(--sd-border-light)] cursor-col-resize"
@@ -95,6 +94,8 @@ import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
 import UserSetting from './components/userSetting/index.vue';
 import { useRouter } from 'vue-router';
+import { useKnowledgeListProvider } from './composables/useKnowledgeListContext'
+
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -110,17 +111,11 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
 const openTooltip = ref(false);
 const title = import.meta.env.VITE_SYS_TITLE;
 
-
+// 初始化知识库列表相关context
+useKnowledgeListProvider();
 
 const activeModuleKey = ref('start');
 
-const activeBookKey = ref('')
-const bookMenusRef = ref<InstanceType<typeof BookMenus> | null>(null);
-// 处理知识库点击
-const handleBookClick = (book: KnowledgeItem) => {
-    console.log('点击知识库:', book)
-    // 这里可以添加路由跳转等逻辑
-}
 
 const handleToggle = () => {
     open.value = !open.value;
@@ -130,24 +125,13 @@ const handleToggle = () => {
 const collapseStartResize = () => {
     open.value = true;
 }
-const handleAddKnowledgeCb = (newId: string) => {
-    console.log('新增知识库', newId)
-    bookMenusRef.value?.refreshList();
-}
+
 // 监听展开收起变化，同步本地存储
 watch(open, (newVal: boolean) => {
     localStorage.setItem('sk_dashboard_expand', newVal ? 'true' : 'false');
 })
 
-// 起始菜单点击
-const handleUpdateActiveModuleKey = (key: string) => {
-    activeModuleKey.value = key;
-    if (key === 'team') {
-        router.push(`/dashboard/team/ykx_test1`);
-    } else {
-        router.push(`/dashboard/start`);
-    }
-}
+
 </script>
 
 <style lang="less" scoped></style>

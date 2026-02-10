@@ -1,6 +1,6 @@
 <template>
-    <draggable v-model:list="innerBooks" :animation="200" handle=".drag-handle" item-key="id" ghost-class="ghost-item"
-        chosen-class="chosen-item" drag-class="drag-item" @start="onDragStart" @end="onDragEnd">
+    <draggable v-model="innerBooks" :animation="200" handle=".drag-handle" item-key="id" ghost-class="ghost-item"
+        chosen-class="chosen-item" drag-class="drag-item" @end="onDragEnd">
         <template #item="{ element: book }">
             <div class="menu-item-base px-[2px]! hover:bg-[var(--sd-bg-primary-hover)] group" :class="{
                 'pr-2': !showMore,
@@ -31,6 +31,7 @@
             </div>
         </template>
     </draggable>
+    <DeleteKnowledge v-model:visible="deleteKnowledgeVisible" :slug="curBook?.slug ?? ''" :name="curBook?.name ?? ''" />
 </template>
 
 <script setup lang="ts">
@@ -41,35 +42,31 @@ import { type KnowledgeItem } from '@sk/types'
 import { cloneDeep } from 'lodash-es'
 import { useRouter } from 'vue-router'
 import type { ItemType } from 'ant-design-vue'
+import DeleteKnowledge from '../deleteKnowledge/index.vue'
 import { KnowledgeAbility } from '@sk/types'
 const router = useRouter()
 
 
 const props = withDefaults(defineProps<{
     books?: KnowledgeItem[]
-    activeBookKey?: string
-    dragHandleMode?: 'handle' | 'full'
     showMore?: boolean
 
 }>(), {
     books: () => [],
-    activeBookKey: '',
-    dragHandleMode: 'handle',
     showMore: true,
 })
 
 const emit = defineEmits<{
-    'update:activeBookKey': [key: string]
-    'book-click': [book: KnowledgeItem]
-    'drag-start': []
-    'drag-end': []
-    'update:books': [books: KnowledgeItem[]]
+
+    'drag-end': [evt: { oldIndex: number, newIndex: number }]
+    'delete-trigger': [orderIndex: number]
 }>()
 
 const activeBookKey = props.activeBookKey || ''
 const innerBooks = ref<KnowledgeItem[]>([])
+const deleteKnowledgeVisible = ref(false)
+const curBook = ref<KnowledgeItem | null>(null)
 const getMenuItems = (book: KnowledgeItem): (ItemType & { hidden?: boolean })[] => {
-    console.log(book?.ability)
     return [
         {
             label: '权限',
@@ -88,22 +85,25 @@ const getMenuItems = (book: KnowledgeItem): (ItemType & { hidden?: boolean })[] 
 }
 
 const handleMenuClick = (e: any, book: KnowledgeItem) => {
+    curBook.value = book
     switch (e.key) {
         case 'auth':
             router.push(`/${book.team.slug}/knowledge/${book.slug}/manage/auth`)
+            break
+        case 'delete':
+            deleteKnowledgeVisible.value = true
             break
         default:
             break
     }
 }
-const onDragStart = () => {
-    emit('drag-start')
-}
 
-const onDragEnd = () => {
+const onDragEnd = (evt: any) => {
     // 拖拽结束后，同步更新后的列表到父组件
-    // emit('update:books', innerBooks.value)
-    emit('drag-end')
+    emit('drag-end', {
+        oldIndex: evt.oldIndex,
+        newIndex: evt.newIndex,
+    })
 }
 
 const handleBookClick = (book: KnowledgeItem) => {
@@ -112,5 +112,5 @@ const handleBookClick = (book: KnowledgeItem) => {
 
 watch(() => props.books, (newVal) => {
     innerBooks.value = cloneDeep(newVal)
-}, { immediate: true })
+}, { immediate: true, deep: true })
 </script>

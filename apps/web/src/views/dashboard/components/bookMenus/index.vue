@@ -4,10 +4,11 @@
     <div class="px-2 h-full" v-if="expanded">
       <div
         class="book-header flex items-center rounded-[6px] h-[36px] pl-1 pr-3 cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200"
-        :class="{ 'pl-3': bookList.length === 0 }" @click="toggleInner">
-        <a-button v-if="bookList.length > 0" type="text"
+        :class="{ 'pl-3': knowledgeList.length === 0, 'bg-[var(--sd-bg-primary-hover)]': route.path === '/dashboard/knowledge' }"
+        @click="router.push('/dashboard/knowledge')">
+        <a-button v-if="knowledgeList.length > 0" type="text"
           class="shadow-btn-wrapper mr-2 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)]">
-          <span class="transition-transform duration-200" :class="{ 'rotate-90': innerExpanded }">
+          <span class="transition-transform duration-200" @click="toggleInner" :class="{ 'rotate-90': innerExpanded }">
             <CaretRightOutlined />
           </span>
         </a-button>
@@ -18,9 +19,8 @@
       </div>
       <Collapse :when="innerExpanded" class="book-list">
         <SkeletonList :loading="loading">
-          <MenuList v-if="bookList.length > 0" :books="bookList" :active-book-key="activeBookKey"
-            :drag-handle-mode="dragHandleMode" :show-more="true" @book-click="handleBookClick" @drag-start="onDragStart"
-            @drag-end="onDragEnd" @update:books="bookList = $event" />
+          <MenuList v-if="knowledgeList.length > 0" :books="knowledgeList" :show-more="true"
+            @drag-end="handleDragEnd" />
           <Empty0 hasTop v-else description="暂无知识库" />
         </SkeletonList>
       </Collapse>
@@ -40,15 +40,14 @@
               </span>
             </div>
             <div class="book-list">
-              <MenuList :books="bookList" :active-book-key="activeBookKey" :drag-handle-mode="dragHandleMode"
-                :show-more="false" @book-click="handleBookClick" @drag-start="onDragStart" @drag-end="onDragEnd"
-                @update:books="bookList = $event" />
+              <MenuList :books="knowledgeList" :show-more="false" @on-delete="handleDelete"
+                @on-drag-end="handleDragEnd" />
             </div>
           </div>
         </template>
-        <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
+        <!-- <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
           <component :is="activeBookKey ? ReadFilled : ReadOutlined" class="text-18px" />
-        </a-button>
+        </a-button> -->
       </a-popover>
     </template>
   </div>
@@ -56,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   CaretRightOutlined,
   RightOutlined,
@@ -65,10 +65,9 @@ import {
 } from '@ant-design/icons-vue'
 import { Collapse } from 'vue-collapsed'
 import MenuList from './MenuList.vue'
-import { knowledge as knowledgeApi } from '@sk/api'
-import { type KnowledgeItem } from '@sk/types'
-import to from 'await-to-js'
-
+import { useKnowledgeList } from '../../composables/useKnowledgeListContext'
+const router = useRouter()
+const route = useRoute()
 const props = withDefaults(
   defineProps<{
     expanded?: boolean
@@ -77,7 +76,7 @@ const props = withDefaults(
     expanded: true,
   }
 )
-
+const { knowledgeList, initKnowledgeList, handleDelete, handleDragEnd } = useKnowledgeList()
 const emit = defineEmits<{
   'update:expanded': [expanded: boolean]
 }>()
@@ -90,58 +89,13 @@ watch(() => props.expanded, (v) => {
 
 // 内部列表折叠（仅在展开态下生效）
 const innerExpanded = ref(true)
-// 知识库列表（支持拖拽）
-const bookList = ref<KnowledgeItem[]>([])
-
-// 当前激活的知识库
-const activeBookKey = ref()
-
-// 拖拽模式：'handle' 仅句柄拖拽，'full' 整体拖拽
-const dragHandleMode = ref<'handle' | 'full'>('handle')
-const isDragging = ref(false)
-
 // 切换内部折叠
 const toggleInner = () => {
   innerExpanded.value = !innerExpanded.value
 }
+// 初始化知识库列表
+initKnowledgeList();
 
-// 拖拽开始
-const onDragStart = () => {
-  isDragging.value = true
-}
-
-// 拖拽结束
-const onDragEnd = () => {
-  isDragging.value = false
-}
-
-// 切换拖拽模式（可以通过双击切换）
-const toggleDragMode = () => {
-  dragHandleMode.value = dragHandleMode.value === 'handle' ? 'full' : 'handle'
-}
-
-// 点击知识库
-const handleBookClick = (book: KnowledgeItem) => {
-  activeBookKey.value = book.id
-}
-
-
-
-const initKnowledgeList = async () => {
-  loading.value = true
-  const [error, res] = await to(knowledgeApi.getKnowledgeList())
-  if (!error) {
-    bookList.value = res.data
-  }
-  loading.value = false
-}
-
-initKnowledgeList()
-
-
-defineExpose({
-  refreshList: initKnowledgeList
-})
 </script>
 
 <style lang="less" scoped>

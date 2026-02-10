@@ -1,27 +1,24 @@
 import { defineComponent, ref } from 'vue'
 import type { ModuleMenuItem } from '../type'
-import { ClockCircleOutlined, ClockCircleFilled, TeamOutlined, TeamFilled } from '@ant-design/icons-vue'
+import { ClockCircleOutlined, ClockCircleFilled, TeamOutlined } from '@ant-design/icons-vue'
 import { Tooltip } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
-
+import { useRoute, useRouter } from 'vue-router'
 export default defineComponent({
   name: 'StartMenus',
   props: {
-    activeModuleKey: {
-      type: String,
-      default: 'start',
-    },
     expanded: {
       type: Boolean,
       default: true,
     },
   },
-  emits: ['update:activeModuleKey'],
-  setup(props, { emit }) {
+  setup(props) {
+    const route = useRoute();
+    const router = useRouter();
     const moduleMenus = ref<ModuleMenuItem[]>([
       {
         title: '开始',
-        key: 'start',
+        key: '/dashboard/start',
         icon: () => <ClockCircleOutlined />,
         filledIcon: () => <ClockCircleFilled />,
       },
@@ -34,11 +31,11 @@ export default defineComponent({
     ])
 
     const handleModuleClick = (item: ModuleMenuItem) => {
-      emit('update:activeModuleKey', item.key)
+      router.push(item.key)
     }
 
     const renderItem = (item: ModuleMenuItem) => {
-      const isActive = props.activeModuleKey === item.key
+      const isActive = route.path === item.key
       const IconRender = isActive ? item.filledIcon : item.icon
       const content = (
         <div
