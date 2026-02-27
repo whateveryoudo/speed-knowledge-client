@@ -2,7 +2,7 @@
 
     <a-flex v-if="!documentError" vertical class="h-full">
         <a-flex justify="space-between" align="center"
-            class="fixed bg-[#fff] z-10 right-0 top-0 h-[52px] pl-[14px] pr-[50px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
+            class="fixed bg-[#fff] z-10 right-0 top-0 h-[52px] pl-[14px] pr-[20px] border-b-solid border-b-[1px] border-b-[var(--sd-border-light)]"
             :style="{ left: showKnowledgeLeftPanel ? `${knowledgeSidebarWidth}px` : '0' }">
             <span>
                 <s-toggle-input :text="documentInfo?.name || '无标题文档'" :updateText="toggleInputChange"></s-toggle-input>
@@ -28,6 +28,11 @@
                         </a-button>
                     </a-tooltip>
                 </template>
+                <a-space-compact block>
+                    <a-button type="text" :class="['shadow-btn-wrapper', detectionPanelVisible ? 'is-active' : '']"
+                        :icon="h(LayoutOutlined)" @click="() => toggleDetectionPanelVisible()">
+                    </a-button>
+                </a-space-compact>
             </a-space>
         </a-flex>
         <div class="pt-[52px]">
@@ -58,20 +63,24 @@
         </a-flex>
     </a-flex>
     <not-found v-else :title="documentError.errMessage" />
+    <!-- 文档检测面板 -->
+    <DetectionPanel v-model:visible="detectionPanelVisible" />
 </template>
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, h } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { useUserStore } from '#sk-web/store/useUserStore';
-import { StarOutlined } from '@ant-design/icons-vue';
+import { StarOutlined, LayoutOutlined } from '@ant-design/icons-vue';
 import { transformDatatimeToRecentText } from '@sk/utils';
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue';
 import { useCollect } from '../hooks/useCollect';
 import { type Collaborator, CollectResourceType } from '@sk/types';
 import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator';
 import { attachment as attachmentApi, apiVersion } from '@sk/api';
+import { useToggle } from '@vueuse/core';
+import DetectionPanel from './components/DetectionPanel.vue';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
@@ -81,6 +90,7 @@ const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPan
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
+const [detectionPanelVisible, toggleDetectionPanelVisible] = useToggle(false);
 const editorProps = computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion;
     return {
