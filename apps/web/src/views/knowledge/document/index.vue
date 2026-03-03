@@ -20,7 +20,8 @@
                     </a-button>
                 </a-tooltip>
                 <DocumentShare />
-                <a-button v-if="currentDocState.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
+                <!-- <a-button v-if="currentDocState.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button> -->
+                <a-button type="primary" @click="handleSave" :loading="isSaving">保存</a-button>
                 <template v-if="currentDocState.mode === 'edit'">
                     <a-tooltip title="文档会自动更新到阅读页">
                         <a-button @click="setPreviewMode">
@@ -39,10 +40,9 @@
             <!-- 文档显示:追加key用于重置编辑器 -->
             <SkeletonList :loading="!knowledgeStore.showEditor"
                 :style="!knowledgeStore.showEditor ? { padding: '20px 50px' } : {}">
-                <SpeedTiptapEditor ref="editorRef" :json="documentContentJson" v-if="knowledgeStore.showEditor"
+                <SpeedTiptapEditor ref="editorRef" :json="documentContentJson"
                     :headerStyle="{ position: 'fixed', top: '52px', left: `${knowledgeSidebarWidth}px`, right: '0', zIndex: 10 }"
                     :mainStyle="{ paddingTop: '40px' }" :key="documentInfo.id + '-' + currentDocState.mode"
-                    :editable="currentDocState.mode === 'edit'" :menubar="currentDocState.mode === 'edit'"
                     :title="documentInfo.name" :documentSuggestConfig="{
                         rules
                     }"
@@ -88,7 +88,7 @@ import dayjs from 'dayjs';
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
-const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPanel, documentError } = storeToRefs(knowledgeStore)
+const { documentInfo, isSaving, currentDocState, documentContentJson, showKnowledgeLeftPanel, documentError } = storeToRefs(knowledgeStore)
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
@@ -100,12 +100,12 @@ const editorProps = computed(() => {
         antdToken: {
             colorPrimary: '#00b96b',
         },
-        collaboration: {
-            documentId: documentInfo.value.id,
-            url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?userId=' + userInfo.value.id + '&documentId=' + documentInfo.value.id + '&userName=' + userInfo.value.username,// 请先启动后端服务
-            token: window.localStorage.getItem("access_token"),
-            user: userInfo.value
-        },
+        // collaboration: {
+        //     documentId: documentInfo.value.id,
+        //     url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?userId=' + userInfo.value.id + '&documentId=' + documentInfo.value.id + '&userName=' + userInfo.value.username,// 请先启动后端服务
+        //     token: window.localStorage.getItem("access_token"),
+        //     user: userInfo.value
+        // },
         // 增加ai配置： 目前仅支持 豆包大模型 配置
         ai: {
             doubao: {
@@ -144,6 +144,12 @@ const setPreviewMode = () => {
     knowledgeStore.updateDocumentAttrs(documentInfo.value.id, { mode: 'preview' })
     knowledgeStore.initDocumentDetail(false)// 重新获取文档内容
 }
+const handleSave = () => {
+    const docJson = editorRef.value?.editor?.getJSON();
+    if (docJson) {
+        knowledgeStore.handleUpdateDocumentContent(documentInfo.value.id, JSON.stringify(docJson) as string);
+    }
+}
 type Rule = {
     id: string;
     name: string;
@@ -158,7 +164,7 @@ const rules = ref<Rule[]>([
     {
         id: 'RULE_TITLE_SIZE',
         name: '标题字号规范',
-        description: '标题必须使用h1-h6, params的level可以返回1-6',
+        description: '标题(查找type为ul、li、heading的节点)必须使用h1-h6, params的level可以返回1-6',
         severity: 'warning',
         fixCommand: {
             action: 'setHeading',
@@ -168,20 +174,34 @@ const rules = ref<Rule[]>([
         }
     },
     {
-        id: 'RULE_TEXT_STYLE',
-        name: '文本样式规范',
-        description: '文字里面不能出现红色，文字块不能出现背景色, 你检测到后不用给参数给我',
+        id: 'RULE_TEXT_COLOR_STYLE',
+        name: '文本颜色规范',
+        description: '文字里面不能出现红色， 你检测到后不用给参数给我',
         severity: 'warning',
         fixCommand: {
             action: 'resetTextStyle',
-            params: {}
+            params: {
+                color: '',
+            }
+        }
+    },
+    {
+        id: 'RULE_TEXT_BACKGROUND_STYLE',
+        name: '文本背景色规范',
+        description: '文字块不能出现背景色, 你检测到后不用给参数给我',
+        severity: 'warning',
+        fixCommand: {
+            action: 'resetTextStyle',
+            params: {
+                backgroundColor: ''
+            }
         }
     },
     {
         id: 'RULE_GRAMMAR_PROBLEM',
         name: '语法性问题',
-        description: '语法性问题，你需要把纠错后的文本返回到fixCommand的params中的text字段中',
-        severity: 'warning',
+        description: '语法性问题，核心是找语句不通顺的，你需要把纠错后的文本返回到fixCommand的params中的text字段中',
+        severity: 'info',
         fixCommand: {
             action: 'replaceText',
             params: {

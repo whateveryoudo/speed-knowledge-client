@@ -33,6 +33,14 @@ export const getDocumentContent = (
   return request.get(`${documentPrefix}/content/${documentId}`);
 };
 
+// 更新文档内容
+export const updateDocumentContent = (
+  documentId: string,
+  content: string
+): Promise<ResponseType<any>> => {
+  return request.put(`${documentPrefix}/content/${documentId}`, { content });
+};
+
 // 删除文档
 export const deleteDocument = (
   documentId: string

@@ -17,6 +17,7 @@ import { knowledge as knowledgeApi } from '@sk/api'
 import type { DragDocumentParams } from '@sk/types'
 import { arrayToTree } from '@sk/utils'
 import { useUserStore } from './useUserStore'
+import { useToggle } from '@vueuse/core'
 export const useKnowledgeStore = defineStore('knowledge', () => {
   const router = useRouter()
   const route = useRoute()
@@ -29,6 +30,8 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     group_id: '',
     icon: '',
     user_id: 0,
+    team_id: '',
+    space_id: '',
     slug: '',
     cover_url: null,
     is_public: false,
@@ -233,6 +236,15 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       }
     }
   }
+  const [isSaving, setIsSaving  ] = useToggle(false);
+  const handleUpdateDocumentContent = async (documentId: string, content: string) => {
+    setIsSaving(true);
+    const [error, res] = await to(documentApi.updateDocumentContent(documentId, content))
+    setIsSaving(false);
+    if (!error) {
+      documentInfo.value = res.data
+    }
+  }
 
   // 删除文档后跳转下一个文档
   const setNextDocumentNode = (nodeId: string) => {
@@ -308,6 +320,8 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     updateDocumentAttrs,
     initDocumentDetail,
     handleUpdateDocumentName,
+    isSaving,
+    handleUpdateDocumentContent,
     handleDragDocumentEnd,
     deleteDocument,
   }
