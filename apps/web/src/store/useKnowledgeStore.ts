@@ -186,7 +186,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     if (error) {
       return
     }
-    documentContentJson.value = res.data ? JSON.parse(res.data) : null
+    documentContentJson.value = res.data ? JSON.parse(res.data)?.default : null
   }
   const initDocumentDetail = async (showLoading = true) => {
     showEditor.value = false

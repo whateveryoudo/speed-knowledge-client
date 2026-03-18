@@ -89,7 +89,8 @@ const editorProps = computed(() => {
         },
         collaboration: {
             documentId: documentInfo.value.id,
-            url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?userId=' + userInfo.value.id + '&documentId=' + documentInfo.value.id + '&userName=' + userInfo.value.username,// 请先启动后端服务
+            // 这里仅在url传递知识库id,其他信息后端会从token获取
+            url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?knowledgeId=' + documentInfo.value.knowledge_id,// 请先启动后端服务
             token: window.localStorage.getItem("access_token"),
             user: userInfo.value
         },
