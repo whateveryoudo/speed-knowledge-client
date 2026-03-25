@@ -24,8 +24,11 @@ export const documentHistoryTypeOptions = [
     value: DocumentHistoryType.COMMENT,
   },
 ]
-
+// 编辑历史列表基础结构
 interface DocumentHistoryBase {
+  doc_belong_space_id: string;
+  doc_belong_team_slug: string;
+  doc_belong_knowledge_id: string;
   doc_name: string;
   doc_belong_knowledge_name: string;
   doc_belong_knowledge_slug: string;

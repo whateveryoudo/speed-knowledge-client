@@ -78,7 +78,7 @@ export default defineComponent({
                 class="text-[var(--sd-text-primary)] cursor-pointer"
                 onClick={() => {
                   router.push(
-                    `/knowledge/${record.doc_belong_knowledge_slug}/document/${record.doc_slug}`,
+                    `/${record.doc_belong_team_slug}/knowledge/${record.doc_belong_knowledge_slug}/document/${record.doc_slug}`,
                   )
                 }}
               >
