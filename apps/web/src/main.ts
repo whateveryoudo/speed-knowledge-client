@@ -36,6 +36,34 @@ initSkApiConfig({
 const app = createApp(App)
 app.use(store)
 app.use(router)
+app.use((SpeedComponents as any), {
+  apis: {
+    fileUploadSingle: attachmentApi.fileUploadSingle,
+    getPreviewUrl: (attachmentId: string) => {
+      return `${import.meta.env.VITE_APP_PROXY_URL}${attachmentPrefix}/preview/${attachmentId}?access_token=${localStorage.getItem('access_token')}`
+    },
+  },
+  useLoadConfig: {
+    pageSizekey: 'page_size',
+  },
+  // 通用请求转换（分页结果）
+  transformRequsRes: (res: any) => {
+    return {
+      data: res.data?.items ?? [],
+      totalCount: res.data?.total ?? 0,
+      success: res.errCode === 0
+    }
+  },
+  // 附件单条数据转换
+  transformFileItem: (item: any) => {
+    return {
+      id: item.id,
+      fileType: item.file_type,
+      fileSize: item.file_size,
+      fileName: item.file_name,
+    }
+  },
+})
 app.use((SpeedTiptapEditor as any), {
   apis: {
     fileDownload: attachmentApi.fileDownload,
@@ -69,34 +97,7 @@ app.use((SpeedTiptapEditor as any), {
   theme: 'light',
   antdToken: () => ({}),
 })
-app.use((SpeedComponents as any), {
-  apis: {
-    fileUploadSingle: attachmentApi.fileUploadSingle,
-    getPreviewUrl: (attachmentId: string) => {
-      return `${import.meta.env.VITE_APP_PROXY_URL}${attachmentPrefix}/preview/${attachmentId}?access_token=${localStorage.getItem('access_token')}`
-    },
-  },
-  useLoadConfig: {
-    pageSizekey: 'page_size',
-  },
-  // 通用请求转换（分页结果）
-  transformRequsRes: (res: any) => {
-    return {
-      data: res.data?.items ?? [],
-      totalCount: res.data?.total ?? 0,
-      success: res.errCode === 0
-    }
-  },
-  // 附件单条数据转换
-  transformFileItem: (item: any) => {
-    return {
-      id: item.id,
-      fileType: item.file_type,
-      fileSize: item.file_size,
-      fileName: item.file_name,
-    }
-  },
-})
+
 
 
 app.use(globalComponents)
