@@ -1,23 +1,30 @@
 <script lang="ts" setup>
 import AiTrigger from '#sk-web/assets/images/robot/ai-trigger.svg';
-import { useDraggable, type Position, useToggle } from '@vueuse/core';
-import { ref, inject } from 'vue';
+import { useDraggable, type Position, useToggle, useWindowSize } from '@vueuse/core';
+import { ref, computed, watch } from 'vue';
 import ChatDialog from './chat/index.vue';
+import type { ChatConfig } from './composables/types';
+const props = defineProps<{
+    config: ChatConfig;
+}>();
 const BASE_RIGHT = 10;
 const BASE_BOTTOM = 80;
+const ENTRY_SIZE = 44;
 const entryIconRef = ref<HTMLElement | null>(null);
 // `style` will be a helper computed for `left: ?px; top: ?px;`
-const initX = document.documentElement.clientWidth - BASE_RIGHT - 44;
-const initY = document.documentElement.clientHeight - BASE_BOTTOM - 44;
+const { width, height } = useWindowSize();
+const maxX = computed(() => Math.max(0, width.value - BASE_RIGHT - ENTRY_SIZE));
+const maxY = computed(() => Math.max(0, height.value - BASE_BOTTOM - ENTRY_SIZE));
+const lastMaxX = ref(maxX.value);
+const lastMaxY = ref(maxY.value);
 let startX = 0,
     startY = 0;
 
 const { x, y, style } = useDraggable(entryIconRef, {
     initialValue: {
-        x: initX,
-        y: initY,
+        x: maxX.value,
+        y: maxY.value,
     },
-    containerElement: inject('zeroFlowDesignRef', ref(null)),
     onStart: (position: Position, e: PointerEvent) => {
         startX = e.clientX;
         startY = e.clientY;
@@ -41,15 +48,34 @@ const { x, y, style } = useDraggable(entryIconRef, {
                     toggleAiDialogVisible(true);
                 } else {
                     // 还原值
-                    x.value = initX;
-                    y.value = initY;
+                    x.value = maxX.value;
+                    y.value = maxY.value;
                     isAiTriggerCollapsed.value = false;
                     window.localStorage.setItem('isFlowAiTriggerCollapse', 'false');
                 }
             }
         }
     },
+    containerElement: document.body,
 });
+
+// 视口尺寸变化（例如打开 F12）时：
+// 1) 保持与右下角的间距（右/下边距不变）
+// 2) 再做一次夹紧，防止超出可视范围
+watch([maxX, maxY], ([newMaxX, newMaxY]) => {
+    const gapX = Math.max(0, lastMaxX.value - x.value);
+    const gapY = Math.max(0, lastMaxY.value - y.value);
+
+    x.value = newMaxX - gapX;
+    y.value = newMaxY - gapY;
+
+    x.value = Math.min(Math.max(0, x.value), newMaxX);
+    y.value = Math.min(Math.max(0, y.value), newMaxY);
+
+    lastMaxX.value = newMaxX;
+    lastMaxY.value = newMaxY;
+});
+
 const isAiTriggerCollapsed = ref(
     window.localStorage.getItem('isFlowAiTriggerCollapse') !== undefined
         ? window.localStorage.getItem('isFlowAiTriggerCollapse') === 'true'
@@ -87,7 +113,7 @@ const [aiDialogVisible, toggleAiDialogVisible] = useToggle(false);
             </div>
         </a-tooltip>
         <!-- 对话框 -->
-        <ChatDialog v-model:visible="aiDialogVisible" />
+        <ChatDialog v-model:visible="aiDialogVisible" :config="config" />
     </div>
 </template>
 <style lang="less">

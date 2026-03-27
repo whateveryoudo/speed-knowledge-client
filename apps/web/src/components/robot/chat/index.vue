@@ -1,47 +1,54 @@
 <template>
     <div v-if="visible" class="chat-dialog" :style="style" ref="chatDialogRef">
-        <div ref="helperHeaderRef" class="helper-header-wrapper h-[130px] cursor-grab p-[12px] pt-[15px]">
+        <div ref="helperHeaderRef" class="helper-header-wrapper h-[130px] p-[12px] pt-[15px]">
             <AFlex align="center" justify="space-between">
                 <ASpace>
-                    <span>AI助理</span>
+                    <img :src="AiLogo" class="h-[18px] w-[18px]" alt="" />
+                    <span>文档助手</span>
                 </ASpace>
-                <ASpace :size="15">
-                    <span
-                        class="cursor-pointer text-[var(--ant-colorTextTertiary)] hover:text-[var(--ant-colorTextSecondary)] text-[12px]">
-                        <SyncOutlined class="mr-1 text-[12px]!" />
+                <ASpace>
+                    <a-button type="text" class="shadow-btn-wrapper">
+                        <SyncOutlined />
                         <span>重新对话</span>
-                    </span>
-                    <span class="h-[24px] w-[14px] flex cursor-pointer items-center" @click="toggleExpand">
+                    </a-button>
+                    <a-button type="text" class="shadow-btn-wrapper w-[28px]" @click="toggleExpand()">
                         <ShrinkOutlined v-if="isExpand" />
                         <ArrowsAltOutlined v-else />
-                    </span>
-                    <span class="h-[24px] w-[14px] flex items-center" @click="emits('update:visible', false)">
-                        <CloseOutlined class="cursor-pointer" />
-                    </span>
+                    </a-button>
+                    <a-button type="text" class="shadow-btn-wrapper w-[28px]" @click="emits('update:visible', false)">
+                        <CloseOutlined />
+                    </a-button>
                 </ASpace>
             </AFlex>
         </div>
-        <!-- 会话主体 -->
-        <!-- 历史会话 -->
+        <component :is="displayComponent" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted, computed, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useChatSessionProvider } from '../composables/useChatSessionContext';
-import { useDraggable, useToggle } from '@vueuse/core';
+import { useDraggable } from '@vueuse/core';
+import AiLogo from '#sk-web/assets/images/robot/ai-icon-0.svg';
+import { SyncOutlined, ShrinkOutlined, ArrowsAltOutlined, CloseOutlined } from '@ant-design/icons-vue';
+import ChatMain from './ChatMain.vue';
+import ChatHistory from './ChatHistory.vue';
+import type { ChatConfig } from '../composables/types';
 const props = withDefaults(
     defineProps<{
         visible: boolean;
+        config: ChatConfig;
     }>(),
     {
         visible: false,
     },
 );
 const emits = defineEmits(['update:visible']);
+const displayHistory = ref(false);
+const displayComponent = computed(() => displayHistory.value ? ChatHistory : ChatMain);
 const chatDialogRef = ref<HTMLElement | null>(null);
 const helperHeaderRef = ref<HTMLElement | null>(null);
-const [isExpand, toggleExpand] = useToggle(true);
+const isExpand = ref(true);
 
 const BASE_RIGHT = 0;
 const BASE_BOTTOM = 0;
@@ -57,8 +64,14 @@ const { x, y } = useDraggable(chatDialogRef, {
         y: initY,
     },
     handle: helperHeaderRef,
-    // containerElement: inject('zeroFlowDesignRef', ref(null)),
+    containerElement: document.body,
 });
+const toggleExpand = () => {
+    // 还原定位
+    x.value = initX;
+    y.value = isExpand.value ? initCollapseY : initY;
+    isExpand.value = !isExpand.value;
+};
 const style = computed(() => ({
     left: x.value + 'px',
     top: y.value + 'px',
@@ -67,10 +80,8 @@ const style = computed(() => ({
 
 // 注入会话上下文(用于初始化会话，历史会话等)
 useChatSessionProvider({
-    apiKey: '1234567890',
-    apiBaseUrl: 'https://api.example.com',
-    userName: 'admin',
-    appType: '1',
+    token: props.config.token,
+    baseUrl: props.config.baseUrl,
 });
 
 // 获取会话上下文
@@ -105,5 +116,10 @@ useChatSessionProvider({
     transition: height 0.2s ease-in-out;
     border: 1px solid #e5e6e8;
     z-index: 100;
+
+    .helper-header-wrapper {
+        background: url('../../../assets/images/robot/ai-head-bg.png') no-repeat center;
+        background-size: 100% 100%;
+    }
 }
 </style>

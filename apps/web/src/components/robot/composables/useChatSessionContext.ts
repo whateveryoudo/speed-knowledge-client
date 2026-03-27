@@ -13,7 +13,7 @@ export interface ChatSessionContext {
   conversationsHistoryLoading: Ref<boolean>;
   conversationsHistoryMoreLoading: Ref<boolean>
   renameConversationLoading: Ref<boolean>;
-  activeConversationId: Ref<string | null>;
+  activeConversationId: Ref<string>;
   isSidebarOpen: Ref<boolean>;
   getColorClass: (color: string) => string;
 
@@ -46,7 +46,7 @@ function initChatState(config: ChatConfig): ChatSessionContext {
     },
     limit: 40,
   });
-  const activeConversationId = ref<string | null>(null);
+  const activeConversationId = ref('');
   const isSidebarOpen = ref(true);
   const configRef = computed(() => config);
 
@@ -128,7 +128,7 @@ function initChatState(config: ChatConfig): ChatSessionContext {
   const clear = () => {
     conversationsHistory.value = [];
     conversationsHistoryLoading.value = false;
-    activeConversationId.value = null;
+    activeConversationId.value = '';
     isSidebarOpen.value = true;
   };
 

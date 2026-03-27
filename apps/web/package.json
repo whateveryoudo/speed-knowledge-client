@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.0",
+    "@microsoft/fetch-event-source": "^2.0.1",
     "@sk/api": "workspace:*",
     "@sk/types": "workspace:*",
     "@sk/utils": "workspace:*",
@@ -30,7 +31,9 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lodash-es": "^4.17.21",
+    "markdown-it": "^14.1.1",
     "mitt": "^3.0.1",
+    "nanoid": "^5.1.6",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "speed-components-ui": "^0.1.35",

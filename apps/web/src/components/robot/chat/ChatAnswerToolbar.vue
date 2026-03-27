@@ -1,35 +1,23 @@
 <template>
-    <div class="flex items-center gap-2 answer-toolbar">
-        <el-tooltip content="复制" placement="top">
-            <el-button size="small" circle :icon="CopyDocument" @click="copyAnswer(chatId)"></el-button>
-        </el-tooltip>
-        <el-dropdown placement="top" @command="(type: 'pdf' | 'excel' | 'word') => downloadAnswer(chatId, type)">
-            <el-button size="small" circle :icon="Download"></el-button>
-            <template #dropdown>
-                <el-dropdown-item command="pdf">PDF</el-dropdown-item>
-            </template>
-        </el-dropdown>
-        <!-- 暂不支持重新生成 -->
-        <!-- <el-tooltip content="重新生成" placement="top">
-            <el-button circle :icon="RefreshRight" @click="regenerateAnswer(chatId)"></el-button>
-        </el-tooltip> -->
+    <div class="flex items-center gap-2 mt-2">
+        <a-tooltip title="重新生成" placement="top">
+            <a-button class="shadow-btn-wrapper" type="text" v-if="['cancel', 'fail', 'over'].includes(item?.status ?? '')" @click="sendQuestion({
+                question: item.message || '',
+                messageId: item.id,
+                resend: true,
+            })">
+                <ReloadOutlined />
+            </a-button>
+        </a-tooltip>
     </div>
 </template>
 
 <script setup lang="ts">
-import { CopyDocument, Download, RefreshRight } from '@element-plus/icons-vue';
-import { useChatSession } from '../composables/useChatMessageContext';
+import { ReloadOutlined } from '@ant-design/icons-vue';
+import { useChatMessage } from '../composables/useChatMessageContext';
+import type { MessageItem } from '../composables/types';
 const props = defineProps<{
-    chatId: string;
+    item: MessageItem;
 }>();
-const { copyAnswer, downloadAnswer, regenerateAnswer } = useChatSession();
+const { cancelMessage, sendQuestion } = useChatMessage();
 </script>
-
-<style scoped lang="scss">
-.answer-toolbar {
-    // 去掉按钮聚焦时的边框
-    :deep(.el-button:focus-visible) {
-        outline: none
-    }
-}
-</style>

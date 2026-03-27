@@ -162,23 +162,11 @@ export interface AnswerItem {
 /**
  * 聊天消息
  */
-export interface ChatMessage {
-  id: string;
-  taskId?: string; // 任务 ID
-  inputs?: Record<string, any>; // 用于重新生成回答的输入参数
-  messageEnd?: boolean; // 消息是否结束(此参数包含多种状态：成功、停止、错误)
-  messageLoading?: boolean; // 消息是否加载中
-  question: string;
-  answer?: string;
-  workflowSteps: WorkflowStep[];
-  parsedContent: ResourceItem[];
-  answerList?: AnswerItem[];
-  isEmpty?: boolean; // 内容是否为空
-  isReportParams?: boolean; // 是否是报告参数
-  thinkAbount?: boolean; // 是否开启深度思考
-  secondTimer?: any; // 计时器
-  seconds?: number; // 思考时间
-  status?: 'ready' | 'loading' | 'success' | 'error'; // 状态
+export interface MessageItem {
+  id?: string;
+  role: 'user' | 'assistant';
+  message: string;
+  status?: 'ready' | 'pending' | 'fail' | 'cancel' | 'over';
 }
 
 
@@ -186,18 +174,18 @@ export interface ChatMessage {
  * Chat 配置
  */
 export interface ChatConfig {
-  apiKey: string;
-  apiBaseUrl: string;
-  userName: string;
-  appType: '1' | '2' | '4'; // 1: 智能找数, 4: 智能问数 2: 报告（这里只对报告进行特殊处理，其他不处理）
-  agentInfo?: {
-    id: number;
-    title: string;
-    description: string;
-    icon: any;
-    color: string;
-    apiKey: string;
-  };
+  token: string;
+  baseUrl: string;
+  // userName: string;
+  // appType: '1' | '2' | '4'; // 1: 智能找数, 4: 智能问数 2: 报告（这里只对报告进行特殊处理，其他不处理）
+  // agentInfo?: {
+  //   id: number;
+  //   title: string;
+  //   description: string;
+  //   icon: any;
+  //   color: string;
+  //   apiKey: string;
+  // };
 }
 
 /**

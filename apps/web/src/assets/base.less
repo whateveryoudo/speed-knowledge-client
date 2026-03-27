@@ -4,6 +4,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  font-size: 14px;
 }
 
 * {
@@ -46,7 +47,11 @@ h6 {
   &.is-active {
     background-color: var(--sd-grey-5);
   }
-
+  // 默认带有背景
+  &.has-hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--sd-grey-9);
+  }
   &.small {
     padding: 5px 3px;
   }

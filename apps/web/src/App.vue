@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getCurrentInstance, nextTick, onMounted, type App } from 'vue'
+import { getCurrentInstance, nextTick, onMounted, type App, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import dayjs from 'dayjs'
@@ -7,7 +7,7 @@ import 'dayjs/locale/zh-cn'
 import { useSpaceStore } from './store/useSpaceStore'
 import SpeedComponents from 'speed-components-ui-dev/debug'
 import Robot from './components/robot/Trigger.vue';
-
+import { apiVersion } from '@sk/api'
 dayjs.locale('zh-cn')
 // 初始化空间信息
 
@@ -27,6 +27,14 @@ onMounted(async () => {
     token: token.value,
   })
 })
+// 机器人相关接口前缀
+const prefixUrl = import.meta.env.VITE_APP_PROXY_URL as string + apiVersion + '/ai/robot/chat';
+const robotConfig = ref({
+  token: (window.localStorage.getItem('access_token')) as string,
+  baseUrl: prefixUrl + '/stream',
+  sessionHistoryUrl: prefixUrl + '/history',
+  messageUrl: prefixUrl + '/message',
+})
 </script>
 
 <template>
@@ -37,7 +45,7 @@ onMounted(async () => {
   }">
     <RouterView />
     <!-- 机器人显示 -->
-    <Robot />
+    <Robot :config="robotConfig" />
   </a-config-provider>
 </template>
 
