@@ -122,7 +122,6 @@ function initSessionState(chatContext: ChatSessionContext) {
     let messageUserId = nanoid();
     let messageAssistantId = options.messageId || nanoid(); // 机器回答消息
 
-    let newMessage: MessageItem | null = null;
     if (options.resend && options.messageId) {
       // 重新发起会话
       const tempChat = messageList.value.find((item) => item.id === messageAssistantId);
@@ -142,12 +141,14 @@ function initSessionState(chatContext: ChatSessionContext) {
         role: 'assistant',
         message: '',
         status: 'pending',
-        question: options.question, // 保留关联的问题，用于重新发送时使用
+        linkQuestion: options.question, // 保留关联的问题，用于重新发送时使用
       });
     }
 
     await nextTick(); // 先滚动到底部
     scrollToBottom();
+    // 清空输入框信息
+    inputMessage.value = '';
     // 获取外部配置
     const config = chatContext.config.value;
     const sessionId = chatContext.activeConversationId.value; // 调用注入的会话id

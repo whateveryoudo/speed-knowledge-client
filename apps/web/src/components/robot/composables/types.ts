@@ -167,6 +167,7 @@ export interface MessageItem {
   role: 'user' | 'assistant';
   message: string;
   status?: 'ready' | 'pending' | 'fail' | 'cancel' | 'over';
+  linkQuestion?: string; // 关联的问题
 }
 
 

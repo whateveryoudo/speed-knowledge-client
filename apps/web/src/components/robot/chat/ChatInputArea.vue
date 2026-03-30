@@ -25,15 +25,13 @@
             <div class="trigger-wrapper">
                 <ASpace class="ai-input-trigger">
                     <span class="limit">{{ inputMessage.length }}/1000</span>
-                    <template v-if="true">
-                        <ASpin v-if="isPending" />
+                    <ASpin class="relative top-[1px]" size="small" v-if="isPending" />
 
-                        <div v-else :class="['send-trigger', disabledSend && 'disabled']" @click="sendQuestion({
-                            question: inputMessage,
-                        })">
-                            <img :src="disabledSend ? SendDisabledSvg : SendSvg" alt="" />
-                        </div>
-                    </template>
+                    <div v-else :class="['send-trigger', disabledSend && 'disabled']" @click="sendQuestion({
+                        question: inputMessage,
+                    })">
+                        <img :src="disabledSend ? SendDisabledSvg : SendSvg" alt="" />
+                    </div>
                 </ASpace>
             </div>
         </div>

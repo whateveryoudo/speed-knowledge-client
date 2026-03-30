@@ -1,25 +1,28 @@
 <template>
-    <div v-if="item.role === 'assistant'" :class="['chat-ai-prompt-wrapper', item.status === 'pending' && 'loading']">
-        <div class="chat-ai-inner-wrapper">
-            <ASpace v-if="item?.status === 'pending'">
-                <img :src="AiMsgLoadingIcon" class="h-[16px] w-[16px]" />
-                {{ item.status === 'pending' ? '正在生成中，请稍等...' : '正在生成中，请稍等...' }}
-            </ASpace>
+    <div class="chat-answer-wrapper">
+        <div v-if="item.role === 'assistant'"
+            :class="['chat-ai-prompt-wrapper', item.status === 'pending' && 'loading']">
+            <div class="chat-ai-inner-wrapper">
+                <ASpace v-if="item?.status === 'pending'">
+                    <img :src="AiMsgLoadingIcon" class="h-[16px] w-[16px]" />
+                    {{ item.status === 'pending' ? '正在生成中，请稍等...' : '正在生成中，请稍等...' }}
+                </ASpace>
 
-            <div v-else>
-                <div class="message-preview">
-                    <AFlex class="pb-[12px] pt-[2px] text-[16px] text-[var(--sd-grey-8)]">
-                        回答
-                    </AFlex>
+                <div v-else>
+                    <div class="message-preview">
+                        <AFlex class="pb-[12px] pt-[2px] text-[16px] text-[var(--sd-grey-8)]">
+                            回答
+                        </AFlex>
+                    </div>
+                    <!-- 这里停止是瞬发的 -->
+                    <p v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">
+                        {{ item.status === 'cancel' ? '已停止生成' : '已停止生成' }}
+                    </p>
+                    <Markdown v-else-if="item.status !== 'fail'" :value="item.message" />
+                    <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
+                        {{ item.message || '消息发送失败，请重试。' }}
+                    </p>
                 </div>
-                <!-- 这里停止是瞬发的 -->
-                <p v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">
-                    {{ item.status === 'cancel' ? '已停止生成' : '已停止生成' }}
-                </p>
-                <Markdown v-else-if="item.status !== 'fail'" :value="item.message" />
-                <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
-                    {{ item.message || '消息发送失败，请重试。' }}
-                </p>
             </div>
         </div>
         <!-- 消息底部操作栏 -->
@@ -343,14 +346,15 @@ const props = withDefaults(defineProps<{
 </style>
 <style lang="less" scoped>
 .chat-ai-inner-wrapper {
-    border: 1px solid #e5e6e8;
     background-color: #fff;
-    border-radius: 8px 0px 8px 8px;
+    border-radius: 8px;
     padding: 12px;
 }
 
 .chat-ai-prompt-wrapper.loading {
     border-color: transparent;
+    padding: 1px;
+    border-radius: 8px;
     animation: light-gradient-border-rotate 2.5s linear infinite;
     color: rgba(23, 26, 29, 0.4);
 }
