@@ -178,6 +178,7 @@ function initSessionState(chatContext: ChatSessionContext) {
           }
         },
         async onmessage(msg: { data: any; event: string }) {
+          
           if (msg.event === 'FatalError') {
             throw new FatalError(msg.data);
           }
@@ -190,20 +191,25 @@ function initSessionState(chatContext: ChatSessionContext) {
                 return;
               }
               const data = JSON.parse(msg.data);
-              if (data.done) {
+              const dataEvent = data.event;
+              const targetData = data.data;
+              // 区分事件类型
+              if (dataEvent === 'context') {
+                // 更新会话id
+                chatContext.activeConversationId.value = targetData.session_id;
+                // 更新上下文信息
+                updateMsgInfo(messageAssistantId, { context: targetData });
+              } else if (dataEvent === 'message') {
+                // 调整状态为doing
+                updateMsgInfo(messageAssistantId, { status: 'doing' });
+                msgTarget.message += targetData || '';
+              } else if (dataEvent === 'done') {
                 updateMsgInfo(messageAssistantId, { status: 'over' });
-              }
-              if (data.error) {
-                updateMsgInfo(messageAssistantId, { status: 'fail', message: data.error });
+              } else if (dataEvent === 'error') {
+                updateMsgInfo(messageAssistantId, { status: 'fail', message: targetData || '消息发送失败，请重试。' });
                 return;
               }
-              if (data.session_id) {
-                // 更新会话id
-                chatContext.activeConversationId.value = data.session_id;
-              }
-              if (data.content) {
-                msgTarget.message += data?.content ?? '';
-              }
+              
             } catch (error) {
               cancelMessage();
               updateMsgInfo(messageAssistantId, { status: 'fail' });

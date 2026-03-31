@@ -18,7 +18,7 @@
                     <p v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">
                         {{ item.status === 'cancel' ? '已停止生成' : '已停止生成' }}
                     </p>
-                    <Markdown v-else-if="item.status !== 'fail'" :value="item.message" />
+                    <Markdown v-else-if="item.status !== 'fail'" :value="item.message" :context="item.context" />
                     <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
                         {{ item.message || '消息发送失败，请重试。' }}
                     </p>
@@ -351,10 +351,14 @@ const props = withDefaults(defineProps<{
     padding: 12px;
 }
 
-.chat-ai-prompt-wrapper.loading {
-    border-color: transparent;
+.chat-ai-prompt-wrapper {
+    border: 1px solid #e5e6e8;
     padding: 1px;
     border-radius: 8px;
+}
+
+.chat-ai-prompt-wrapper.loading {
+    border-color: transparent;
     animation: light-gradient-border-rotate 2.5s linear infinite;
     color: rgba(23, 26, 29, 0.4);
 }

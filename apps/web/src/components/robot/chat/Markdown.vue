@@ -18,6 +18,10 @@ const props = defineProps({
   allowVoice: {
     type: Boolean,
     default: false
+  },
+  context: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -28,7 +32,24 @@ const md = new MarkdownIt({
   linkify: true,
   typographer: true
 });
+// 备份默认的 link_open 渲染函数
+const defaultRender = md.renderer.rules.link_open || function (tokens: any, idx: number, options: any, env: any, self: any) {
+  return self.renderToken(tokens, idx, options);
+};
 
+// 覆盖 link_open 规则
+md.renderer.rules.link_open = function (tokens: any, idx: number, options: any, env: any, self: any) {
+  // 检查是否已经存在 target 属性，防止重复添加
+  const targetIndex = tokens[idx].attrIndex('target');
+  if (targetIndex === -1) {
+    // 添加 target="_blank"
+    tokens[idx].attrPush(['target', '_blank']);
+    // 添加 rel="noopener noreferrer" 保证安全
+    tokens[idx].attrPush(['rel', 'noopener noreferrer']);
+  }
+  // 调用默认渲染逻辑
+  return defaultRender(tokens, idx, options, env, self);
+};
 const processContent = (content: string) => {
   if (!content) return '';
 
@@ -45,7 +66,21 @@ function objectToMarkdownTable(obj: any): string {
     .join('\n');
   return header + rows;
 }
-
+const replaceCitationBrackets = (text: string) => {
+  console.log('props.context', props.context);
+  const citations = props.context?.citations ?? [];
+  if (citations.length === 0) {
+    return text;
+  }
+  const rge = /\[\[citation:(\d+)\]\]/g;
+  return text.replace(rge, (match, p1) => {
+    const targetCitation = citations.find((citation: any) => citation.single_ref === match);
+    if (!targetCitation) {
+      return match;
+    }
+    return `[此链接](${targetCitation.document_link})`;
+  });
+}
 const renderedMarkdown = computed(() => {
   let contentToRender = props.value ? processContent(props.value) : '';
 
@@ -58,8 +93,8 @@ const renderedMarkdown = computed(() => {
   } catch (error) {
     console.log('error', error);
   }
-
-  return md.render(contentToRender);
+  // 如果含有上下文信息，进行部分替换
+  return md.render(replaceCitationBrackets(contentToRender));
 });
 
 </script>
@@ -104,6 +139,7 @@ const renderedMarkdown = computed(() => {
 .markdown-content ul {
   list-style: disc;
   padding-left: 1.25em;
+
   li {
     list-style: disc;
   }
@@ -112,6 +148,7 @@ const renderedMarkdown = computed(() => {
 .markdown-content ol {
   list-style: decimal;
   padding-left: 1.25em;
+
   li {
     list-style: decimal;
   }

@@ -166,8 +166,17 @@ export interface MessageItem {
   id?: string;
   role: 'user' | 'assistant';
   message: string;
-  status?: 'ready' | 'pending' | 'fail' | 'cancel' | 'over';
+  status?: 'ready' | 'pending' | 'doing' | 'fail' | 'cancel' | 'over';
   linkQuestion?: string; // 关联的问题
+  // 额外信息（目前支持传入link映射，前端做回显）
+  context?: {
+    session_id?: string;
+    citations?: {
+      ref?: string;
+      single_ref?: string;
+      document_link?: string;
+    }[];
+  };
 }
 
 
