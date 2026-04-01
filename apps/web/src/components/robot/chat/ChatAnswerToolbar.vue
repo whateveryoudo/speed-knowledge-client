@@ -1,7 +1,7 @@
 <template>
     <div class="flex items-center gap-2 mt-2">
-        <a-tooltip title="重新生成" placement="top">
-            <a-button class="shadow-btn-wrapper" type="text" v-if="['cancel', 'fail', 'over'].includes(item?.status ?? '')" @click="sendQuestion({
+        <a-tooltip title="重新生成" placement="top" v-if="['cancel', 'fail', 'over'].includes(item?.status ?? '')" >
+            <a-button class="shadow-btn-wrapper" type="text" @click="sendQuestion({
                 question: item.linkQuestion || '',
                 messageId: item.id,
                 resend: true,

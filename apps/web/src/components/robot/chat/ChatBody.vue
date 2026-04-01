@@ -35,10 +35,10 @@ import { useChatSession } from '../composables/useChatSessionContext';
 const chatSession = useChatSession();
 
 // 获取消息上下文
-const { messageList, cancelMessage, loadHistory, loadMoreHistory, messagesHasMore, messagesHistoryMoreLoading } = useChatMessage();
+const { messageList, cancelMessage, loadHistoryMessage, loadMoreHistory, messagesHasMore, messagesHistoryMoreLoading } = useChatMessage();
 
 if (chatSession.activeConversationId.value) {
-    loadHistory(chatSession.activeConversationId.value);
+    loadHistoryMessage(chatSession.activeConversationId.value);
 }
 
 const handleScroll = (e: Event) => {

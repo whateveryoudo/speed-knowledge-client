@@ -1,5 +1,5 @@
 <template>
-  <div class="helper-body-wrapper">
+  <div class="h-full flex flex-col py-[20px]">
     <!-- 主消息内容区 -->
     <ChatBody />
     <!-- 输入区 -->
@@ -20,14 +20,4 @@ const chatSession = useChatSession();
 useChatMessageProvider(chatSession);
 
 </script>
-<style scoped lang="less">
-.helper-body-wrapper {
-  height: calc(100% - 64px);
-  margin-top: -66px;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 20px;
-  padding-top: 20px;
-  background-color: #fff;
-}
-</style>
+<style scoped lang="less"></style>

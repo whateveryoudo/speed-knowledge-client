@@ -31,9 +31,12 @@ onMounted(async () => {
 const prefixUrl = import.meta.env.VITE_APP_PROXY_URL as string + apiVersion + '/ai/robot/chat';
 const robotConfig = ref({
   token: (window.localStorage.getItem('access_token')) as string,
-  baseUrl: prefixUrl + '/stream',
-  sessionHistoryUrl: prefixUrl + '/history',
-  messageUrl: prefixUrl + '/message',
+  // 传入接口前缀，方便后续扩展
+  endPoints: {
+    stream: prefixUrl + '/stream',
+    history: prefixUrl + '/history',
+    message: prefixUrl + '/message',
+  }
 })
 </script>
 

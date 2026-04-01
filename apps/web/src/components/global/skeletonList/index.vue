@@ -7,11 +7,17 @@
  * @FilePath: \easycube-apps\packages\components\src\globalComponents\Empty.vue
 -->
 <template>
-    <a-flex vertical :gap="10" v-if="loading">
-        <a-skeleton :loading="loading" v-for="i in count" :key="i" :active="true"
-            :paragraph="{ rows: perParagraphRows, width: '100%' }" />
-    </a-flex>
-    <slot v-else />
+    <div>
+        <template v-if="loading">
+            <template v-for="i in count" :key="i">
+                <slot name="template">
+                    <a-skeleton :avatar="avatar" :loading="loading" :active="true"
+                        :paragraph="{ rows: perParagraphRows, width: '100%' }" />
+                </slot>
+            </template>
+        </template>
+        <slot v-else />
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -23,73 +29,16 @@ const props = withDefaults(
     defineProps<{
         loading: boolean,
         count?: number
+        avatar?: boolean,
         perParagraphRows?: number,
     }>(),
     {
         loading: false,
-        count: 3,
+        count: 1,
+        avatar: false,
         perParagraphRows: 2,
     },
 )
 </script>
 
-<style lang="less" scoped>
-.no-data-wrapper {
-    min-height: 50px;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
-
-    &.has-top {
-        &.ant-empty {
-            margin-top: 30px;
-        }
-    }
-
-    &.ant-empty {
-        margin: 0;
-    }
-
-    :deep(.ant-empty-image) {
-        height: auto;
-    }
-
-    :deep(.ant-empty-description) {
-        color: var(--ant-color-text-secondary);
-    }
-
-    :deep(.ant-empty-image) {
-        width: 116px;
-
-        img {
-            width: 100%;
-            height: auto;
-        }
-    }
-
-    &.editor {
-        :deep(.ant-empty-image) {
-            width: 285px;
-
-            img {
-                width: 100%;
-                height: auto;
-            }
-        }
-    }
-
-    &.config-panel {
-        :deep(.ant-empty-image) {
-            width: 60px;
-
-            img {
-                width: 100%;
-                height: auto;
-            }
-        }
-    }
-}
-</style>
+<style lang="less" scoped></style>

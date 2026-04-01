@@ -8,6 +8,7 @@ import type { WorkflowStep, ResourceItem, AnswerItem, MessageItem, ConversationI
 import { useRoute, useRouter } from 'vue-router';
 import { useLoadMore } from './useDifyLoad';
 import { useClipboard } from '@vueuse/core';
+import { createRobotApi } from '../api';
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 // import { prepareTablesForExport } from './helper';
@@ -36,7 +37,7 @@ export interface MessageItemContext {
   sendQuestion: (options: { question?: string, resend?: boolean, messageId?: string }) => Promise<void>;
   cancelMessage: () => void;
   stopTask: () => Promise<void>;
-  loadHistory: (conversationId: string) => Promise<void>;
+  loadHistoryMessage: (conversationId: string) => Promise<void>;
   loadMoreHistory: (conversationId: string) => Promise<void>;
 
   // 承载回答的容器
@@ -57,8 +58,15 @@ function initSessionState(chatContext: ChatSessionContext) {
   const stackInfo = reactive<StackInfo>({
     controller: null,
   });
-  // 状态定义
-  const messageList = ref<MessageItem[]>([]);
+  const api = createRobotApi({
+    token: chatContext.config.value.token,
+    endpoints: chatContext.config.value.endPoints,
+  });
+  // 这里调用加载更多的hook
+  const { loadMore: loadMoreMessagesHistory, moreLoading: messagesHistoryMoreLoading, hasMore: messagesHasMore, items: messageList, refresh: initMessagesHistory } = useLoadMore<MessageItem>({
+    loader: (params: Record<string, any>) => api.listMessages(params),
+    useFirstId: true
+  });
   const isPending = computed(() => {
     return messageList.value.some((item: MessageItem) => item?.status === 'pending');
   });
@@ -155,7 +163,7 @@ function initSessionState(chatContext: ChatSessionContext) {
     const controller = new AbortController();
     stackInfo.controller = controller;
     fetchEventSource(
-      `${config.baseUrl}`,
+      `${config.endPoints.stream}`,
       {
         method: 'POST',
         headers: {
@@ -178,7 +186,7 @@ function initSessionState(chatContext: ChatSessionContext) {
           }
         },
         async onmessage(msg: { data: any; event: string }) {
-          
+
           if (msg.event === 'FatalError') {
             throw new FatalError(msg.data);
           }
@@ -209,7 +217,7 @@ function initSessionState(chatContext: ChatSessionContext) {
                 updateMsgInfo(messageAssistantId, { status: 'fail', message: targetData || '消息发送失败，请重试。' });
                 return;
               }
-              
+
             } catch (error) {
               cancelMessage();
               updateMsgInfo(messageAssistantId, { status: 'fail' });
@@ -237,26 +245,17 @@ function initSessionState(chatContext: ChatSessionContext) {
     );
   };
 
-  // 这里调用加载更多的hook
-  const { loadMore: loadMoreMessagesHistory, moreLoading: messagesHistoryMoreLoading, hasMore: messagesHasMore, items: messagesHistory, refresh: initMessagesHistory } = useLoadMore({
-    authParams: {
-      apiKey: chatContext.config.value.apiKey,
-      userName: chatContext.config.value.userName,
-      apiBaseUrl: "/deepApi/v1/messages",
-    },
-    useFirstId: true
-  });
+
   /**
-   * 加载历史记录
+   * 加载历史消息
    */
-  const loadHistory = async (conversationId: string) => {
+  const loadHistoryMessage = async (conversationId: string) => {
     try {
       await initMessagesHistory({
         conversation_id: conversationId,
       });
-      handleFetchedCallback(messagesHistory.value);
     } catch (error) {
-      console.error('加载历史记录失败:', error);
+      console.error('加载历史消息失败:', error);
     }
   };
   // 加载更多历史记录
@@ -264,7 +263,6 @@ function initSessionState(chatContext: ChatSessionContext) {
     await loadMoreMessagesHistory({
       conversation_id: conversationId,
     });
-    handleFetchedCallback(messagesHistory.value);
   };
   const { copy } = useClipboard();
   // 一些工具方法
@@ -406,7 +404,7 @@ function initSessionState(chatContext: ChatSessionContext) {
     messageList,
     sendQuestion,
     cancelMessage,
-    loadHistory,
+    loadHistoryMessage,
     loadMoreHistory,
     messagesHasMore,
     messagesHistoryMoreLoading,

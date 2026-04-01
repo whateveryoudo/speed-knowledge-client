@@ -1,7 +1,18 @@
 <template>
     <div v-if="visible" class="chat-dialog" :style="style" ref="chatDialogRef">
         <div ref="helperHeaderRef" class="helper-header-wrapper h-[130px] p-[12px] pt-[15px]">
-            <AFlex align="center" justify="space-between">
+            <AFlex align="center" justify="space-between" v-if="displayHistory">
+                <ASpace @click="displayHistory = false" class="cursor-pointer">
+                    <LeftOutlined />
+                    <span>历史会话</span>
+                    <a-tooltip title="刷新">
+                        <a-button type="text" class="shadow-btn-wrapper" @click="handleRefresh">
+                            <SyncOutlined />
+                        </a-button>
+                    </a-tooltip>
+                </ASpace>
+            </AFlex>
+            <AFlex align="center" justify="space-between" v-else>
                 <ASpace>
                     <img :src="AiLogo" class="h-[18px] w-[18px]" alt="" />
                     <span>文档助手</span>
@@ -11,6 +22,11 @@
                         <SyncOutlined />
                         <span>重新对话</span>
                     </a-button>
+                    <a-tooltip title="历史对话">
+                        <a-button type="text" class="shadow-btn-wrapper w-[28px]" @click="displayHistory = true">
+                            <MessageOutlined />
+                        </a-button>
+                    </a-tooltip>
                     <a-button type="text" class="shadow-btn-wrapper w-[28px]" @click="toggleExpand()">
                         <ShrinkOutlined v-if="isExpand" />
                         <ArrowsAltOutlined v-else />
@@ -21,13 +37,15 @@
                 </ASpace>
             </AFlex>
         </div>
-        <component :is="displayComponent" />
+        <div class="helper-body-wrapper">
+            <component :is="displayComponent" />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useChatSessionProvider } from '../composables/useChatSessionContext';
+import { useChatSessionProvider, useChatSession } from '../composables/useChatSessionContext';
 import { useDraggable } from '@vueuse/core';
 import AiLogo from '#sk-web/assets/images/robot/ai-icon-0.svg';
 import { SyncOutlined, ShrinkOutlined, ArrowsAltOutlined, CloseOutlined } from '@ant-design/icons-vue';
@@ -44,8 +62,6 @@ const props = withDefaults(
     },
 );
 const emits = defineEmits(['update:visible']);
-const displayHistory = ref(false);
-const displayComponent = computed(() => displayHistory.value ? ChatHistory : ChatMain);
 const chatDialogRef = ref<HTMLElement | null>(null);
 const helperHeaderRef = ref<HTMLElement | null>(null);
 const isExpand = ref(true);
@@ -79,10 +95,10 @@ const style = computed(() => ({
 }));
 
 // 注入会话上下文(用于初始化会话，历史会话等)
-useChatSessionProvider({
-    token: props.config.token,
-    baseUrl: props.config.baseUrl,
-});
+useChatSessionProvider(props.config);
+
+const { loadConversationsHistory, displayHistory} = useChatSession();
+const displayComponent = computed(() => displayHistory.value ? ChatHistory : ChatMain);
 
 // 获取会话上下文
 // const { scrollTarget, clear, loadHistory, loadMoreHistory, messagesHasMore, messagesHistoryMoreLoading } = useChatSession();
@@ -99,7 +115,10 @@ useChatSessionProvider({
 // }, {
 //     immediate: true,
 // });
-
+// 刷新历史列表
+const handleRefresh = () => {
+    loadConversationsHistory();
+};
 </script>
 <style scoped lang="less">
 .chat-dialog {
@@ -121,5 +140,14 @@ useChatSessionProvider({
         background: url('../../../assets/images/robot/ai-head-bg.png') no-repeat center;
         background-size: 100% 100%;
     }
+}
+
+.helper-body-wrapper {
+    height: calc(100% - 64px);
+    margin-top: -66px;
+    display: flex;
+    flex-direction: column;
+  
+    background-color: #fff;
 }
 </style>

@@ -1,6 +1,7 @@
 import { createInjectionState } from '@vueuse/core';
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { createRobotApi } from '../api';
 import type { ChatMessage, WorkflowStep, AgentParameters, ConversationItem, ChatConfig } from './types';
 import { useLoadMore } from './useDifyLoad';
 /**
@@ -15,7 +16,7 @@ export interface ChatSessionContext {
   renameConversationLoading: Ref<boolean>;
   activeConversationId: Ref<string>;
   isSidebarOpen: Ref<boolean>;
-  getColorClass: (color: string) => string;
+  displayHistory: Ref<boolean>;
 
   // 配置
   config: ComputedRef<ChatConfig>;
@@ -37,41 +38,22 @@ export interface ChatSessionContext {
 function initChatState(config: ChatConfig): ChatSessionContext {
   const route = useRoute();
   const router = useRouter();
+  const api = createRobotApi({
+    token: config.token,
+    endpoints: config.endPoints,
+  });
   // 这里调用加载更多的hook
-  const { loading: conversationsHistoryLoading, moreLoading: conversationsHistoryMoreLoading, loadMore: loadMoreConversationsHistory, hasMore: conversationsHasMore, items: conversationsHistory, refresh: loadConversationsHistory } = useLoadMore({
-    authParams: {
-      apiKey: config.apiKey,
-      userName: config.userName,
-      apiBaseUrl: "/deepApi/v1/conversations",
-    },
-    limit: 40,
+  const { loading: conversationsHistoryLoading, moreLoading: conversationsHistoryMoreLoading, loadMore: loadMoreConversationsHistory, hasMore: conversationsHasMore, items: conversationsHistory, refresh: loadConversationsHistory } = useLoadMore<ConversationItem>({
+    loader: (params: Record<string, any>) => api.listConversations(params),
   });
   const activeConversationId = ref('');
   const isSidebarOpen = ref(true);
   const configRef = computed(() => config);
-
+  const displayHistory = ref(false); // 是否显示历史会话列表
   // 智能体的参数
   const conversationsParameters = ref<AgentParameters>({});
 
   const renameConversationLoading = ref(false);
-  // 获取智能体的参数
-  const initConversationsParameters = async () => {
-    const API_BASE_URL =
-      "/deepApi/v1/parameters";
-    const response = await fetch(API_BASE_URL, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        "Api-Auth-Token": sessionStorage.getItem("tokenApi") || "",
-        "Content-Type": "application/json",
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    conversationsParameters.value = data || {};
-  };
 
   const startNewChat = () => {
     router.replace({
@@ -132,17 +114,7 @@ function initChatState(config: ChatConfig): ChatSessionContext {
     isSidebarOpen.value = true;
   };
 
-  const getColorClass = (color: string) => {
-    const map = {
-      blue: 'text-blue-600 bg-blue-50',
-      violet: 'text-violet-600 bg-violet-50',
-      amber: 'text-amber-600 bg-amber-50',
-      emerald: 'text-emerald-600 bg-emerald-50',
-      rose: 'text-rose-600 bg-rose-50',
-      indigo: 'text-indigo-600 bg-indigo-50',
-    }
-    return map[color] || map.blue
-  }
+
 
 
   const renameConversation = async (id: string, name: string, cb: (data: any) => void) => {
@@ -152,10 +124,10 @@ function initChatState(config: ChatConfig): ChatSessionContext {
     const response = await fetch(API_BASE_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name, user: config.userName }),
+      body: JSON.stringify({ name, user: config.token }),
     });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -208,10 +180,10 @@ function initChatState(config: ChatConfig): ChatSessionContext {
     const response = await fetch(API_BASE_URL, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${config.apiKey}`,
+        Authorization: `Bearer ${config.token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user: config.userName }),
+      body: JSON.stringify({ user: config.token }),
     });
     if (response.status === 204) {
       // 调整左侧菜单顺序
@@ -232,14 +204,12 @@ function initChatState(config: ChatConfig): ChatSessionContext {
     activeConversationId,
     isSidebarOpen,
     config: configRef,
-    getColorClass,
     clear,
     loadConversationsHistory,
     loadMoreConversationsHistory,
     conversationsHasMore,
-    initConversationsParameters,
     startNewChat,
-
+    displayHistory,
     renameConversation,
     deleteConversation,
   };
