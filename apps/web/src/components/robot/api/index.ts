@@ -1,5 +1,5 @@
 import { createRobotHttp, buildUrlWithQuery, type RobotApiOptions } from './request';
-import type { PaginationResponse, ConversationItem, MessageItem, RobotEndpoints } from '../composables/types';
+import type { PaginationResponse, ConversationItem, ChatMessageResponse, RobotEndpoints } from '../composables/types';
 import { cloneDeep } from 'lodash-es';
 
 export function createRobotApi(opts: RobotApiOptions & { endpoints: RobotEndpoints }) {
@@ -15,7 +15,7 @@ export function createRobotApi(opts: RobotApiOptions & { endpoints: RobotEndpoin
             const restParams = cloneDeep(params);
             delete restParams.conversation_id;
             // 这里sessionid拼接在url上
-            return http.get<PaginationResponse<MessageItem>>(buildUrlWithQuery(endpoints.message + '/' + params.conversation_id, restParams));
+            return http.get<PaginationResponse<ChatMessageResponse>>(buildUrlWithQuery(endpoints.message + '/' + params.conversation_id, restParams));
         },
 
         renameConversation(id: string, name: string) {

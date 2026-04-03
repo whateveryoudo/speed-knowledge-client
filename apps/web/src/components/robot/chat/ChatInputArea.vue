@@ -1,15 +1,26 @@
 <template>
-    <div class="chat-input-area-wrapper">
+    <div class="chat-input-area-wrapper relative">
+        <transition name="fade">
+            <a-flex class="absolute top-[-30px] left-[50%] -translate-x-1/2" justify="center"
+                v-if="showBackToLatestMessage">
+                <a-button class="px-2 py-1 text-[12px] text-[var(--sd-grey-8)] no-hover" v-if="showBackToLatestMessage"
+                    @click="handleBackToLatestMessage">
+                    回到最新消息
+                    <DoubleLeftOutlined class="transform rotate-270" />
+                </a-button>
+            </a-flex>
+        </transition>
         <!-- 加工具条 -->
         <div class="tool-bar">
             <ASpace>
-                <a-button type="text"
+                <a-button type="text" @click="todo()"
                     class="shadow-btn-wrapper has-hover hover:opacity-90 transition-opacity">图文编辑</a-button>
-                <a-button type="text"
+                <a-button type="text" @click="todo()"
                     class="shadow-btn-wrapper has-hover hover:opacity-90 transition-opacity">文档</a-button>
             </ASpace>
-            <a-tooltip v-if="isPending" title="停止生成" placement="top">
-                <a-button type="text" class="shadow-btn-wrapper has-hover hover:opacity-90 transition-opacity"
+            <a-tooltip v-if="isPending || isDoing" title="停止生成" placement="top">
+                <a-button type="text"
+                    class="shadow-btn-wrapper text-[var(--sd-link-color)]! bg-[var(--sd-bg-blue-1)]! has-hover hover:opacity-90 transition-opacity"
                     @click="cancelMessage">
                     <PauseCircleOutlined />
                 </a-button>
@@ -41,11 +52,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useChatMessage } from '../composables/useChatMessageContext';
+import { message } from 'ant-design-vue';
 import SendSvg from '#sk-web/assets/images/robot/send.svg';
 import SendDisabledSvg from '#sk-web/assets/images/robot/send-disabled.svg';
-import { PauseCircleOutlined } from '@ant-design/icons-vue';
-const { sendQuestion, isPending, disabledSend, inputMessage, cancelMessage } = useChatMessage();
+import { PauseCircleOutlined, DoubleLeftOutlined } from '@ant-design/icons-vue';
+const { sendQuestion, isPending, isDoing, handleBackToLatestMessage, disabledSend, inputMessage, cancelMessage, showBackToLatestMessage, toggleShowBackToLatestMessage } = useChatMessage();
 const isFocused = ref(false);
+const todo = () => {
+    message.info('功能开发中...');
+}
 </script>
 <style scoped lang="less">
 .chat-input-area-wrapper {

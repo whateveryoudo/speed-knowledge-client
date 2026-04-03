@@ -14,11 +14,7 @@
                             回答
                         </AFlex>
                     </div>
-                    <!-- 这里停止是瞬发的 -->
-                    <p v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">
-                        {{ item.status === 'cancel' ? '已停止生成' : '已停止生成' }}
-                    </p>
-                    <Markdown v-else-if="item.status !== 'fail'" :value="item.message" :context="item.context" />
+                    <Markdown v-if="item.status !== 'fail'" :value="item.message" :context="item.context" />
                     <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
                         {{ item.message || '消息发送失败，请重试。' }}
                     </p>
@@ -26,7 +22,11 @@
             </div>
         </div>
         <!-- 消息底部操作栏 -->
-        <ChatAnswerToolbar :item="item" />
+        <ChatAnswerToolbar v-bind="props" />
+        <!-- 一些状态显示 -->
+        <a-flex class="mt-2">
+            <span v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">该条消息已停止</span>
+        </a-flex>
     </div>
 </template>
 <script setup lang="ts">
@@ -39,12 +39,16 @@ import ChatAnswerToolbar from './ChatAnswerToolbar.vue';
 const { cancelMessage, sendQuestion } = useChatMessage();
 const props = withDefaults(defineProps<{
     item: MessageItem;
+    showRegenerate?: boolean;
 }>(), {
     item: () => ({
         role: 'assistant',
         message: '',
         status: 'pending',
+        id: '',
+        linkQuestion: '',
     }),
+    showRegenerate: false,
 });
 </script>
 <style lang="less">

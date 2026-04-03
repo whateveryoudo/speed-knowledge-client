@@ -19,15 +19,17 @@ import type { PaginationResponse } from './types';
  * - has_more: boolean        是否还有更多
  * - limit: number            实际返回条数
  */
-export function useLoadMore<T extends { id: string }>(options: {
+export function useLoadMore<T, R>(options: {
   // 加载函数注入
-  loader: (params: Record<string, any>) => Promise<PaginationResponse<T>>;
+  loader: (params: Record<string, any>) => Promise<PaginationResponse<R>>;
   useFirstId?: boolean; // 会话历史消息时候使用
   page?: number;
   /** 每次请求条数，默认 10 */
   page_size?: number;
   /** 排序字段，默认 updated_at:desc,支持多字段，用逗号分隔 */
   sort?: string;
+  // 响应列表转换函数
+  transformResponseList?: (response: R[]) => T[];
 }) {
   const page = ref(options?.page ?? 1);
   const pageSize = ref(options?.page_size ?? 10);
@@ -38,8 +40,6 @@ export function useLoadMore<T extends { id: string }>(options: {
   const moreLoading = ref(false);
   const error = ref<string | null>(null);
   const hasMore = ref(true);
-  const lastId = ref<string | null>(null); // 最后一条记录的 ID
-  const firstId = ref<string | null>(null); // 第一条记录的 ID
   const isEmpty = computed(() => !loading.value && !moreLoading.value && items.value.length === 0);
 
 
@@ -51,12 +51,6 @@ export function useLoadMore<T extends { id: string }>(options: {
       ...extraParams,
     };
 
-    if (options?.useFirstId) {
-      if (firstId.value) params.first_id = firstId.value;
-    } else if (lastId.value) {
-      params.last_id = lastId.value;
-    }
-
     return params;
   };
 
@@ -65,7 +59,15 @@ export function useLoadMore<T extends { id: string }>(options: {
    */
   const fetchPage = async (isRefresh = false, extraParams?: Record<string, any>) => {
     if (loading.value || moreLoading.value || !hasMore.value) return;
-    isRefresh ? loading.value = true : moreLoading.value = true;
+    if (isRefresh) {
+      hasMore.value = true;
+      items.value = [];
+      page.value = 1;
+      loading.value = true
+    } else {
+      moreLoading.value = true;
+      page.value++;
+    }
     error.value = null;
     try {
       const params = buildParams(extraParams);
@@ -74,23 +76,13 @@ export function useLoadMore<T extends { id: string }>(options: {
         throw new Error(json.errMessage ?? '加载失败');
       }
 
-      const list: T[] = json.data?.items ?? [];
-      const isFirst = !firstId.value && !lastId.value;
-      if (isFirst) {
+      const list: T[] = options.transformResponseList ? options.transformResponseList(json.data?.items as R[]) : json.data?.items as unknown as T[];
+      if (isRefresh) {
         // 首次加载或刷新
         items.value = list;
       } else {
         // 追加下一页
         items.value = [...items.value, ...(list as typeof items.value)];
-      }
-
-      // 更新 firstId 或 lastId
-      if (list.length > 0) {
-        if (options?.useFirstId) {
-          firstId.value = list[0]?.id ?? null;
-        } else {
-          lastId.value = list[list.length - 1]?.id ?? null;
-        }
       }
 
       hasMore.value = Boolean(json.data?.has_more);
@@ -113,10 +105,7 @@ export function useLoadMore<T extends { id: string }>(options: {
    * @description 从头刷新列表（重置 last_id，再拉一页）
    */
   const refresh = async (params?: Record<string, any>) => {
-    items.value = [];
-    lastId.value = null;
-    firstId.value = null;
-    hasMore.value = true;
+
     await fetchPage(true, params);
   };
 
@@ -125,8 +114,6 @@ export function useLoadMore<T extends { id: string }>(options: {
    */
   const reset = () => {
     items.value = [];
-    lastId.value = null;
-    firstId.value = null;
     hasMore.value = true;
     loading.value = false;
     error.value = null;

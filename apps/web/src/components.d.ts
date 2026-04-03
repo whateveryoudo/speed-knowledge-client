@@ -75,6 +75,7 @@ declare module 'vue' {
     CopyOutlined: typeof import('@ant-design/icons-vue')['CopyOutlined']
     DeleteOutlined: typeof import('@ant-design/icons-vue')['DeleteOutlined']
     Dialog: typeof import('./components/robot/Dialog.vue')['default']
+    DoubleLeftOutlined: typeof import('@ant-design/icons-vue')['DoubleLeftOutlined']
     DownloadOutlined: typeof import('@ant-design/icons-vue')['DownloadOutlined']
     DownOutlined: typeof import('@ant-design/icons-vue')['DownOutlined']
     EditOutlined: typeof import('@ant-design/icons-vue')['EditOutlined']

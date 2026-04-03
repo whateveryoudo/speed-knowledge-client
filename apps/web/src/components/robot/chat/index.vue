@@ -18,7 +18,7 @@
                     <span>文档助手</span>
                 </ASpace>
                 <ASpace>
-                    <a-button type="text" class="shadow-btn-wrapper">
+                    <a-button type="text" class="shadow-btn-wrapper" @click="startNewConversation">
                         <SyncOutlined />
                         <span>重新对话</span>
                     </a-button>
@@ -46,6 +46,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useChatSessionProvider, useChatSession } from '../composables/useChatSessionContext';
+import { useChatMessage, useChatMessageProvider } from '../composables/useChatMessageContext';
+
 import { useDraggable } from '@vueuse/core';
 import AiLogo from '#sk-web/assets/images/robot/ai-icon-0.svg';
 import { SyncOutlined, ShrinkOutlined, ArrowsAltOutlined, CloseOutlined } from '@ant-design/icons-vue';
@@ -97,7 +99,12 @@ const style = computed(() => ({
 // 注入会话上下文(用于初始化会话，历史会话等)
 useChatSessionProvider(props.config);
 
-const { loadConversationsHistory, displayHistory} = useChatSession();
+const chatSession = useChatSession();
+const { displayHistory, loadConversationsHistory } = chatSession;
+// 注入会话上下文
+useChatMessageProvider(chatSession);
+
+const { startNewConversation } = useChatMessage();
 const displayComponent = computed(() => displayHistory.value ? ChatHistory : ChatMain);
 
 // 获取会话上下文
@@ -119,6 +126,7 @@ const displayComponent = computed(() => displayHistory.value ? ChatHistory : Cha
 const handleRefresh = () => {
     loadConversationsHistory();
 };
+
 </script>
 <style scoped lang="less">
 .chat-dialog {
@@ -147,7 +155,7 @@ const handleRefresh = () => {
     margin-top: -66px;
     display: flex;
     flex-direction: column;
-  
+
     background-color: #fff;
 }
 </style>

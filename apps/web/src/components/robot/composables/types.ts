@@ -113,7 +113,15 @@ export interface MessageItem {
     }[];
   };
 }
-
+// 后端响应结构
+export interface ChatMessageResponse {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  type: 'text' | 'tool_call' | 'tool_result' | 'error';
+  created_at: string;
+  updated_at: string;
+}
 export type RobotEndpoints = {
   stream: string;
   history: string;

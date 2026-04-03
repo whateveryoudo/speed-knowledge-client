@@ -1,7 +1,7 @@
 <template>
-    <div ref="messageContainer" class="chat-list">
+    <div ref="scrollTarget" class="chat-list" @scroll="handleScroll">
         <!-- 顶部开场白 -->
-        <div class="chat-welcome-prompt-wrapper">
+        <div class="chat-welcome-prompt-wrapper" v-if="messageList.length === 0">
             <div class="leading-[20px] tracking-[1px] mb-[10px] text-[16px]">
                 👋🏻 <span class="ml-1">Hi,我是您的文档助手：</span>
             </div>
@@ -16,7 +16,8 @@
                 :class="item.role === 'user' ? 'justify-end' : 'justify-start'">
                 <div :class="['content-wrapper', item.role]">
 
-                    <ChatAnswer :item="item" v-if="item.role === 'assistant'" />
+                    <ChatAnswer :show-regenerate="index === messageList.length - 1" :item="item"
+                        v-if="item.role === 'assistant'" />
                     <div v-if="item.role === 'user'" :class="['chat-user-prompt-wrapper']">
                         {{ item.message }}
                     </div>
@@ -35,7 +36,7 @@ import { useChatSession } from '../composables/useChatSessionContext';
 const chatSession = useChatSession();
 
 // 获取消息上下文
-const { messageList, cancelMessage, loadHistoryMessage, loadMoreHistory, messagesHasMore, messagesHistoryMoreLoading } = useChatMessage();
+const { messageList, scrollTarget, toggleShowBackToLatestMessage, cancelMessage, loadHistoryMessage, loadMoreHistory, messagesHasMore, messagesHistoryMoreLoading } = useChatMessage();
 
 if (chatSession.activeConversationId.value) {
     loadHistoryMessage(chatSession.activeConversationId.value);
@@ -45,8 +46,13 @@ const handleScroll = (e: Event) => {
     const target = e.target as HTMLElement;
     if (target.scrollTop < 10) {
         if (messagesHasMore.value && !messagesHistoryMoreLoading.value) {
+            // 上划加载更多
             loadMoreHistory(String(chatSession.activeConversationId.value));
         }
+    }
+    if (scrollTarget.value) {
+        const distanceToBottom = scrollTarget.value?.scrollHeight - target.scrollTop - target.clientHeight;
+        toggleShowBackToLatestMessage(distanceToBottom > 300);
     }
 };
 

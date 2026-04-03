@@ -4,12 +4,13 @@ import { message } from 'ant-design-vue';
 import { type ChatSessionContext } from './useChatSessionContext';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { nanoid } from 'nanoid';
-import type { WorkflowStep, ResourceItem, AnswerItem, MessageItem, ConversationItem } from './types';
+import type { MessageItem, ConversationItem, ChatMessageResponse } from './types';
 import { useRoute, useRouter } from 'vue-router';
 import { useLoadMore } from './useDifyLoad';
 import { useClipboard } from '@vueuse/core';
 import { createRobotApi } from '../api';
 import html2canvas from "html2canvas";
+import { useToggle } from '@vueuse/core';
 import jsPDF from "jspdf";
 // import { prepareTablesForExport } from './helper';
 
@@ -26,7 +27,9 @@ export interface MessageItemContext {
   messageList: Ref<MessageItem[]>;
   inputMessage: Ref<string>;
   isPending: ComputedRef<boolean>;
+  isDoing: ComputedRef<boolean>;
   disabledSend: ComputedRef<boolean>;
+  showBackToLatestMessage: Ref<boolean>;
 
 
   // 历史记录(加载)
@@ -39,7 +42,9 @@ export interface MessageItemContext {
   stopTask: () => Promise<void>;
   loadHistoryMessage: (conversationId: string) => Promise<void>;
   loadMoreHistory: (conversationId: string) => Promise<void>;
-
+  toggleShowBackToLatestMessage: (value: boolean) => void;
+  handleBackToLatestMessage: () => void;
+  startNewConversation: () => void;
   // 承载回答的容器
   registerAnswerContainer: (id: string, el: HTMLElement | null) => void;
   getAnswerContainer: (id: string) => HTMLElement | null;
@@ -63,12 +68,24 @@ function initSessionState(chatContext: ChatSessionContext) {
     endpoints: chatContext.config.value.endPoints,
   });
   // 这里调用加载更多的hook
-  const { loadMore: loadMoreMessagesHistory, moreLoading: messagesHistoryMoreLoading, hasMore: messagesHasMore, items: messageList, refresh: initMessagesHistory } = useLoadMore<MessageItem>({
+  const { loadMore: loadMoreMessagesHistory, moreLoading: messagesHistoryMoreLoading, hasMore: messagesHasMore, items: messageList, refresh: initMessagesHistory } = useLoadMore<MessageItem, ChatMessageResponse>({
     loader: (params: Record<string, any>) => api.listMessages(params),
-    useFirstId: true
+    sort: 'updated_at:asc',
+    transformResponseList: (response: ChatMessageResponse[]): MessageItem[] => {
+      return response.map((item: ChatMessageResponse) => ({
+        id: item.id,
+        role: item.role,
+        message: item.content,
+        status: 'over',
+        linkQuestion: '',
+      }));
+    }
   });
   const isPending = computed(() => {
     return messageList.value.some((item: MessageItem) => item?.status === 'pending');
+  });
+  const isDoing = computed(() => {
+    return messageList.value.some((item: MessageItem) => item?.status === 'doing');
   });
   const disabledSend = computed(() => {
     return (inputMessage.value.trim().length === 0 || isPending.value);
@@ -87,7 +104,8 @@ function initSessionState(chatContext: ChatSessionContext) {
 
   // 滚动容器
   const scrollTarget = ref<HTMLElement | null>(null);
-
+  // 是否显示回到最新消息
+  const [showBackToLatestMessage, toggleShowBackToLatestMessage] = useToggle(false);
   // 滚动到最底部
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
     if (!scrollTarget.value) return;
@@ -96,13 +114,29 @@ function initSessionState(chatContext: ChatSessionContext) {
       behavior: behavior,
     });
   };
-
+  const handleBackToLatestMessage = () => {
+    scrollToBottom('auto');
+    toggleShowBackToLatestMessage(false);
+  };
+  // 开启新会话
+  const startNewConversation = () => {
+    if (!chatContext.activeConversationId.value) {
+      message.warning('当前已是最新会话');
+      return;
+    }
+    // 清空选中sessionId
+    chatContext.activeConversationId.value = '';
+    messageList.value = [];
+    inputMessage.value = '';
+    showBackToLatestMessage.value = false;
+    toggleShowBackToLatestMessage(false);
+  };
   const cancelMessage = () => {
     if (stackInfo?.controller) {
       setTimeout(() => {
         stackInfo.controller?.abort();
       }, 0);
-      const pendingMessage = messageList.value.find((item: MessageItem) => item.status === 'pending');
+      const pendingMessage = messageList.value.find((item: MessageItem) => ['pending', 'doing'].includes(item.status ?? ''));
       if (pendingMessage) {
         updateMsgInfo(pendingMessage.id ?? '', { status: 'cancel' });
       }
@@ -254,6 +288,8 @@ function initSessionState(chatContext: ChatSessionContext) {
       await initMessagesHistory({
         conversation_id: conversationId,
       });
+      await nextTick();
+      scrollToBottom();
     } catch (error) {
       console.error('加载历史消息失败:', error);
     }
@@ -397,9 +433,11 @@ function initSessionState(chatContext: ChatSessionContext) {
   // };
   return {
     isPending,
+    isDoing,
     disabledSend,
     inputMessage,
-
+    showBackToLatestMessage,
+    toggleShowBackToLatestMessage,
     scrollTarget,
     messageList,
     sendQuestion,
@@ -408,7 +446,9 @@ function initSessionState(chatContext: ChatSessionContext) {
     loadMoreHistory,
     messagesHasMore,
     messagesHistoryMoreLoading,
+    handleBackToLatestMessage,
     copyAnswer,
+    startNewConversation
   };
 }
 
