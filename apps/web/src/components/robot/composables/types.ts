@@ -94,34 +94,45 @@ export interface ConversationItem {
 
 
 
-/**
- * 聊天消息
- */
-export interface MessageItem {
+
+// 后端响应结构（携带分组）
+// 消息基础结构
+export interface ChatMessageBase {
   id: string;
+  content: string;
   role: 'user' | 'assistant';
-  message: string;
-  status?: 'ready' | 'pending' | 'doing' | 'fail' | 'cancel' | 'over';
-  linkQuestion?: string; // 关联的问题
-  // 额外信息（目前支持传入link映射，前端做回显）
-  context?: {
-    session_id?: string;
+  type: 'text' | 'tool_call' | 'tool_result' | 'error';
+  context_json?: {
     citations?: {
       ref?: string;
       single_ref?: string;
       document_link?: string;
     }[];
   };
-}
-// 后端响应结构
-export interface ChatMessageResponse {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  type: 'text' | 'tool_call' | 'tool_result' | 'error';
+  link_question?: string;
+  answer_group_id: string;
+  version: number;
   created_at: string;
   updated_at: string;
 }
+export interface ChatMessageResponse {
+  answer_group_id: string;
+  sub_messages: ChatMessageBase[];
+}
+
+/**
+ * 聊天消息(前端使用，补充了一些中间态)
+ */
+export interface MessageItem {
+  answerGroupId: string;
+  currentVersion?: number;
+  message?: string; // 用于展示一些系统消息（如 请求失败，用户取消等）
+  subMessages: Partial<ChatMessageBase>[];
+  role: 'user' | 'assistant';
+  status?: 'ready' | 'pending' | 'doing' | 'fail' | 'cancel' | 'over';
+  linkQuestion?: string; // 关联的问题
+}
+
 export type RobotEndpoints = {
   stream: string;
   history: string;
