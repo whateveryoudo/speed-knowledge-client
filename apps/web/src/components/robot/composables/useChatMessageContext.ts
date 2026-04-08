@@ -4,7 +4,7 @@ import { message } from 'ant-design-vue';
 import { type ChatSessionContext } from './useChatSessionContext';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { nanoid } from 'nanoid';
-import type { MessageItem, ConversationItem, ChatMessageResponse, ChatMessageBase } from './types';
+import type { MessageItem, ConversationItem, ChatMessageResponse } from './types';
 import { useRoute, useRouter } from 'vue-router';
 import { useLoadMore } from './useDifyLoad';
 import { useClipboard } from '@vueuse/core';
@@ -12,7 +12,6 @@ import { createRobotApi } from '../api';
 import html2canvas from "html2canvas";
 import { useToggle } from '@vueuse/core';
 import jsPDF from "jspdf";
-import { getAttrFormSubMessage } from '../utils/common';
 // import { prepareTablesForExport } from './helper';
 
 class RetriableError extends Error { }
@@ -73,28 +72,13 @@ function initSessionState(chatContext: ChatSessionContext) {
     loader: (params: Record<string, any>) => api.listMessages(params),
     sort: 'updated_at:asc',
     transformResponseList: (response: ChatMessageResponse[]): MessageItem[] => {
-      return response.map((item: ChatMessageResponse) => {
-        // 获取最后一个消息（提取一些公共字段到外层）
-        const lastMessage = item.sub_messages[item.sub_messages.length - 1];
-        if (!lastMessage) {
-          return {
-            answerGroupId: item.answer_group_id,
-            role: 'assistant',
-            currentVersion: undefined,
-            subMessages: [],
-            status: 'over',
-            linkQuestion: '',
-          };
-        }
-        return {
-          answerGroupId: item.answer_group_id,
-          role: lastMessage.role,
-          currentVersion: lastMessage.version, // 初始化现在最新的版本号
-          subMessages: item.sub_messages,
-          status: 'over',
-          linkQuestion: lastMessage.link_question,
-        };
-      });
+      return response.map((item: ChatMessageResponse) => ({
+        id: item.id,
+        role: item.role,
+        message: item.content,
+        status: 'over',
+        linkQuestion: '',
+      }));
     }
   });
   const isPending = computed(() => {
@@ -154,20 +138,13 @@ function initSessionState(chatContext: ChatSessionContext) {
       }, 0);
       const pendingMessage = messageList.value.find((item: MessageItem) => ['pending', 'doing'].includes(item.status ?? ''));
       if (pendingMessage) {
-        updateMsgInfo(pendingMessage.answerGroupId ?? '', { status: 'cancel' });
+        updateMsgInfo(pendingMessage.id ?? '', { status: 'cancel' });
       }
     }
   };
   // 更新消息信息
-  const updateMsgInfo = (answerGroupId: string, attrs: Record<string, any>) => {
-    const target = messageList.value.find((item: MessageItem) => item.answerGroupId === answerGroupId);
-    if (target) {
-      Object.assign(target, attrs);
-    }
-  };
-  // 更新子消息信息
-  const updateSubMessageInfo = (answerGroupId: string, subMessageId: string, attrs: Record<string, any>) => {
-    const target = messageList.value.find((item: MessageItem) => item.answerGroupId === answerGroupId)?.subMessages.find((subMessage: Partial<ChatMessageBase>) => subMessage.id === subMessageId);
+  const updateMsgInfo = (messageId: string, attrs: Record<string, any>) => {
+    const target = messageList.value.find((item: MessageItem) => item.id === messageId);
     if (target) {
       Object.assign(target, attrs);
     }
@@ -178,58 +155,33 @@ function initSessionState(chatContext: ChatSessionContext) {
   const sendQuestion = async (options: {
     question?: string, // 问题内容
     resend?: boolean, // 是否重新发送消息
-    answerGroupId?: string, // 答案组id（重新发送时传入）
+    messageId?: string, // 消息id（重新发送时传入）
   }) => {
     if (!options?.question?.trim()) {
       message.warning('请输入问题内容');
       return;
     }
-    let answerUserGroupId = nanoid(); // 用户消息组id
-    let answerAssistantGroupId = options.answerGroupId || nanoid(); // 机器回答消息组id
-    let subUserMessageId = nanoid(); // 用户消息id
-    let subAssistantMessageId = nanoid(); // 机器回答消息id
-    if (options.resend && options.answerGroupId) {
-      // 重新发起会话（这里是追加历史记录）
-      const tempChat = messageList.value.find((item) => item.answerGroupId === answerAssistantGroupId);
-      if (tempChat && tempChat.subMessages.length > 0) {
-        updateMsgInfo(answerUserGroupId, {
-          sub_messages: [
-            ...tempChat.subMessages,
-            // 追加一条新的
-            {
-              id: subUserMessageId,
-              content: options.question,
-              role: 'user',
-              type: 'text',
-              context_json: {},
-            }
-          ]
-        });
+    let messageUserId = nanoid();
+    let messageAssistantId = options.messageId || nanoid(); // 机器回答消息
+
+    if (options.resend && options.messageId) {
+      // 重新发起会话
+      const tempChat = messageList.value.find((item) => item.id === messageAssistantId);
+      if (tempChat) {
+        updateMsgInfo(messageAssistantId, { status: 'pending', message: '' }); // 重置内容
       }
     } else {
       // 普通发送消息(插入两条信息)
       messageList.value.push({
-        answerGroupId: answerUserGroupId,
+        id: messageUserId,
         role: 'user',
-        subMessages: [{
-          id: subUserMessageId,
-          content: options.question,
-          role: 'user',
-          type: 'text',
-          context_json: {},
-        }],
+        message: options.question,
       });
       // 增加机器回答消息占位
       messageList.value.push({
-        answerGroupId: answerAssistantGroupId,
+        id: messageAssistantId,
         role: 'assistant',
-        subMessages: [{
-          id: subAssistantMessageId,
-          content: '',
-          role: 'assistant',
-          type: 'text',
-          context_json: {},
-        }],
+        message: '',
         status: 'pending',
         linkQuestion: options.question, // 保留关联的问题，用于重新发送时使用
       });
@@ -275,7 +227,7 @@ function initSessionState(chatContext: ChatSessionContext) {
           if (msg.event == '') {
             try {
               const msgTarget = messageList.value.find(
-                (item: MessageItem) => item.answerGroupId === answerAssistantGroupId,
+                (item: MessageItem) => item.id === messageAssistantId,
               );
               if (!msgTarget) {
                 return;
@@ -288,26 +240,21 @@ function initSessionState(chatContext: ChatSessionContext) {
                 // 更新会话id
                 chatContext.activeConversationId.value = targetData.session_id;
                 // 更新上下文信息
-                updateSubMessageInfo(answerAssistantGroupId, subAssistantMessageId, { context_json: targetData });
-                console.log(messageList.value);
+                updateMsgInfo(messageAssistantId, { context: targetData });
               } else if (dataEvent === 'message') {
                 // 调整状态为doing
-                updateMsgInfo(answerAssistantGroupId, { status: 'doing' });
-                // 同步最新的子消息(注意追加内容)
-                const targetMessage = messageList.value.find((item: MessageItem) => item.answerGroupId === answerAssistantGroupId);
-                if (targetMessage) {
-                  updateSubMessageInfo(answerAssistantGroupId, subAssistantMessageId, { content: (getAttrFormSubMessage(targetMessage, 'content') ?? '') + (targetData || '') });
-                }
+                updateMsgInfo(messageAssistantId, { status: 'doing' });
+                msgTarget.message += targetData || '';
               } else if (dataEvent === 'done') {
-                updateMsgInfo(answerAssistantGroupId, { status: 'over' });
+                updateMsgInfo(messageAssistantId, { status: 'over' });
               } else if (dataEvent === 'error') {
-                updateSubMessageInfo(answerAssistantGroupId, subAssistantMessageId, { status: 'fail', content: targetData || '消息发送失败，请重试。' });
+                updateMsgInfo(messageAssistantId, { status: 'fail', message: targetData || '消息发送失败，请重试。' });
                 return;
               }
 
             } catch (error) {
               cancelMessage();
-              updateSubMessageInfo(answerAssistantGroupId, subAssistantMessageId, { status: 'fail' });
+              updateMsgInfo(messageAssistantId, { status: 'fail' });
               // 错误处理，提示用户
               message.error('消息发送失败，请重试。');
             }
@@ -315,16 +262,16 @@ function initSessionState(chatContext: ChatSessionContext) {
         },
         onclose() {
           // 重置状态
-          const curStatus = messageList.value.find((item: MessageItem) => item.answerGroupId === answerAssistantGroupId)?.status;
+          const curStatus = messageList.value.find((item: MessageItem) => item.id === messageAssistantId)?.status;
           if (curStatus === 'fail') {
             return;
           }
-          updateMsgInfo(answerAssistantGroupId, { status: 'over' });
+          updateMsgInfo(messageAssistantId, { status: 'over' });
         },
         onerror(e: Error) {
           console.log(e);
           cancelMessage();
-          updateMsgInfo(answerAssistantGroupId, { status: 'fail' });
+          updateMsgInfo(messageAssistantId, { status: 'fail' });
           // 错误处理，提示用户
           message.error('消息发送失败，请重试。');
         },
@@ -357,10 +304,9 @@ function initSessionState(chatContext: ChatSessionContext) {
   // 一些工具方法
   const copyAnswer = (chatId: string) => {
     if (!chatId) return;
-    const chat = messageList.value.find((item) => item.answerGroupId === chatId);
+    const chat = messageList.value.find((item) => item.id === chatId);
     if (chat) {
-      const curSubMessage = chat.subMessages.find((subMessage: Partial<ChatMessageBase>) => subMessage.version === chat.currentVersion);
-      copy(curSubMessage?.content ?? '');
+      copy(chat.message);
       message.success('已复制内容');
     } else {
       message.error('复制失败');

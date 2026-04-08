@@ -11,7 +11,7 @@
         </div>
         <!-- 会话区 -->
         <template v-if="messageList.length">
-            <div v-for="(item, index) in messageList" :key="item.answerGroupId" class="message-item-wrapper flex b-4"
+            <div v-for="(item, index) in messageList" :key="item.id" class="message-item-wrapper flex b-4"
                 style="padding-right: 5px; padding-left: 5px"
                 :class="item.role === 'user' ? 'justify-end' : 'justify-start'">
                 <div :class="['content-wrapper', item.role]">
@@ -19,7 +19,7 @@
                     <ChatAnswer :show-regenerate="index === messageList.length - 1" :item="item"
                         v-if="item.role === 'assistant'" />
                     <div v-if="item.role === 'user'" :class="['chat-user-prompt-wrapper']">
-                        {{ getMessage(item) }}
+                        {{ item.message }}
                     </div>
                 </div>
 
@@ -32,8 +32,7 @@
 import { nextTick, onMounted, ref, watch, computed } from 'vue';
 import { useChatMessage } from '../composables/useChatMessageContext';
 import { useChatSession } from '../composables/useChatSessionContext';
-import type { MessageItem } from '../composables/types';
-import { getMessage } from '../utils/common';
+
 const chatSession = useChatSession();
 
 // 获取消息上下文

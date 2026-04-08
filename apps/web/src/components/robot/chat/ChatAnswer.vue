@@ -14,8 +14,7 @@
                             回答
                         </AFlex>
                     </div>
-                    <Markdown v-if="item.status !== 'fail'" :value="curSubMessage?.content ?? ''"
-                        :context="curSubMessage?.context_json ?? {}" />
+                    <Markdown v-if="item.status !== 'fail'" :value="item.message" :context="item.context" />
                     <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
                         {{ item.message || '消息发送失败，请重试。' }}
                     </p>
@@ -31,8 +30,8 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, watch, nextTick, createApp, computed } from "vue";
-import type { MessageItem, ChatMessageBase } from '../composables/types';
+import { ref, watch, nextTick, createApp } from "vue";
+import type { MessageItem } from '../composables/types';
 import AiMsgLoadingIcon from '#sk-web/assets/images/robot/ai-msg-loading.gif';
 import Markdown from './Markdown.vue';
 import { useChatMessage } from '../composables/useChatMessageContext';
@@ -43,9 +42,6 @@ const props = withDefaults(defineProps<{
     showRegenerate?: boolean;
 }>(), {
     item: () => ({
-        answerGroupId: '',
-        subMessages: [],
-        currentVersion: undefined,
         role: 'assistant',
         message: '',
         status: 'pending',
@@ -53,10 +49,6 @@ const props = withDefaults(defineProps<{
         linkQuestion: '',
     }),
     showRegenerate: false,
-});
-// 当前子消息
-const curSubMessage = computed(() => {
-    return props.item.subMessages.find((subMessage: Partial<ChatMessageBase>) => subMessage.version === props.item.currentVersion);
 });
 </script>
 <style lang="less">
