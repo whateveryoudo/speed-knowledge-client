@@ -103,15 +103,19 @@ export interface MessageItem {
   message: string;
   status?: 'ready' | 'pending' | 'doing' | 'fail' | 'cancel' | 'over';
   linkQuestion?: string; // 关联的问题
-  // 额外信息（目前支持传入link映射，前端做回显）
-  context?: {
-    session_id?: string;
-    citations?: {
-      ref?: string;
-      single_ref?: string;
-      document_link?: string;
-    }[];
-  };
+  // 额外信息（目前支持传入link映射，前端做回显）已废弃
+  // context?: {
+  //   session_id?: string;
+  //   citations?: {
+  //     ref?: string;
+  //     single_ref?: string;
+  //     document_link?: string;
+  //   }[];
+  // };
+  suggestions?: {
+    id: string;
+    text: string;
+  }[];
 }
 // 后端响应结构
 export interface ChatMessageResponse {

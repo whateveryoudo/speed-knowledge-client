@@ -18,10 +18,6 @@ const props = defineProps({
   allowVoice: {
     type: Boolean,
     default: false
-  },
-  context: {
-    type: Object,
-    default: () => ({})
   }
 });
 
@@ -66,6 +62,7 @@ function objectToMarkdownTable(obj: any): string {
     .join('\n');
   return header + rows;
 }
+// 已废弃（后端直接返回md链接）
 const replaceCitationBrackets = (text: string) => {
   console.log('props.context', props.context);
   const citations = props.context?.citations ?? [];
@@ -94,7 +91,7 @@ const renderedMarkdown = computed(() => {
     console.log('error', error);
   }
   // 如果含有上下文信息，进行部分替换
-  return md.render(replaceCitationBrackets(contentToRender));
+  return md.render(contentToRender);
 });
 
 </script>

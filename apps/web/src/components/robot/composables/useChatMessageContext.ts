@@ -39,18 +39,13 @@ export interface MessageItemContext {
   // 方法
   sendQuestion: (options: { question?: string, resend?: boolean, messageId?: string }) => Promise<void>;
   cancelMessage: () => void;
-  stopTask: () => Promise<void>;
   loadHistoryMessage: (conversationId: string) => Promise<void>;
   loadMoreHistory: (conversationId: string) => Promise<void>;
   toggleShowBackToLatestMessage: (value: boolean) => void;
   handleBackToLatestMessage: () => void;
   startNewConversation: () => void;
-  // 承载回答的容器
-  registerAnswerContainer: (id: string, el: HTMLElement | null) => void;
-  getAnswerContainer: (id: string) => HTMLElement | null;
-  downloadAnswer: (chatId: string, type: 'pdf' | 'excel' | 'word') => void;
+  // downloadAnswer: (chatId: string, type: 'pdf' | 'excel' | 'word') => void;
   copyAnswer: (chatId: string) => void;
-  regenerateAnswer: (chatId: string) => void;
 }
 interface StackInfo {
   controller: AbortController | null;
@@ -245,6 +240,9 @@ function initSessionState(chatContext: ChatSessionContext) {
                 // 调整状态为doing
                 updateMsgInfo(messageAssistantId, { status: 'doing' });
                 msgTarget.message += targetData || '';
+              } else if (dataEvent === 'suggestions') {
+                // 更新建议列表
+                updateMsgInfo(messageAssistantId, { suggestions: targetData });
               } else if (dataEvent === 'done') {
                 updateMsgInfo(messageAssistantId, { status: 'over' });
               } else if (dataEvent === 'error') {

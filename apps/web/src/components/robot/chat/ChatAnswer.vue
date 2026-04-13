@@ -14,7 +14,7 @@
                             回答
                         </AFlex>
                     </div>
-                    <Markdown v-if="item.status !== 'fail'" :value="item.message" :context="item.context" />
+                    <Markdown v-if="item.status !== 'fail'" :value="item.message" />
                     <p v-else-if="item.status === 'fail'" class="text-[var(--sd-red-6)]">
                         {{ item.message || '消息发送失败，请重试。' }}
                     </p>
@@ -26,6 +26,18 @@
         <!-- 一些状态显示 -->
         <a-flex class="mt-2">
             <span v-if="item.status === 'cancel'" class="text-[var(--sd-text-caption)]">该条消息已停止</span>
+        </a-flex>
+        <!-- 展示建议列表 -->
+        <a-flex :gap="6" vertical v-if="item.suggestions && item.suggestions.length > 0" class="mt-2">
+            <span class="text-[var(--sd-text-caption)] ">你可以继续问我：</span>
+
+            <TransitionGroup name="suggest" tag="div" class="flex items-start flex-col gap-2 text-sm">
+                <span class="cursor-pointer bg-[var(--sd-bg-blue-2)] hover:bg-[var(--sd-bg-blue-2-hover)] transition-all duration-300 rounded-[20px] px-4 py-2" v-for="suggestion in item.suggestions" :key="suggestion.id" @click="sendQuestion({
+                    question: suggestion.text,
+                })">
+                    {{ suggestion.text }}
+                </span>
+            </TransitionGroup>
         </a-flex>
     </div>
 </template>
@@ -52,6 +64,23 @@ const props = withDefaults(defineProps<{
 });
 </script>
 <style lang="less">
+/* 进入前 */
+.suggest-enter-from {
+    opacity: 0;
+    transform: translateY(6px);
+}
+
+/* 进入中 */
+.suggest-enter-active {
+    transition: opacity 220ms ease, transform 220ms ease;
+}
+
+/* 进入后 */
+.suggest-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 @keyframes light-gradient-border-rotate {
     0% {
         background-image: linear-gradient(to right,

@@ -29,9 +29,7 @@
         <div :class="['ai-input', isFocused && 'active']">
             <div class="input-wrapper">
                 <textarea ref="textAreaRef" v-model="inputMessage" placeholder="请输入你的要求" :maxlength="1000" :rows="3"
-                    @keydown.enter="(e: any) => sendQuestion({
-                        question: e.target.value,
-                    })" @focus="isFocused = true" @blur="isFocused = false" />
+                    @keydown="onKeydown" @focus="isFocused = true" @blur="isFocused = false" />
             </div>
             <div class="trigger-wrapper">
                 <ASpace class="ai-input-trigger">
@@ -60,6 +58,14 @@ const { sendQuestion, isPending, isDoing, handleBackToLatestMessage, disabledSen
 const isFocused = ref(false);
 const todo = () => {
     message.info('功能开发中...');
+}
+const onKeydown = (e: KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+    if(e.shiftKey) return;
+    e.preventDefault();
+    sendQuestion({
+        question: inputMessage.value,
+    });
 }
 </script>
 <style scoped lang="less">
