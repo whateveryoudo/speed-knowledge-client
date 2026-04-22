@@ -6,7 +6,6 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { useSpaceStore } from './store/useSpaceStore'
 import SpeedComponents from 'speed-components-ui-dev/debug'
-
 dayjs.locale('zh-cn')
 // 初始化空间信息
 
@@ -26,6 +25,7 @@ onMounted(async () => {
     token: token.value,
   })
 })
+
 
 </script>
 

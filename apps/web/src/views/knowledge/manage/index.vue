@@ -59,6 +59,8 @@ const knowledgeInfo = ref<KnowledgeItem>({
    team: {} as TeamItem,
    created_at: '',
    updated_at: '',
+   team_id: '',
+   space_id: '',
 })
 type ItemType = {
    type?: 'group';

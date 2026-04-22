@@ -11,9 +11,11 @@
                             <span class="text-16px font-bold">{{ title }}</span>
                         </a-space>
                         <a-space :size="0">
-                            <a-button type="text" class="shadow-btn-wrapper">
-                                <BellOutlined />
-                            </a-button>
+                            <a-badge :dot="unreadNotificationCount > 0" @click="toggleNotificationModalVisible()">
+                                <a-button type="text" class="shadow-btn-wrapper">
+                                    <BellOutlined />
+                                </a-button>
+                            </a-badge>
                             <UserSetting />
                         </a-space>
                     </a-flex>
@@ -24,7 +26,7 @@
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu/>
+                        <AddMenu />
                     </a-flex>
 
                     <StartMenus />
@@ -46,9 +48,11 @@
                         <PlusOutlined class="text-18px" />
                     </a-button>
                     <a-tooltip title="消息" placement="right">
-                        <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
-                            <BellOutlined class="text-18px" />
-                        </a-button>
+                        <a-badge :dot="unreadNotificationCount > 0" @click="toggleNotificationModalVisible()">
+                            <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
+                                <BellOutlined class="text-18px" />
+                            </a-button>
+                        </a-badge>
                     </a-tooltip>
                     <a-tooltip title="搜索" placement="right">
                         <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
@@ -79,6 +83,8 @@
         <div class="flex-1 overflow-y-auto">
             <router-view></router-view>
         </div>
+
+        <NotificationModal v-model:visible="notificationModalVisible" />
     </a-flex>
 
 </template>
@@ -95,7 +101,9 @@ import AddMenu from './components/addMenu';
 import UserSetting from './components/userSetting/index.vue';
 import { useRouter } from 'vue-router';
 import { useKnowledgeListProvider } from './composables/useKnowledgeListContext'
-
+import { useSystemStore } from '#sk-web/store/useSystemStore';
+import { useToggle } from '@vueuse/core'
+import NotificationModal from './components/notificationModal/index.vue';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -108,9 +116,10 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
         localStorage.setItem('sk_dashboard_expand_width', width.toString());
     }
 })
+const { unreadNotificationCount } = useSystemStore();
 const openTooltip = ref(false);
 const title = import.meta.env.VITE_SYS_TITLE;
-
+const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(false);
 // 初始化知识库列表相关context
 useKnowledgeListProvider();
 

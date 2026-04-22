@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useSystemStore = defineStore('system', () => {
+  const unreadNotificationCount = ref<number>(0) // 未读通知数量
   // 知识库左侧宽度
   const knowledgeSidebarWidth = ref<number>(
     Number(localStorage.getItem('sk_knowledge_expand_width')) || 253,
@@ -32,15 +33,20 @@ export const useSystemStore = defineStore('system', () => {
     knowledgeSidebarOpen.value = open
     localStorage.setItem('sk_knowledge_expand', open ? 'true' : 'false')
   }
+  const setUnreadNotificationCount = (count: number) => {
+    unreadNotificationCount.value = count
+  }
 
   return {
     // 状态
     knowledgeSidebarWidth,
     knowledgeSidebarOpen,
+    unreadNotificationCount,
 
     // 方法
     setKnowledgeSidebarWidth,
     toggleKnowledgeSidebar,
     setKnowledgeSidebarOpen,
+    setUnreadNotificationCount
   }
 })
