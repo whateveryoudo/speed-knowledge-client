@@ -72,6 +72,7 @@ declare module 'vue' {
     ChatMain: typeof import('./components/robot/chat/ChatMain.vue')['default']
     ChatWithHistory: typeof import('./components/robot/chat-with-history/index.vue')['default']
     CheckOutlined: typeof import('@ant-design/icons-vue')['CheckOutlined']
+    ClearOutlined: typeof import('@ant-design/icons-vue')['ClearOutlined']
     ClockCircleOutlined: typeof import('@ant-design/icons-vue')['ClockCircleOutlined']
     CloseOutlined: typeof import('@ant-design/icons-vue')['CloseOutlined']
     CollaboratePersonAvatars: typeof import('./components/collaboratePersonAvatars/index.vue')['default']

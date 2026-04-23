@@ -10,8 +10,11 @@
                             <img :src="Logo" alt="logo" class="w-[30px] h-auto" />
                             <span class="text-16px font-bold">{{ title }}</span>
                         </a-space>
+
                         <a-space :size="0">
-                            <a-badge :dot="unreadNotificationCount > 0" @click="toggleNotificationModalVisible()">
+                            <a-badge :dot="unreadNotificationCount > 0" :offset="[-6, 7]"
+                                :numberStyle="{backgroundColor: 'var(--sd-link-color)'}"
+                                @click="toggleNotificationModalVisible()">
                                 <a-button type="text" class="shadow-btn-wrapper">
                                     <BellOutlined />
                                 </a-button>
@@ -104,6 +107,7 @@ import { useKnowledgeListProvider } from './composables/useKnowledgeListContext'
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useToggle } from '@vueuse/core'
 import NotificationModal from './components/notificationModal/index.vue';
+import { storeToRefs } from 'pinia';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -116,7 +120,7 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
         localStorage.setItem('sk_dashboard_expand_width', width.toString());
     }
 })
-const { unreadNotificationCount } = useSystemStore();
+const { unreadNotificationCount } = storeToRefs(useSystemStore());
 const openTooltip = ref(false);
 const title = import.meta.env.VITE_SYS_TITLE;
 const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(false);
