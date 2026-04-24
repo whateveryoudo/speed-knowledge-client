@@ -9,11 +9,11 @@
                     <span class="sender">{{ item?.actor_user?.nickname || item?.actor_user?.user_name }}</span>
                     <span>在文档中@了你</span>
                 </a-space>
-                <span class="time">{{ item?.created_at }}</span>
+                <span class="time">{{ dayjs(item?.created_at).format('YYYY-MM-DD HH:mm:ss') }}</span>
             </a-flex>
         </a-flex>
 
-        <a-button type="default" size="small" @click="handleView(item)">
+        <a-button type="default" size="small" @click="handleView()">
             查看
         </a-button>
     </a-flex>
@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import type { NotificationItem } from '@sk/types';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
-
+import dayjs from 'dayjs';
 const props = defineProps<{
     item: NotificationItem,
     index: number

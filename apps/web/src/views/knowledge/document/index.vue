@@ -72,6 +72,7 @@ import { useCollect } from '../hooks/useCollect';
 import { type Collaborator, CollectResourceType } from '@sk/types';
 import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator';
 import { attachment as attachmentApi, apiVersion } from '@sk/api';
+import { usePersonSearch } from '#sk-web/components/personSearch/usePersonSearch';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
 import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
@@ -81,6 +82,7 @@ const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPan
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
+const { fetchUser, fetchUserImmediate } = usePersonSearch();
 const editorProps = computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion;
     return {
@@ -111,6 +113,10 @@ const editorProps = computed(() => {
                     }
                 }
             }
+        },
+        // 自定义mention用户获取函数
+        mentionUserFetch: async (query: string) => {
+            return await fetchUserImmediate(query)
         }
     }
 })
