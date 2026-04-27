@@ -26,3 +26,10 @@
     --sd-ant-color-primary: #fff;
     --sd-ant-color-primary-bg: #00b96b;
 }
+
+
+/* 一些编辑器 的变量覆盖 */
+.speed-tiptap-editor {
+    /* 顶部工具栏的icon颜色 */
+    --speed-toolbar-icon-color: #00b96b;
+  }

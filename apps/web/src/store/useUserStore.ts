@@ -5,7 +5,7 @@ import { user as userApi } from '@sk/api'
 import { to } from 'await-to-js'
 export const useUserStore = defineStore('user', () => {
     const userInfo = ref<UserInfo>({
-        id: '',
+        id: 0,
         username: '',
         email: '',
         nickname: '',

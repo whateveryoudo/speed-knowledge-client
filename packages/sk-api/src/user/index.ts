@@ -17,3 +17,4 @@ export const getFullUserList = (params: {
 }): Promise<ResponseType<UserInfo[]>> => {
   return request.get(`${userPrefix}/full-list`, { params });
 };
+

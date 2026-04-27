@@ -82,18 +82,19 @@ const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPan
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
-const { fetchUser, fetchUserImmediate } = usePersonSearch();
+const { fetchUserImmediate } = usePersonSearch();
 const editorProps = computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion;
     return {
-        antdToken: {
-            colorPrimary: '#00b96b',
-        },
+        // 这里不传入antdToken，editor内部还是使用默认的主题
+        // antdToken: {
+        //     colorPrimary: '#00b96b',
+        // },
         collaboration: {
             documentId: documentInfo.value.id,
             // 这里仅在url传递知识库id,其他信息后端会从token获取
             url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?knowledgeId=' + documentInfo.value.knowledge_id,// 请先启动后端服务
-            token: window.localStorage.getItem("access_token"),
+            token: window.localStorage.getItem("access_token") as string,
             user: userInfo.value
         },
         // 增加ai配置： 目前仅支持 豆包大模型 配置
