@@ -82,7 +82,7 @@ const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPan
 const { userInfo } = storeToRefs(useUserStore());
 const collaborating_persons = ref<Collaborator[]>([]);
 const { handleCollect } = useCollect();
-const { fetchUserImmediate } = usePersonSearch();
+const { fetchDocContextUsers } = usePersonSearch();
 const editorProps = computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion;
     return {
@@ -117,7 +117,7 @@ const editorProps = computed(() => {
         },
         // 自定义mention用户获取函数
         mentionUserFetch: async (query: string) => {
-            return await fetchUserImmediate(query)
+            return await fetchDocContextUsers(documentInfo.value.id, query)
         }
     }
 })

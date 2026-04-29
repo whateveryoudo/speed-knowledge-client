@@ -15,7 +15,7 @@
                                 @click="activeCategoryKey = item.key">
                                 <span class="truncate">{{ item.label }}</span>
                                 <span v-if="item.count > 0" class="text-[12px]">{{ item.count
-                                }}</span>
+                                    }}</span>
                             </div>
                         </template>
                     </div>
@@ -28,15 +28,15 @@
                     <a-flex justify="space-between" align="center" class="py-2 pl-8 pr-10">
                         <ul class="flex gap-7 h-[40px] leading-[40px]">
                             <li :class="['cursor-pointer text-[var(--sd-text-body)] hover:text-[var(--sd-text-primary)] transition-all duration-200 border-solid border-0 border-b-2 border-b-transparent hover:border-b-[var(--sd-text-primary)]', activeTab === 'unread' ? 'text-[var(--sd-text-primary)] border-b-[var(--sd-text-primary)]!' : '']"
-                                @click="activeTab = 'unread'">
+                                @click="handleChangeTab('unread')">
                                 未读
                             </li>
                             <li :class="['cursor-pointer text-[var(--sd-text-body)] hover:text-[var(--sd-text-primary)] transition-all duration-200 border-solid border-0 border-b-2 border-b-transparent hover:border-b-[var(--sd-text-primary)]', activeTab === 'read' ? 'text-[var(--sd-text-primary)] border-b-[var(--sd-text-primary)]!' : '']"
-                                @click="activeTab = 'read'">
+                                @click="handleChangeTab('read')">
                                 已读
                             </li>
                         </ul>
-                        <a-button type="text" :disabled="currentListTypeUnreadCount === 0" size="small"
+                        <a-button type="text" :disabled="currentListTypeUnreadCount === 0 || activeTab === 'read'" size="small"
                             class="shadow-btn-wrapper" @click="handleAllRead">
                             <ClearOutlined />
                             全部已读
@@ -45,11 +45,12 @@
 
 
                     <div class="list-wrap" @scroll="handleScroll">
-                        <SkeletonList avatar :loading="initLoading" :count="10">
+                        <SkeletonList :class="[loading ? 'px-8 py-4' : '']" avatar :loading="loading" :count="3">
                             <div v-for="(item, index) in list" :key="item.id">
-                                <component :is="getRenderComponent(item.biz_type)" :item="item" :index="index" />
+                                <component @change-read-status="handleChangeReadStatus"
+                                    :is="getRenderComponent(item.biz_type)" :item="item" :index="index" />
                             </div>
-                            <a-empty v-if="list.length === 0" description="暂无消息" />
+                            <Empty0 v-if="list.length === 0" class="mt-[100px]!" description="暂无消息" />
                         </SkeletonList>
                         <div class="flex items-center justify-center py-1" v-if="loading && !noMore">
                             <a-spin />
@@ -65,10 +66,12 @@
 import { computed, ref, watch } from 'vue'
 import { notification as notificationApi } from '@sk/api';
 import MentionRender from './MentionRender.vue';
+import ApplyCollaboratorRender from './ApplyCollaboratorRender.vue';
 import { notificationBizTypeOptions, NotificationListType, NotificationBizType, type NotificationItem, type ReadUnreadType, type NotificationUnreadCountMap } from '@sk/types';
 import { to } from 'await-to-js';
 import { useLoadMore } from 'speed-components-ui-dev/debug/hooks'
 import { CloseOutlined } from '@ant-design/icons-vue';
+import dayjs from 'dayjs';
 type CategoryKey = 'all' | NotificationListType;
 type CategoryItem = {
     key: CategoryKey
@@ -106,6 +109,8 @@ const getRenderComponent = (bizType: NotificationBizType) => {
     switch (bizType) {
         case NotificationBizType.MENTION:
             return MentionRender;
+        case NotificationBizType.APPLY_COLLABORATOR:
+            return ApplyCollaboratorRender;
         default:
             return null;
     }
@@ -117,7 +122,8 @@ const emit = defineEmits<{
 const activeCategoryKey = ref<CategoryKey>('all')
 const activeTab = ref<'unread' | 'read'>('unread')
 const currentListTypeUnreadCount = computed(() => {
-    return unreadCountMap.value[activeCategoryKey.value as NotificationListType];
+    const totalUnreadCount = Object.values(unreadCountMap.value).reduce((acc, curr) => acc + curr, 0);
+    return activeCategoryKey.value === 'all' ? totalUnreadCount : (unreadCountMap.value[activeCategoryKey.value as NotificationListType]);
 })
 const categoryItems = computed<CategoryItem[]>(() => [
     { key: 'all', label: '全部消息', count: Object.values(unreadCountMap.value).reduce((acc, curr) => acc + curr, 0) },
@@ -146,12 +152,38 @@ const handleCancel = () => {
 const handleView = (item: NotificationItem) => {
     emit('view', item)
 }
+
+const handleChangeReadStatus = async (id: string) => {
+    const [err, res] = await to(notificationApi.changeReadStatus(id));
+    if (err) {
+        return;
+    }
+    if (res.data) {
+        // 更新当前行数据(移除当前行)
+        list.value = list.value.filter(item => item.id !== id);
+        getUnreadCountByListType();
+    }
+}
 const handleAllRead = async () => {
     // const [err, res] = await to(notificationApi.markAllAsRead());
     // if (err) {
     //     return;
     // }
     // getAllUnreadCount();
+}
+const handleChangeTab = (tab: 'unread' | 'read') => {
+    activeTab.value = tab;
+    getUnreadCountByListType();
+    // 获取列表
+    initLoad();
+}
+// 获取某个分类下的未读消息数量
+const getUnreadCountByListType = async () => {
+    const [err, res] = await to(notificationApi.getUnreadCountByListType(activeCategoryKey.value === 'all' ? '' : activeCategoryKey.value as NotificationListType));
+    if (err) {
+        return;
+    }
+    unreadCountMap.value[activeCategoryKey.value as NotificationListType] = res.data;
 }
 // 获取未读通知数量
 const getAllUnreadCount = async () => {
@@ -164,6 +196,8 @@ const getAllUnreadCount = async () => {
 watch(() => props.visible, (newVal) => {
     if (newVal) {
         getAllUnreadCount();
+        activeTab.value = 'unread';
+        activeCategoryKey.value = 'all';
         initLoad();
     }
 }, {

@@ -11,5 +11,6 @@ export * from './team'
 export * from './space'
 export * from './collaborator'
 export * from './notification'
+export * from './buildRoute'
 // 能力类型（联合）
 export type Ability = KnowledgeAbility | DocumentAbility

@@ -29,9 +29,10 @@ export enum NotificationBizType {
   MENTION = "mention",
   COMMENT = "comment",
   LIKE = "like",
-  INVITE = "invite",
   FOLLOW = "follow",
   SYSTEM = "system",
+  APPLY_COLLABORATOR = "apply_collaborator",
+  JOIN_COLLABORATOR = "join_collaborator",
 }
 
 export interface NotificationItem {
