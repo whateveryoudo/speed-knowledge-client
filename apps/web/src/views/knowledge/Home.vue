@@ -45,8 +45,7 @@ import { storeToRefs } from 'pinia';
 import { StarOutlined, StarFilled } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import KnowledgeShare from './components/knowledgeCollaborator/KnowledgeShare.vue';
-import { message } from 'ant-design-vue';
-import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
+import { SpeedTiptapEditor } from 'speed-tiptap-editor'
 import { to } from 'await-to-js';
 import { knowledge as knowledgeApi, common as commonApi } from '@sk/api';
 import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort } from '@sk/types';

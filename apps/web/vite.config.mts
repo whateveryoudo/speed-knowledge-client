@@ -38,11 +38,21 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     resolve: {
-      alias: {
-        '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
-        '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
-        '@': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
-      },
+      // 区分环境：本地开发采用link方式，需要追加路径
+      alias:
+        mode === 'development'
+          ? {
+              '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
+              '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
+              '@': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
+            }
+          : {
+              '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
+            },
+    },
+    // 增加对speed-components-ui和speed-tiptap-editor的优化排除，避免预构建导致pnpm link失效
+    optimizeDeps: {
+      exclude: ['speed-components-ui','speed-tiptap-editor'],
     },
     server: {
       proxy: {

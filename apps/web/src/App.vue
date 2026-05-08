@@ -5,7 +5,7 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { useSpaceStore } from './store/useSpaceStore'
-import SpeedComponents from 'speed-components-ui-dev/debug'
+import SpeedComponents from 'speed-components-ui/components'
 dayjs.locale('zh-cn')
 // 初始化空间信息
 
@@ -17,7 +17,6 @@ const { token } = useToken();
 // 在 setup 的同步部分获取 app 实例
 const instance = getCurrentInstance()
 const app = instance?.appContext.app as App
-
 initSpace()
 onMounted(async () => {
   await nextTick();

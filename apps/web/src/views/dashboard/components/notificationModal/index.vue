@@ -12,7 +12,7 @@
                         <template v-for="item in categoryItems" :key="item?.key">
                             <div :class="['menu-item-base justify-between hover:bg-[var(--sd-bg-primary-hover)]',
                                 activeCategoryKey === item.key ? 'bg-[var(--sd-bg-primary-hover)] text-[var(--sd-text-primary)]! font-bold' : 'text-[var(--sd-text-caption)]']"
-                                @click="activeCategoryKey = item.key">
+                                @click="handleChangeCategory(item.key)">
                                 <span class="truncate">{{ item.label }}</span>
                                 <span v-if="item.count > 0" class="text-[12px]">{{ item.count
                                     }}</span>
@@ -36,8 +36,8 @@
                                 已读
                             </li>
                         </ul>
-                        <a-button type="text" :disabled="currentListTypeUnreadCount === 0 || activeTab === 'read'" size="small"
-                            class="shadow-btn-wrapper" @click="handleAllRead">
+                        <a-button type="text" :disabled="currentListTypeUnreadCount === 0 || activeTab === 'read'"
+                            size="small" class="shadow-btn-wrapper" @click="handleAllRead">
                             <ClearOutlined />
                             全部已读
                         </a-button>
@@ -69,7 +69,8 @@ import MentionRender from './MentionRender.vue';
 import ApplyCollaboratorRender from './ApplyCollaboratorRender.vue';
 import { notificationBizTypeOptions, NotificationListType, NotificationBizType, type NotificationItem, type ReadUnreadType, type NotificationUnreadCountMap } from '@sk/types';
 import { to } from 'await-to-js';
-import { useLoadMore } from 'speed-components-ui-dev/debug/hooks'
+import { useLoadMore } from 'speed-components-ui/hooks'
+import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { CloseOutlined } from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
 type CategoryKey = 'all' | NotificationListType;
@@ -81,6 +82,7 @@ type CategoryItem = {
 const props = defineProps<{
     visible: boolean
 }>()
+const systemStore = useSystemStore();
 const loadMoreOptions = computed(() => ({
     extraParams: {
         list_type: activeCategoryKey.value === 'all' ? '' : activeCategoryKey.value,
@@ -89,6 +91,13 @@ const loadMoreOptions = computed(() => ({
 }))
 const { list, loading, initLoading, noMore, initLoad, onLoadMore } = useLoadMore(notificationApi.getNotificationList, loadMoreOptions);
 
+const handleChangeCategory = (key: CategoryKey) => {
+    activeCategoryKey.value = key;
+    getUnreadCountByListType();
+    activeTab.value = 'unread';
+    // 获取列表
+    initLoad();
+}
 const unreadCountMap = ref<NotificationUnreadCountMap>({
     [NotificationListType.MENTION_OR_COMMENT]: 0,
     [NotificationListType.LIKE]: 0,
@@ -96,6 +105,9 @@ const unreadCountMap = ref<NotificationUnreadCountMap>({
     [NotificationListType.TODO]: 0,
     [NotificationListType.SYSTEM]: 0,
     [NotificationListType.OTHER]: 0,
+})
+const unAllReadCount = computed(() => {
+    return Object.values(unreadCountMap.value).reduce((acc, curr) => acc + curr, 0);
 })
 const getUnreadCountMap = async () => {
     const [err, res] = await to(notificationApi.getAllUnreadCount());
@@ -122,8 +134,7 @@ const emit = defineEmits<{
 const activeCategoryKey = ref<CategoryKey>('all')
 const activeTab = ref<'unread' | 'read'>('unread')
 const currentListTypeUnreadCount = computed(() => {
-    const totalUnreadCount = Object.values(unreadCountMap.value).reduce((acc, curr) => acc + curr, 0);
-    return activeCategoryKey.value === 'all' ? totalUnreadCount : (unreadCountMap.value[activeCategoryKey.value as NotificationListType]);
+    return activeCategoryKey.value === 'all' ? unAllReadCount.value : unreadCountMap.value[activeCategoryKey.value as NotificationListType];
 })
 const categoryItems = computed<CategoryItem[]>(() => [
     { key: 'all', label: '全部消息', count: Object.values(unreadCountMap.value).reduce((acc, curr) => acc + curr, 0) },
@@ -161,16 +172,21 @@ const handleChangeReadStatus = async (id: string) => {
     if (res.data) {
         // 更新当前行数据(移除当前行)
         list.value = list.value.filter(item => item.id !== id);
-        getUnreadCountByListType();
+        // 这里更新全部的类型（不要更新当前分类的类型，因为可能在全部消息里面）
+        getAllUnreadCount();
+        // 同步下store的未读通知数量
+        systemStore.setUnreadNotificationCount(unAllReadCount.value);
     }
 }
 const handleAllRead = async () => {
-    // const [err, res] = await to(notificationApi.markAllAsRead());
-    // if (err) {
-    //     return;
-    // }
-    // getAllUnreadCount();
+    const [err, res] = await to(notificationApi.changeReadStatusByListType(activeCategoryKey.value));
+    if (err) {
+        return;
+    }
+    getAllUnreadCount();
+    initLoad();
 }
+
 const handleChangeTab = (tab: 'unread' | 'read') => {
     activeTab.value = tab;
     getUnreadCountByListType();
@@ -235,7 +251,6 @@ watch(() => props.visible, (newVal) => {
 .right-panel {
     flex: 1;
     min-width: 0;
-    background: var(--ant-color-bg-container);
 }
 
 .top-tabs {

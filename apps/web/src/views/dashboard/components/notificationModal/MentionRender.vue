@@ -38,8 +38,15 @@ const handleView = () => {
     // 跳转文档详情
     const routeContext = props.item?.payload?.document_route;
     if (routeContext) {
-        router.push(buildDocumentRouterUrl(routeContext));
-        emit('change-read-status', props.item?.id);
+        const routeUrl = router.resolve({
+            path: buildDocumentRouterUrl(routeContext),
+        });
+        if (routeUrl) {
+            window.open(routeUrl.href, '_blank');
+        }
+        if (!props.item?.read_at) {
+            emit('change-read-status', props.item?.id);
+        }
     }
 }
 </script>

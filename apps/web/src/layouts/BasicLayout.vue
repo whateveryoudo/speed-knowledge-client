@@ -44,10 +44,10 @@ onMounted(() => {
             token,
         },
     })
-    // socket.on('notification', (data) => {
-    //     // 新消息通知
-    //     setUnreadNotificationCount(data?.unreadCount ?? 0)
-    // })
+    socket.on('notification', (data) => {
+        // 新消息通知
+        setUnreadNotificationCount(data?.unreadCount ?? 0)
+    })
     socket.on("connect", () => console.log("connected", socket?.id));
     socket.on("connect_error", (e) =>
         console.log("connect_error", e.message, e),

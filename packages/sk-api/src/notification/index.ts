@@ -37,6 +37,12 @@ export const changeReadStatus = (
   return request.put(`${notificationPrefix}/${notificationId}/read`);
 };
 
+export const changeReadStatusByListType = (
+  listType: NotificationListType | 'all',
+): Promise<ResponseType<boolean>> => {
+  return request.put(`${notificationPrefix}/${listType}/read-by-list-type`);
+};
+
 // 标记已读（当前分类下全部，不传入bizType则标记全部已读）
 export const changeAllReadStatus = (
   bizType: string,

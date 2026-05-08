@@ -75,7 +75,7 @@ import { attachment as attachmentApi, apiVersion } from '@sk/api';
 import { usePersonSearch } from '#sk-web/components/personSearch/usePersonSearch';
 import dayjs from 'dayjs';
 // 加载speed-tiptap-editor的组件
-import { SpeedTiptapEditor } from 'speed-tiptap-editor-dev/debug'
+import { SpeedTiptapEditor } from 'speed-tiptap-editor'
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore());
 const knowledgeStore = useKnowledgeStore();
 const { documentInfo, currentDocState, documentContentJson, showKnowledgeLeftPanel, documentError } = storeToRefs(knowledgeStore)

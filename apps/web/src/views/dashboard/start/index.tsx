@@ -15,7 +15,7 @@ import { Empty0 } from '#sk-web/components/global'
 import { dashboard as dashboardApi } from '@sk/api'
 import { transformDatatimeToRecentText } from '@sk/utils'
 // 注意:后面需要替换为包的
-import { useTable } from 'speed-components-ui-dev/debug/hooks'
+import { useTable } from 'speed-components-ui/hooks'
 
 import {
   documentHistoryTypeOptions,

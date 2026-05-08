@@ -2,12 +2,9 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import SpeedTiptapEditor from 'speed-tiptap-editor-dev/debug'
-// import SpeedComponents from "speed-components-ui/components";
-// 先通过文件夹的方式，我需要调试speed-components-ui的组件,没问题了在切回到包的使用方式
-import SpeedComponents from 'speed-components-ui-dev/debug'
+import SpeedTiptapEditor from 'speed-tiptap-editor'
+import SpeedComponents from "speed-components-ui/components";
 import 'speed-components-ui/dist/style.css'
-import { useAntdCssVars } from 'speed-components-ui/hooks'
 import globalComponents from '#sk-web/components/global'
 import { attachment as attachmentApi, initSkApiConfig, attachmentPrefix, apiVersion } from '@sk/api'
 import { message } from 'ant-design-vue'
