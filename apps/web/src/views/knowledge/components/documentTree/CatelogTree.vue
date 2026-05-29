@@ -68,7 +68,7 @@ const emit = defineEmits<{
     }): Promise<void>
     (e: 'delete-document', params: {
         id: string,
-        cb: () => void
+        cb: (res: any) => void
     }): Promise<void>
     (e: 'drag-document-end', params: {
         newTree: DocumentNodeTreeItem[],
@@ -100,8 +100,11 @@ const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
                 onOk: async () => {
                     await emit('delete-document', {
                         id: record.document_id,
-                        cb: () => {
-                            message.success('删除成功')
+                        cb: (res: any) => {
+                            console.log(res)
+                            if (res.code === 0) {
+                                message.success('删除成功')
+                            }
                         }
                     })
                 }

@@ -147,10 +147,9 @@ const handleAddDocumentCb = async (newDocSlug: string) => {
 
 const handleDeleteDocument = async (params: {
     id: string,
-    cb?: () => void
+    cb?: (res: any) => void
 }) => {
-    await knowledgeStore.deleteDocument(params.id);
-    params.cb && params.cb();
+    await knowledgeStore.deleteDocument(params.id, params.cb);
 }
 const handleRenameDocument = async (params: {
     id: string,

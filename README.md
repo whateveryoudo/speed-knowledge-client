@@ -16,6 +16,37 @@ Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提
 
 ![协同编辑](./screenshots/文档编辑.png)
 
+#### 表格文档
+
+![新增表格](./screenshots/新增sheet创建功能.png)
+
+## 📅 更新日志
+
+### 2026-05-29 — 接入 Speed Sheet & 协同能力增强
+
+#### 📊 表格文档（Speed Sheet 接入）
+
+- ✅ 新增 **表格** 文档类型（`DocumentType.SHEET`），与 Word 文档并列支持
+- ✅ 目录树「+」菜单支持创建 **文档 / 表格** 两种类型
+- ✅ 集成 [`@speed-sheet/vue3-antd`](https://github.com/whateveryoudo/speed-sheet) 作为表格编辑器
+- ✅ 阅读模式：从 `node_json` 加载 `WorkbookSnapshot` 快照渲染只读表格
+- ✅ 编辑模式：通过 Yjs + Hocuspocus 接入协同服务，实时同步单元格数据
+- ✅ 开发环境支持 `pnpm link` 联调 speed-sheet 源码（Vite alias + `yjs` dedupe）
+
+#### 🤝 协同操作增强
+
+- ✅ 抽取 `useDocumentCollaborators`，Word / Sheet 共用顶部 **在线协作者头像条**
+- ✅ 抽取 `useSheetCollaboration`，表格编辑模式独立管理 Y.Doc 与 Hocuspocus Provider
+- ✅ 表格协同：Awareness 广播在线用户，编辑页实时展示协作者状态
+- ✅ 预置 `useCollaborativeCursors`：基于 Awareness 的远程选区光标（单元格像素定位，待接入 UI 层）
+- ✅ 编辑器组件拆分：`WordEditor` / `SheetEditor`，文档页按类型自动路由
+
+#### 🔧 工程调整
+
+- ✅ `useKnowledgeStore` 按文档类型分流内容：`documentContentJson`（Word）/ `documentSheetSnapshot`（Sheet）
+- ✅ 新增 `sheet.svg` 图标资源，目录树展示表格节点
+- ✅ 环境变量 `VITE_APP_COLLABORATE_URL` 统一配置协同 WebSocket 地址
+
 ## 🛠️ 技术栈
 
 ### 核心框架
@@ -32,6 +63,8 @@ Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提
 
 ### 编辑器
 - **Speed Tiptap Editor** - 基于 Tiptap 的富文本编辑器，支持协同编辑
+- **Speed Sheet** (`@speed-sheet/vue3-antd`) - 基于 Yjs 的在线表格编辑器，支持公式、多 Sheet 页签与协同编辑
+- **Yjs + Hocuspocus Provider** - 表格文档实时协同底层
 
 ### 工具库
 - **@vueuse/core** - Vue Composition API 工具集合
@@ -80,16 +113,19 @@ speed-knowledge-client/
 - ✅ 协同权限设置（只读/编辑/管理员）
 
 ### 📝 文档编辑
-- ✅ 文档创建（目前仅支持 Word 类型）
+- ✅ 文档创建（支持 **Word** / **Sheet** 两种类型）
 - ✅ 富文本编辑（基于 Tiptap）
-- ✅ 文档目录树管理
+- ✅ 在线表格编辑（基于 Speed Sheet）
+- ✅ 文档目录树管理（按类型展示不同图标）
 - ✅ 文档搜索
 - ✅ 文档浏览历史记录
 - ✅ 文档编辑历史记录
 
 ### 🤝 实时协同编辑
-- ✅ 多人实时协同编辑
-- ✅ 协同人员状态显示
+- ✅ Word 文档多人实时协同编辑（Tiptap + Hocuspocus）
+- ✅ Sheet 表格多人实时协同编辑（Yjs + Hocuspocus）
+- ✅ 协同在线人员状态显示（Word / Sheet 统一头像条）
+- ✅ 表格协同 Awareness 在线感知（远程选区光标能力已封装，UI 待接入）
 
 ### 📄 文档查看
 - ✅ OnlyOffice 文档预览
@@ -103,7 +139,9 @@ speed-knowledge-client/
 - ⏳ 操作日志记录
 
 ### 📄 文档类型扩展
-- ⏳ 支持更多文档类型（Excel等）
+- ✅ 表格文档（Sheet）— 已接入 Speed Sheet
+- ⏳ 表格远程选区光标 UI 展示
+- ⏳ 支持更多文档类型（PPT、思维导图等）
 - ⏳ 文档模板功能
 - ⏳ 文档导入导出(后端实现)
 - ...
@@ -125,6 +163,9 @@ speed-knowledge-client/
 ### 编辑器
 - **[Speed Tiptap Editor](https://github.com/whateveryoudo/speed-tiptap-editor)**  
   基于 Tiptap 的富文本编辑器，提供丰富的编辑功能和扩展能力。
+
+- **[Speed Sheet](https://github.com/whateveryoudo/speed-sheet)**  
+  基于 Yjs 的在线表格编辑器，支持公式计算、多 Sheet 页签、行列操作与协同编辑。
 
 ### 后端 API
 - **[Speed Knowledge Server](https://github.com/whateveryoudo/speed-knowledge-server)**  
@@ -201,6 +242,9 @@ VITE_APP_BASE_URL=http://localhost:8010
 
 # 代理地址（用于开发环境）
 VITE_APP_PROXY_URL=http://localhost:5173
+
+# 协同服务 WebSocket 地址（NestJS Hocuspocus）
+VITE_APP_COLLABORATE_URL=ws://localhost:3000
 ```
 
 ### 开发模式切换

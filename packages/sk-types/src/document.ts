@@ -5,7 +5,8 @@ export enum DocumentNodeType {
   DOC = "DOC",
 }
 export enum DocumentType {
-  WORD = "word"
+  WORD = "word",
+  SHEET = "sheet",
 }
 
 export const documentTypeOptions = [
@@ -13,6 +14,11 @@ export const documentTypeOptions = [
     label: '文档',
     value: DocumentType.WORD,
     icon: 'icon-document',
+  },
+  {
+    label: '表格',
+    value: DocumentType.SHEET,
+    icon: 'icon-sheet',
   },
 ] as const
 

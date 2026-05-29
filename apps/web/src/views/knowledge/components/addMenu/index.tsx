@@ -4,7 +4,7 @@ import { Tooltip, Button, Dropdown, Menu } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { type ItemType } from 'ant-design-vue'
 import { document as documentApi } from '@sk/api'
-import  { type DocumentItem, DocumentType } from '@sk/types'
+import { type DocumentItem, DocumentType } from '@sk/types'
 import { to } from 'await-to-js'
 export default defineComponent({
   name: 'AddMenu',
@@ -24,17 +24,24 @@ export default defineComponent({
           <IconFont type="icon-document" svg-sprite style={{ width: '18px', height: '18px' }} />
         ),
       },
+      {
+        label: '表格',
+        key: 'sheet',
+        icon: <IconFont type="icon-sheet" svg-sprite style={{ width: '18px', height: '18px' }} />,
+      },
     ])
-    const handleMenuClick = async ({ key }: { key: string | number }) => {
-      if (key === 'word') {
+    const handleMenuClick = async ({ key }: { key: DocumentType }) => {
+      if ([DocumentType.WORD, DocumentType.SHEET].includes(key)) {
         // 直接调用新增接口
-        const [error, res] = await to(documentApi.addDocument({
-          knowledge_id: props.knowledgeId,
-          type: DocumentType.WORD,
-          name: '无标题文档',
-        }));
+        const [error, res] = await to(
+          documentApi.addDocument({
+            knowledge_id: props.knowledgeId,
+            type: key,
+            name: key === DocumentType.WORD ? '无标题文档' : '无标题表格',
+          }),
+        )
         if (!error) {
-          emit('add-document-cb',res.data)
+          emit('add-document-cb', res.data)
         }
       }
     }
@@ -44,7 +51,7 @@ export default defineComponent({
 
     return () => (
       <>
-        <Dropdown placement="bottomLeft" overlay={renderMenu()}>
+        <Dropdown overlayClassName="w-[120px]"  placement="bottomLeft" overlay={renderMenu()}>
           <Button type="default" class="px-2">
             <PlusOutlined />
           </Button>

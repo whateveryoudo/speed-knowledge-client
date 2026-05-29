@@ -1,44 +1,125 @@
 <template>
-    <a-flex class="h-full" justify="center" align="center">
-        <div
-            class="w-[400px] border border-solid border-[var(--sd-border-primary)] bg-[var(--ant-color-bg-base)] px-[8px] py-[48px] shadow-[0_4px_8px_-4px_rgba(0,0,0,.13),0_6px_16px_0_rgba(0,0,0,.08),0_12px_24px_16px_rgba(0,0,0,.04)] rounded-[10px]">
-            <div
-                class="text-[25px]  mb-6 font-bold text-[var(--ant-color-text)] text-center flex items-center justify-center">
-                <img :src="logo" alt="logo" class="w-[35px] h-auto mr-2"> {{ title }}
-            </div>
-            <a-form class="mx-auto max-w-[320px]" :model="form" :rules="rules" @finish="handleSubmit">
-                <a-form-item name="username">
-                    <a-input v-model:value="form.username" :placeholder="loginMode === 'login' ? '用户名/邮箱' : '用户名'" />
-                </a-form-item>
-                <a-form-item name="email" v-if="loginMode === 'register'">
-                    <a-input v-model:value="form.email" placeholder="邮箱" />
-                </a-form-item>
-                <a-form-item name="password">
-                    <a-input-password v-model:value="form.password" placeholder="密码" />
-                </a-form-item>
-                <a-form-item name="verificateCode">
-                    <a-input-group compact>
-                        <a-input class="w-[calc(100%-92px)]!" v-model:value="form.verificateCode" placeholder="验证码" />
-                        <img class="w-[90px] h-[32px] border border-solid cursor-pointer border-[var(--ant-color-border)] border-l-0 rounded-[4px]"
-                            :src="verificateImg" @click="initVerificateCode" />
-                    </a-input-group>
-                </a-form-item>
-                <a-form-item name="nickname" v-if="loginMode === 'register'">
-                    <a-input v-model:value="form.nickname" placeholder="昵称(选填)" />
-                </a-form-item>
-                <p v-if="loginMode === 'register'" class="mb-4">
-                    已有账号？<a class="text-[var(--sd-link-color)]" @click="loginMode = 'login'">立即登录</a>
-                </p>
-                <p v-if="loginMode === 'login'" class="text-[var(--ant-color-text-tertiary)] mb-4">还没有账号？<a
-                        class="text-[var(--sd-link-color)]" @click="loginMode = 'register'">立即注册</a></p>
-                <a-button type="primary" html-type="submit" :loading="loading" block>{{ loginMode === 'login' ? '登录' :
-                    '注册' }}</a-button>
+  <div class="login-page bg-[var(--ant-color-bg-base)]">
+    <!-- Left: animated characters -->
+    <div class="login-page__aside">
+      <AnimatedCharacters
+        :is-typing="isTyping"
+        :password="form.password"
+        :show-password="showPassword"
+      >
+        <template #logo-icon>
+          <img :src="logo" alt="logo" class="w-5 h-5 object-contain" />
+        </template>
+        <template #brand>{{ title }}</template>
+      </AnimatedCharacters>
+    </div>
 
-            </a-form>
+    <!-- Right: login form -->
+    <div class="login-page__form flex items-center justify-center p-6 sm:p-8">
+      <div class="w-full max-w-[420px]">
+        <!-- Mobile logo -->
+        <div class="login-page__mobile-brand flex items-center justify-center gap-2 text-lg font-semibold mb-10 text-[var(--ant-color-text)]">
+          <img :src="logo" alt="logo" class="w-8 h-8 object-contain" />
+          <span>{{ title }}</span>
         </div>
-    </a-flex>
 
+        <div class="text-center mb-8 md:mb-10">
+          <h1 class="text-3xl font-bold mb-2 text-[var(--ant-color-text)] tracking-[2px]">
+            {{ loginMode === 'login' ? '欢迎回来' : '创建账号' }}
+          </h1>
+          <!-- <p class="text-[var(--ant-color-text-tertiary)] text-sm">
+            {{ loginMode === 'login' ? '请登录您的账号' : '填写信息完成注册' }}
+          </p> -->
+        </div>
+
+        <a-form
+          :model="form"
+          :rules="rules"
+          layout="vertical"
+          @finish="handleSubmit"
+        >
+          <a-form-item name="username" label="用户名">
+            <a-input
+              v-model:value="form.username"
+              size="large"
+              :placeholder="loginMode === 'login' ? '用户名/邮箱' : '用户名'"
+              @focus="isTyping = true"
+              @blur="isTyping = false"
+            />
+          </a-form-item>
+
+          <a-form-item v-if="loginMode === 'register'" name="email" label="邮箱">
+            <a-input
+              v-model:value="form.email"
+              size="large"
+              placeholder="邮箱"
+              @focus="isTyping = true"
+              @blur="isTyping = false"
+            />
+          </a-form-item>
+
+          <a-form-item name="password" label="密码">
+            <div class="relative">
+              <a-input
+                v-model:value="form.password"
+                size="large"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="密码"
+                class="pr-10"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ant-color-text-tertiary)] hover:text-[var(--ant-color-text)] transition-colors border-0 bg-transparent cursor-pointer p-0 flex items-center"
+                tabindex="-1"
+                @click="showPassword = !showPassword"
+              >
+                <EyeInvisibleOutlined v-if="showPassword" class="text-lg" />
+                <EyeOutlined v-else class="text-lg" />
+              </button>
+            </div>
+          </a-form-item>
+
+          <a-form-item name="verificateCode" label="验证码">
+            <a-input-group compact class="flex! w-full">
+              <a-input
+                v-model:value="form.verificateCode"
+                size="large"
+                class="flex-1!"
+                placeholder="验证码"
+              />
+              <img
+                class="w-[100px] h-[40px] border border-solid cursor-pointer border-[var(--ant-color-border)] border-l-0 rounded-r-[6px] object-cover shrink-0"
+                :src="verificateImg"
+                alt="验证码"
+                @click="initVerificateCode"
+              />
+            </a-input-group>
+          </a-form-item>
+
+          <a-form-item v-if="loginMode === 'register'" name="nickname" label="昵称">
+            <a-input v-model:value="form.nickname" size="large" placeholder="昵称(选填)" />
+          </a-form-item>
+
+          <div class="flex items-center justify-between mb-2">
+            <p v-if="loginMode === 'register'" class="text-[var(--ant-color-text-secondary)] m-0">
+              已有账号？
+              <a class="login-page__link cursor-pointer" @click="loginMode = 'login'">立即登录</a>
+            </p>
+            <p v-else class="text-[var(--ant-color-text-tertiary)] m-0">
+              还没有账号？
+              <a class="login-page__link cursor-pointer" @click="loginMode = 'register'">立即注册</a>
+            </p>
+          </div>
+
+          <a-button type="primary" html-type="submit" :loading="loading" block size="large" class="mt-2">
+            {{ loginMode === 'login' ? '登录' : '注册' }}
+          </a-button>
+        </a-form>
+      </div>
+    </div>
+  </div>
 </template>
+
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { AxiosError } from 'axios'
@@ -47,147 +128,188 @@ import { rges } from '@sk/utils'
 import { user as userApi, auth as authApi } from '@sk/api'
 import to from 'await-to-js'
 import { message } from 'ant-design-vue'
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons-vue'
 import { useUserStore } from '#sk-web/store/useUserStore'
 import { useRouter, useRoute } from 'vue-router'
 import logo from '#sk-web/assets/logo.png'
+import AnimatedCharacters from './AnimatedCharacters.vue'
+
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const title = import.meta.env.VITE_SYS_TITLE
 const loginMode = ref<'login' | 'register'>('login')
 const loading = ref(false)
+const showPassword = ref(false)
+const isTyping = ref(false)
+
 type FormData = {
-    email?: string;
-    username: string;
-    password: string;
-    nickname?: string;
-    verificateCode: string;
-    verificateId: string;
+  email?: string
+  username: string
+  password: string
+  nickname?: string
+  verificateCode: string
+  verificateId: string
 }
+
 const form = ref<FormData>({
-    email: '',
-    username: '',
-    password: '',
-    nickname: '',
-    verificateCode: '',
-    verificateId: '',
+  email: '',
+  username: '',
+  password: '',
+  nickname: '',
+  verificateCode: '',
+  verificateId: '',
 })
+
 const verificateImg = ref('')
-// 使用 computed 定义验证规则，根据登录/注册模式动态切换
+
 const rules = computed(() => {
-    const baseRules: Record<string, any[]> = {
-        // 登录时：username 可以是用户名或邮箱
-        // 注册时：username 必须是用户名（符合 name 规则）
-        username: loginMode.value === 'login'
-            ? [
-                {
-                    validator: (_rule: any, value: string) => {
-                        if (!value) return Promise.reject('请输入用户名或邮箱')
-                        // 登录时可以是邮箱或用户名
-                        if (rges.email.test(value) || rges.username.test(value)) {
-                            return Promise.resolve()
-                        }
-                        return Promise.reject('请输入正确的用户名或邮箱格式')
-                    }
-                }
-            ]
-            : [
-                { required: true, message: '请输入用户名' },
-                {
-                    pattern: rges.username,
-                    message: '用户名：3-50位，支持字母、数字、下划线、中文'
-                }
-            ],
-
-        // 注册时邮箱必填
-        email: loginMode.value === 'register'
-            ? [
-                { required: true, message: '请输入邮箱' },
-                {
-                    pattern: rges.email,
-                    message: '请输入正确的邮箱格式'
-                }
-            ]
-            : [],
-
-        // 密码验证：登录和注册都需要
-        password: [
-            { required: true, message: '请输入密码' },
-            {
-                pattern: rges.password,
-                message: '至少10位，需包含数字、大小写字母和特殊符号'
-            }
+  const baseRules: Record<string, any[]> = {
+    username: loginMode.value === 'login'
+      ? [{
+          validator: (_rule: any, value: string) => {
+            if (!value) return Promise.reject('请输入用户名或邮箱')
+            if (rges.email.test(value) || rges.username.test(value)) return Promise.resolve()
+            return Promise.reject('请输入正确的用户名或邮箱格式')
+          },
+        }]
+      : [
+          { required: true, message: '请输入用户名' },
+          { pattern: rges.username, message: '用户名：3-50位，支持字母、数字、下划线、中文' },
         ],
-
-        // 昵称：注册时可选，但如果填写需要符合规则
-        nickname: loginMode.value === 'register'
-            ? [
-                {
-                    validator: (_rule: any, value: string) => {
-                        // 如果填写了昵称，需要符合规则
-                        if (value && !rges.nickname.test(value)) {
-                            return Promise.reject('昵称：2-16位中文、数字、字母组合')
-                        }
-                        return Promise.resolve()
-                    }
-                }
-            ]
-            : []
-    }
-
-    return {
-        ...baseRules,
-        verificateCode: [
-            { required: true, message: '请输入验证码' }
+    email: loginMode.value === 'register'
+      ? [
+          { required: true, message: '请输入邮箱' },
+          { pattern: rges.email, message: '请输入正确的邮箱格式' },
         ]
-    }
-})
-const initVerificateCode = async () => {
-    const [err, res] = await to(authApi.getVerificateCode())
-    if (err) {
-        loading.value = false
-        return
-    }
-    verificateImg.value = res.data.captcha_image
-    form.value.verificateId = res.data.captcha_id
-}
-initVerificateCode()
-const handleSubmit = async (values: FormData) => {
-    if (loginMode.value === 'register') {
-        loading.value = true
-        const [err, res] = await to(userApi.register(form.value))
-        if (err) {
-            loading.value = false
-            // 重新刷新验证码
-            initVerificateCode()
-            return
-        }
-        message.success('注册成功!')
-        loading.value = false
-    } else {
-        loading.value = true
-        const tempParams = { ...form.value };
-        delete tempParams.email;
-        delete tempParams.nickname;
-        const [err, res] = await to(authApi.login(tempParams))
-        if (err) {
-            loading.value = false
-            const axiosErr = err as AxiosError<ResponseType>
-            if (axiosErr.response?.status === 400) {
-                initVerificateCode()
+      : [],
+    password: [
+      { required: true, message: '请输入密码' },
+      { pattern: rges.password, message: '至少10位，需包含数字、大小写字母和特殊符号' },
+    ],
+    nickname: loginMode.value === 'register'
+      ? [{
+          validator: (_rule: any, value: string) => {
+            if (value && !rges.nickname.test(value)) {
+              return Promise.reject('昵称：2-16位中文、数字、字母组合')
             }
-            return
-        }
+            return Promise.resolve()
+          },
+        }]
+      : [],
+  }
 
+  return {
+    ...baseRules,
+    verificateCode: [{ required: true, message: '请输入验证码' }],
+  }
+})
 
-        message.success('登录成功!');
-        // 将token存入localstorage
-        localStorage.setItem('access_token', res.data.access_token)
-        await userStore.getUserInfo()
-        const redirect = route.query.redirect as string
-        router.push( redirect || '/dashboard')
-        loading.value = false
+const initVerificateCode = async () => {
+  const [err, res] = await to(authApi.getVerificateCode())
+  if (err) {
+    loading.value = false
+    return
+  }
+  verificateImg.value = res.data.captcha_image
+  form.value.verificateId = res.data.captcha_id
+}
+
+initVerificateCode()
+
+const handleSubmit = async (values: FormData) => {
+  if (loginMode.value === 'register') {
+    loading.value = true
+    const [err] = await to(userApi.register(form.value))
+    if (err) {
+      loading.value = false
+      initVerificateCode()
+      return
     }
+    message.success('注册成功!')
+    loading.value = false
+  } else {
+    loading.value = true
+    const tempParams = { ...form.value }
+    delete tempParams.email
+    delete tempParams.nickname
+    const [err, res] = await to(authApi.login(tempParams))
+    if (err) {
+      loading.value = false
+      const axiosErr = err as AxiosError<ResponseType>
+      if (axiosErr.response?.status === 400) {
+        initVerificateCode()
+      }
+      return
+    }
+
+    message.success('登录成功!')
+    localStorage.setItem('access_token', res.data.access_token)
+    await userStore.getUserInfo()
+    const redirect = route.query.redirect as string
+    router.push(redirect || '/dashboard')
+    loading.value = false
+  }
 }
 </script>
-<style scoped lang="less"></style>
+
+<style scoped lang="less">
+.login-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  height: 100vh;
+
+  &__aside {
+    display: none;
+    min-height: 100vh;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.08) 20%, rgba(0, 0, 0, 0.08) 80%, transparent);
+      pointer-events: none;
+    }
+  }
+
+  &__form {
+    min-height: 100vh;
+    background: #ffffff;
+  }
+
+  &__link {
+    color: var(--sd-ant-color-primary-bg);
+
+    &:hover {
+      color: #009456;
+    }
+  }
+
+  &__mobile-brand {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+
+    &__aside {
+      display: block;
+    }
+
+    &__mobile-brand {
+      display: none;
+    }
+  }
+}
+
+:deep(.ant-form-item-label > label) {
+  font-weight: 500;
+}
+</style>

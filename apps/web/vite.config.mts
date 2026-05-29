@@ -38,13 +38,21 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     resolve: {
+      // 强制 yjs 只解析一份，避免 speed-sheet 和主应用各自打包一份 yjs 导致 "Yjs was already imported" 报错
+      dedupe: ['yjs'],
       // 区分环境：本地开发采用link方式，需要追加路径
       alias:
         mode === 'development'
           ? {
               '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
               '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
+              '@st': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
               '@': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
+              '@speed-sheet/vue3-antd': fileURLToPath(new URL('../../../speed-sheet/packages/vue3-antd/src/index.ts', import.meta.url)),
+              '@speed-sheet/core': fileURLToPath(new URL('../../../speed-sheet/packages/core/src/index.ts', import.meta.url)),
+              '@speed-sheet/vue3': fileURLToPath(new URL('../../../speed-sheet/packages/vue3/src/index.ts', import.meta.url)),
+              '@speed-sheet/shared': fileURLToPath(new URL('../../../speed-sheet/packages/shared/src/index.ts', import.meta.url)),
+              '@speed-sheet/extension-formula': fileURLToPath(new URL('../../../speed-sheet/packages/extensions/extension-formula/src/index.ts', import.meta.url)),
             }
           : {
               '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
@@ -52,7 +60,15 @@ export default defineConfig(({ mode }) => {
     },
     // 增加对speed-components-ui和speed-tiptap-editor的优化排除，避免预构建导致pnpm link失效
     optimizeDeps: {
-      exclude: ['speed-components-ui','speed-tiptap-editor'],
+      exclude: [
+        'speed-components-ui',
+        'speed-tiptap-editor',
+        '@speed-sheet/vue3-antd',
+        '@speed-sheet/core',
+        '@speed-sheet/vue3',
+        '@speed-sheet/shared',
+        '@speed-sheet/extension-formula',
+      ],
     },
     server: {
       proxy: {

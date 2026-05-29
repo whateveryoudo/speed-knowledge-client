@@ -6,6 +6,7 @@ import SpeedTiptapEditor from 'speed-tiptap-editor'
 import SpeedComponents from "speed-components-ui/components";
 import 'speed-components-ui/dist/style.css'
 import globalComponents from '#sk-web/components/global'
+import SpeedSheetUi from '@speed-sheet/vue3-antd'
 import { attachment as attachmentApi, initSkApiConfig, attachmentPrefix, apiVersion } from '@sk/api'
 import { message } from 'ant-design-vue'
 import 'uno.css'
@@ -94,6 +95,8 @@ app.use((SpeedTiptapEditor as any), {
   theme: 'light',
   antdToken: () => ({}),
 })
+
+app.use(SpeedSheetUi)
 
 
 

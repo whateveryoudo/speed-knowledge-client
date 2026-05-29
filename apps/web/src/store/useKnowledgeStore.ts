@@ -8,6 +8,7 @@ import {
   type DocumentNodeTreeItem,
   DocumentType,
 } from '@sk/types'
+import type { WorkbookSnapshot } from '@speed-sheet/shared'
 import { to } from 'await-to-js'
 import { document as documentApi } from '@sk/api'
 import { useRouter, useRoute } from 'vue-router'
@@ -75,6 +76,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     updated_at: '',
   })
   const documentContentJson = ref<string | null>(null)
+  const documentSheetSnapshot = ref<WorkbookSnapshot | null>(null)
   const showEditor = ref(false) // 是否显示编辑器（用于处理不同文档切换时序问题）
   const defaultDocumentNode: DocumentNodeTreeItem = {
     id: '',
@@ -108,7 +110,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const currentDocState = computed(() => {
     return showKnowledgeLeftPanel.value ? currentDocNode.value : {
       id: 'doc_node',
-      type: DocumentType.WORD,
+      type: documentInfo.value.type,
       document_slug: document_slug.value,
       title: documentInfo.value.name,
       parent_id: '',
@@ -186,10 +188,19 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     if (error) {
       return
     }
-    documentContentJson.value = res.data ? JSON.parse(res.data)?.default : null
+    const parsed = res.data ? JSON.parse(res.data) : null
+    if (documentInfo.value.type === DocumentType.SHEET) {
+      documentSheetSnapshot.value = parsed
+      documentContentJson.value = null
+    } else {
+      documentContentJson.value = parsed?.default ?? null
+      documentSheetSnapshot.value = null
+    }
   }
   const initDocumentDetail = async (showLoading = true) => {
     showEditor.value = false
+    documentContentJson.value = null
+    documentSheetSnapshot.value = null
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
@@ -264,7 +275,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   // 删除文档
-  const deleteDocument = async (document_id: string) => {
+  const deleteDocument = async (document_id: string, cb?: (res: any) => void) => {
     // 查找当前文档对应的node节点
     const node = flattenDocumentTree.value.find(
       (item) => item.document_id === document_id,
@@ -274,6 +285,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     if (!error) {
       setNextDocumentNode(node ? node.id : '')
       initDocumentTree()
+      if (cb && typeof cb === 'function') {
+        cb(res)
+      }
     }
   }
   // 拖拽树结束
@@ -296,6 +310,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentInfo,
     documentError,
     documentContentJson,
+    documentSheetSnapshot,
     documentTree,
     documentLoading,
     currentDocState,
