@@ -4,6 +4,7 @@
       v-if="ready"
       :key="editorKey"
       lang="zh"
+      :editable="editable"
       :ydoc="editable ? ydoc ?? undefined : undefined"
       :sheet-data="editable ? undefined : sheetSnapshot ?? undefined"
       :show-toolbar="editable"

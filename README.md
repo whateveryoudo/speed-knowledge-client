@@ -37,8 +37,7 @@ Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提
 
 - ✅ 抽取 `useDocumentCollaborators`，Word / Sheet 共用顶部 **在线协作者头像条**
 - ✅ 抽取 `useSheetCollaboration`，表格编辑模式独立管理 Y.Doc 与 Hocuspocus Provider
-- ✅ 表格协同：Awareness 广播在线用户，编辑页实时展示协作者状态
-- ✅ 预置 `useCollaborativeCursors`：基于 Awareness 的远程选区光标（单元格像素定位，待接入 UI 层）
+- ✅ 表格协同：Awareness 广播在线用户，编辑页实时展示协作者状态（表格内不做远程选区/正在编辑等画布指示器，与腾讯文档、语雀等产品一致）
 - ✅ 编辑器组件拆分：`WordEditor` / `SheetEditor`，文档页按类型自动路由
 
 #### 🔧 工程调整

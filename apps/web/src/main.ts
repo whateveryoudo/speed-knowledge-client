@@ -96,7 +96,30 @@ app.use((SpeedTiptapEditor as any), {
   antdToken: () => ({}),
 })
 
-app.use(SpeedSheetUi)
+/** 表格与富文本共用同一套附件 API（各编辑器实例无需再传 :upload） */
+app.use(SpeedSheetUi as any, {
+  apis: {
+    fileDownload: attachmentApi.fileDownload,
+    fileUploadSingle: attachmentApi.fileUploadSingle,
+    getPreviewUrl: (fileId: string) => {
+      const access_token = localStorage.getItem('access_token')
+      const appUrl = (import.meta as any).env.VITE_APP_PROXY_URL
+      return `${appUrl}${apiVersion}/attachment/preview/${fileId}?access_token=${access_token}`
+    },
+  },
+  upload: {
+    transformFileItem: (item: any) => {
+      return {
+        id: item.id,
+        fileType: item.file_type,
+        fileSize: item.file_size,
+        fileName: item.file_name,
+      }
+    },
+    imageAccept: '.png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.heic',
+    fileAccept: '*',
+  },
+})
 
 
 
