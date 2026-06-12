@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import SpeedTiptapEditor from 'speed-tiptap-editor'
+import 'speed-tiptap-editor/dist/style.css'
 import SpeedComponents from "speed-components-ui/components";
 import 'speed-components-ui/dist/style.css'
 import globalComponents from '#sk-web/components/global'
@@ -11,6 +12,7 @@ import { attachment as attachmentApi, initSkApiConfig, attachmentPrefix, apiVers
 import { message } from 'ant-design-vue'
 import 'uno.css'
 import '#sk-web/assets/base.less'
+
 // 初始化注入api一些方法,属性
 initSkApiConfig({
   baseURL: import.meta.env.VITE_APP_BASE_URL || '',
@@ -35,6 +37,7 @@ const app = createApp(App)
 app.use(store)
 app.use(router)
 app.use((SpeedComponents as any), {
+  iconfontUrl: [import.meta.env.VITE_ICONFONT_URL],
   apis: {
     fileUploadSingle: attachmentApi.fileUploadSingle,
     getPreviewUrl: (attachmentId: string) => {

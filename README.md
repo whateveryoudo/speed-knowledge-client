@@ -22,6 +22,18 @@ Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提
 
 ## 📅 更新日志
 
+### 2026-06-01 — 表格列筛选
+
+#### 📊 Speed Sheet 筛选
+
+- ✅ 列筛选：按内容 / 颜色 / 条件；表头绿色漏斗 + 数据区绿色实线描边
+- ✅ 私有筛选按 `userId` 写入 Y.Doc `sheetFilterPrivate`；共享筛选写入 `sheetFilter`
+- ✅ 编辑态：Hocuspocus 实时协同；查看态：静态 `node_json` 快照（对齐语雀，刷新更新）
+- ✅ 服务端落库 `toSnapshot()` 含 `sheetFilter` / `sheetFilterPrivate`，查看态可恢复筛选
+- ✅ `SheetEditor` 传入 `filterUserId`（`useUserStore`）
+
+详见 speed-sheet：[`docs/filter-notes.md`](https://github.com/whateveryoudo/speed-sheet/blob/main/docs/filter-notes.md)
+
 ### 2026-05-29 — 接入 Speed Sheet & 协同能力增强
 
 #### 📊 表格文档（Speed Sheet 接入）

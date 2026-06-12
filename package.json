@@ -3,11 +3,11 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "clean": "rm -rf node_modules **/**/node_modules",
     "dev": "turbo run dev --filter=client-web",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "clean": "rm -rf node_modules **/**/node_modules"
   },
   "devDependencies": {
     "turbo": "^2.0.0"
@@ -15,5 +15,17 @@
   "dependencies": {
     "@types/lodash-es": "^4.17.12",
     "socket.io-client": "^4.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "yjs": "13.6.31",
+      "@speed-sheet/shared": "file:../speed-sheet/packages/shared",
+      "@speed-sheet/core": "file:../speed-sheet/packages/core",
+      "@speed-sheet/vue3": "file:../speed-sheet/packages/vue3",
+      "@speed-sheet/extension-filter": "file:../speed-sheet/packages/extensions/extension-filter",
+      "@speed-sheet/extension-formula": "file:../speed-sheet/packages/extensions/extension-formula",
+      "@speed-sheet/extension-image": "file:../speed-sheet/packages/extensions/extension-image",
+      "@speed-sheet/vue3-antd": "file:../speed-sheet/packages/vue3-antd"
+    }
   }
 }

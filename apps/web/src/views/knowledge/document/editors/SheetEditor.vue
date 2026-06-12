@@ -10,15 +10,18 @@
       :show-toolbar="editable"
       :show-formula-bar="editable"
       :show-sheet-tabs="true"
+      :filter-user-id="filterUserId"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { SpeedSheet } from '@speed-sheet/vue3-antd'
 import type { WorkbookSnapshot } from '@speed-sheet/shared'
 import type { Collaborator } from '@sk/types'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import { useSheetCollaboration } from '../composables/useSheetCollaboration'
 
 const props = defineProps<{
@@ -34,6 +37,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:collaborators': [collaborators: Collaborator[]]
 }>()
+
+const { userInfo } = storeToRefs(useUserStore())
+
+const filterUserId = computed(() => {
+  const id = userInfo.value?.id
+  return id != null && id !== 0 ? String(id) : null
+})
 
 const collaborationConfig = computed(() => {
   if (!props.documentId || !props.knowledgeId) return null
