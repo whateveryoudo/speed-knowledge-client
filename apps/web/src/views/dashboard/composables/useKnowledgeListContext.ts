@@ -1,22 +1,26 @@
-import type { KnowledgeItem } from '@sk/types';
+import type { KnowledgeItem, KnowledgeCommonPinItem } from '@sk/types';
 import { createInjectionState } from '@vueuse/core';
 import { to } from 'await-to-js';
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, type Ref } from 'vue';
 import { knowledge as knowledgeApi } from '@sk/api'
 import { useToggle } from '@vueuse/core'
+
 /**
  * KnowledgeList 上下文接口
  */
 export interface KnowledgeListContext {
   listLoading: Ref<boolean>;
   knowledgeList: Ref<KnowledgeItem[]>;
+  commonPinList: Ref<KnowledgeCommonPinItem[]>;
+  commonPinLoading: Ref<boolean>;
   deleteLoading: Ref<boolean>;
+  renameLoading: Ref<boolean>;
 
-  // 方法
   initKnowledgeList: () => Promise<void>;
-  handleRename: (id: string, name: string) => Promise<void>;
-  handleRemoveUsual: (id: string) => Promise<void>;
+  initCommonPinList: () => Promise<void>;
+  handleRename: (id: string, name: string, cb?: () => void) => Promise<void>;
+  handleAddUsual: (knowledgeId: string) => Promise<void>;
+  handleRemoveUsual: (knowledgeId: string) => Promise<void>;
   handleDelete: (slug: string, cb: Function) => Promise<void>;
   handleDragEnd: (evt: { oldIndex: number, newIndex: number }) => Promise<void>;
 }
@@ -26,9 +30,12 @@ export interface KnowledgeListContext {
  */
 function initKnowledgeListState(): KnowledgeListContext {
   const knowledgeList = ref<KnowledgeItem[]>([]);
+  const commonPinList = ref<KnowledgeCommonPinItem[]>([]);
   const [listLoading, toggleListLoading] = useToggle(false);
+  const [commonPinLoading, toggleCommonPinLoading] = useToggle(false);
   const [deleteLoading, toggleDeleteLoading] = useToggle(false);
-  // 初始化知识库列表
+  const [renameLoading, toggleRenameLoading] = useToggle(false);
+
   const initKnowledgeList = async () => {
     toggleListLoading(true);
     const [error, res] = await to(knowledgeApi.getKnowledgeList())
@@ -38,48 +45,119 @@ function initKnowledgeListState(): KnowledgeListContext {
     toggleListLoading(false);
   }
 
-  // 重命名知识库
-  const handleRename = async (id: string, name: string) => {
-    // const [error, res] = await to(knowledgeApi.renameKnowledge(id, name))
-    // if (!error) {
-    //   knowledgeList.value = res.data
-    // }
+  const initCommonPinList = async () => {
+    toggleCommonPinLoading(true);
+    const [error, res] = await to(knowledgeApi.getCommonPinList())
+    if (!error) {
+      commonPinList.value = res.data
+    }
+    toggleCommonPinLoading(false);
   }
 
-  // 移除常用知识库
-  const handleRemoveUsual = async (slug: string) => {
-    // const [error, res] = await to(knowledgeApi.removeUsualKnowledge(id))
+  const syncKnowledgeName = (id: string, name: string) => {
+    const listIndex = knowledgeList.value.findIndex((item) => item.id === id)
+    if (listIndex !== -1) {
+      const item = knowledgeList.value[listIndex]
+      if (item) {
+        item.name = name
+      }
+    }
+    commonPinList.value = commonPinList.value.map((item) =>
+      item.knowledge_id === id
+        ? {
+            ...item,
+            knowledge: {
+              ...item.knowledge,
+              name,
+            },
+          }
+        : item,
+    )
   }
+
+  const handleRename = async (id: string, name: string, cb?: () => void) => {
+    const book =
+      knowledgeList.value.find((item) => item.id === id) ??
+      commonPinList.value.find((item) => item.knowledge_id === id)?.knowledge
+    if (!book) {
+      return
+    }
+    toggleRenameLoading(true)
+    const [error, res] = await to(
+      knowledgeApi.updateKnowledge({
+        ...book,
+        name,
+      }),
+    )
+    toggleRenameLoading(false)
+    if (!error) {
+      syncKnowledgeName(id, res.data.name)
+      cb?.()
+    }
+  }
+
+  const handleAddUsual = async (knowledgeId: string) => {
+    const [error] = await to(knowledgeApi.createCommonPin(knowledgeId))
+    if (!error) {
+      await initCommonPinList()
+    }
+  }
+
+  const handleRemoveUsual = async (knowledgeId: string) => {
+    const [error] = await to(knowledgeApi.deleteCommonPin(knowledgeId))
+    if (!error) {
+      commonPinList.value = commonPinList.value.filter(
+        (item) => item.knowledge_id !== knowledgeId,
+      )
+    }
+  }
+
   const handleDelete = async (slug: string, cb: Function) => {
     toggleDeleteLoading(true)
-    const [error, res] = await to(knowledgeApi.deleteKnowledge(slug))
+    const [error] = await to(knowledgeApi.deleteKnowledge(slug))
     toggleDeleteLoading(false)
     if (!error) {
       const index = knowledgeList.value.findIndex((item: KnowledgeItem) => item.slug === slug)
-      knowledgeList.value.splice(index, 1)
+      if (index !== -1) {
+        knowledgeList.value.splice(index, 1)
+      }
+      commonPinList.value = commonPinList.value.filter(
+        (item) => item.knowledge.slug !== slug,
+      )
       cb && typeof cb === 'function' && cb();
     }
   }
-  // 拖拽结束
+
   const handleDragEnd = async (evt: { oldIndex: number, newIndex: number }) => {
-    //   const [error, res] = await to(knowledgeApi.dragKnowledge(newIndex))
-    // if (!error) {
-    //   knowledgeList.value = res.data
-    // }
     const { oldIndex, newIndex } = evt
-    const moved = knowledgeList.value.splice(oldIndex, 1)[0]
+    if (oldIndex === newIndex) {
+      return
+    }
+    const moved = commonPinList.value[oldIndex]
     if (!moved) {
       return
     }
-    knowledgeList.value.splice(newIndex, 0, moved)
+    commonPinList.value.splice(oldIndex, 1)
+    commonPinList.value.splice(newIndex, 0, moved)
+    const [error] = await to(
+      knowledgeApi.updateCommonPinOrder(moved.knowledge_id, newIndex),
+    )
+    if (error) {
+      await initCommonPinList()
+    }
   }
 
   return {
     listLoading,
+    commonPinLoading,
     deleteLoading,
+    renameLoading,
     knowledgeList,
+    commonPinList,
     initKnowledgeList,
+    initCommonPinList,
     handleRename,
+    handleAddUsual,
     handleRemoveUsual,
     handleDelete,
     handleDragEnd,
@@ -100,4 +178,3 @@ export const useKnowledgeList = (): KnowledgeListContext => {
 };
 
 export { useKnowledgeListProvider };
-

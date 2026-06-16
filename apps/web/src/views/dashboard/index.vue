@@ -93,7 +93,7 @@
 </template>
 
 <script lang="tsx" setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { BellOutlined, CaretRightOutlined, CaretLeftOutlined, ClockCircleOutlined, ClockCircleFilled, PlusOutlined } from '@ant-design/icons-vue';
@@ -103,7 +103,7 @@ import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
 import UserSetting from './components/userSetting/index.vue';
 import { useRouter } from 'vue-router';
-import { useKnowledgeListProvider } from './composables/useKnowledgeListContext'
+import { useKnowledgeListProvider, useKnowledgeList } from './composables/useKnowledgeListContext'
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useToggle } from '@vueuse/core'
 import NotificationModal from './components/notificationModal/index.vue';
@@ -124,8 +124,15 @@ const { unreadNotificationCount } = storeToRefs(useSystemStore());
 const openTooltip = ref(false);
 const title = import.meta.env.VITE_SYS_TITLE;
 const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(false);
-// 初始化知识库列表相关context
+// 初始化知识库列表相关 context
 useKnowledgeListProvider();
+
+const { initKnowledgeList, initCommonPinList } = useKnowledgeList();
+
+onMounted(() => {
+  initKnowledgeList();
+  initCommonPinList();
+});
 
 const activeModuleKey = ref('start');
 

@@ -24,6 +24,16 @@ export interface KnowledgeItem extends KnowledgeCreate {
   ability?: Record<Ability, boolean>;
 }
 
+export interface KnowledgeCommonPinItem {
+  id: string;
+  knowledge_id: string;
+  user_id: number;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  knowledge: KnowledgeItem;
+}
+
 export enum KnowledgeAbility {
   CREATE_BOOK = 'create_book', // 创建知识库(这个权限不应该出现在这层，先定死吧，目前只有个人空间)
   DELETE_BOOK = 'delete_book',

@@ -5,7 +5,8 @@ import type {
   KnowledgeGroupItem,
   KnowledgeCreate,
   DocumentNodeTreeItem,
-  KnowledgeIndexPageResponse
+  KnowledgeIndexPageResponse,
+  KnowledgeCommonPinItem,
 } from "@sk/types";
 
 // 获取知识库列表（不分页）
@@ -61,4 +62,39 @@ export const getKnowledgeIndexPage = (
   identifier: string
 ): Promise<ResponseType<KnowledgeIndexPageResponse>> => {
   return request.get(`${knowledgePrefix}/${identifier}/index-page`);
+};
+
+// 常用知识库 pin 列表
+export const getCommonPinList = (): Promise<
+  ResponseType<KnowledgeCommonPinItem[]>
+> => {
+  return request.get(`${knowledgePrefix}/common-pin/list`);
+};
+
+// 设为常用
+export const createCommonPin = (
+  knowledge_id: string
+): Promise<ResponseType<KnowledgeCommonPinItem>> => {
+  return request.post(`${knowledgePrefix}/common-pin/create`, null, {
+    params: { knowledge_id },
+  });
+};
+
+// 更新常用排序（拖拽目标位置）
+export const updateCommonPinOrder = (
+  knowledge_id: string,
+  order_index: number
+): Promise<ResponseType<null>> => {
+  return request.put(
+    `${knowledgePrefix}/common-pin/update/${knowledge_id}`,
+    null,
+    { params: { order_index } }
+  );
+};
+
+// 取消常用
+export const deleteCommonPin = (
+  knowledge_id: string
+): Promise<ResponseType<null>> => {
+  return request.delete(`${knowledgePrefix}/common-pin/${knowledge_id}`);
 };

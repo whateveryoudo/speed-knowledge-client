@@ -4,11 +4,11 @@
     <div class="px-2 h-full" v-if="expanded">
       <div
         class="book-header flex items-center rounded-[6px] h-[36px] pl-1 pr-3 cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200"
-        :class="{ 'pl-3': knowledgeList.length === 0, 'bg-[var(--sd-bg-primary-hover)]': route.path === '/dashboard/knowledge' }"
+        :class="{ 'pl-3': commonPinList.length === 0, 'bg-[var(--sd-bg-primary-hover)]': route.path === '/dashboard/knowledge' }"
         @click="router.push('/dashboard/knowledge')">
-        <a-button v-if="knowledgeList.length > 0" type="text"
+        <a-button v-if="commonPinList.length > 0" type="text"
           class="shadow-btn-wrapper mr-2 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)]">
-          <span class="transition-transform duration-200" @click="toggleInner" :class="{ 'rotate-90': innerExpanded }">
+          <span class="transition-transform duration-200" @click.stop="toggleInner" :class="{ 'rotate-90': innerExpanded }">
             <CaretRightOutlined />
           </span>
         </a-button>
@@ -18,8 +18,8 @@
         </span>
       </div>
       <Collapse :when="innerExpanded" class="book-list">
-        <SkeletonList :loading="loading">
-          <MenuList v-if="knowledgeList.length > 0" :books="knowledgeList" :show-more="true"
+        <SkeletonList :loading="commonPinLoading">
+          <MenuList v-if="commonPinList.length > 0" :books="commonPinBooks" :show-more="true"
             @drag-end="handleDragEnd" />
           <Empty0 hasTop v-else description="暂无知识库" />
         </SkeletonList>
@@ -40,7 +40,7 @@
               </span>
             </div>
             <div class="book-list">
-              <MenuList :books="knowledgeList" :show-more="false" @on-delete="handleDelete"
+              <MenuList :books="commonPinBooks" :show-more="false" @on-delete="handleDelete"
                 @on-drag-end="handleDragEnd" />
             </div>
           </div>
@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   CaretRightOutlined,
@@ -76,11 +76,11 @@ const props = withDefaults(
     expanded: true,
   }
 )
-const { knowledgeList, initKnowledgeList, handleDelete, handleDragEnd } = useKnowledgeList()
+const { commonPinList, commonPinLoading, handleDelete, handleDragEnd } = useKnowledgeList()
+const commonPinBooks = computed(() => commonPinList.value.map((pin) => pin.knowledge))
 const emit = defineEmits<{
   'update:expanded': [expanded: boolean]
 }>()
-const loading = ref(false)
 // 外部控制的展开/收起
 const expanded = ref<boolean>(props.expanded)
 watch(() => props.expanded, (v) => {
@@ -93,9 +93,6 @@ const innerExpanded = ref(true)
 const toggleInner = () => {
   innerExpanded.value = !innerExpanded.value
 }
-// 初始化知识库列表
-initKnowledgeList();
-
 </script>
 
 <style lang="less" scoped>

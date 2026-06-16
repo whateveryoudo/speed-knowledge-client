@@ -13,10 +13,13 @@
                 </a-button>
                 <s-icon-font :type="book.icon" class="mr-2" svg-sprite style="width: 18px; height: 18px;" />
 
-                <span class="book-title flex-1 text-[14px] truncate" :title="book.name">
+                <a-input v-if="isRenaming(book.id)" ref="renameInputRef" size="small" class="flex-1 min-w-0"
+                    :value="book.name" @click.stop
+                    @blur="(e: FocusEvent) => handleRenameBlur((e.target as HTMLInputElement).value, book)" />
+                <span v-else class="book-title flex-1 text-[14px] truncate" :title="book.name">
                     {{ book.name }}
                 </span>
-                <LockOutlined class="text-[12px]" v-if="book.is_public" />
+                <LockOutlined class="text-[12px]" v-if="!book.is_public" />
                 <a-dropdown trigger="click">
                     <a-button type="text" @click.stop
                         class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0" v-if="showMore">
@@ -25,81 +28,59 @@
                         </template>
                     </a-button>
                     <template #overlay>
-                        <a-menu @click="(e: any) => handleMenuClick(e, book)" :items="getMenuItems(book)" />
+                        <a-menu @click="(e: any) => onMenuClick(e, book)"
+                            :items="buildMenuItems(book, { isPinned: true })" />
                     </template>
                 </a-dropdown>
             </div>
         </template>
     </draggable>
-    <DeleteKnowledge v-model:visible="deleteKnowledgeVisible" :slug="curBook?.slug ?? ''" :name="curBook?.name ?? ''" />
+    <DeleteKnowledge v-model:visible="deleteKnowledgeVisible" :slug="currentBook?.slug ?? ''"
+        :name="currentBook?.name ?? ''" />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, h } from 'vue'
+import { ref, watch } from 'vue'
 import draggable from 'vuedraggable'
-import { LockOutlined, HolderOutlined, MoreOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
 import { type KnowledgeItem } from '@sk/types'
 import { cloneDeep } from 'lodash-es'
 import { useRouter } from 'vue-router'
-import type { ItemType } from 'ant-design-vue'
 import DeleteKnowledge from '../deleteKnowledge/index.vue'
-import { KnowledgeAbility } from '@sk/types'
-const router = useRouter()
+import { useKnowledgeBookMenu } from '../../composables/useKnowledgeBookMenu'
 
+const router = useRouter()
 
 const props = withDefaults(defineProps<{
     books?: KnowledgeItem[]
     showMore?: boolean
-
+    activeBookKey?: string
 }>(), {
     books: () => [],
     showMore: true,
+    activeBookKey: '',
 })
 
 const emit = defineEmits<{
-
     'drag-end': [evt: { oldIndex: number, newIndex: number }]
-    'delete-trigger': [orderIndex: number]
 }>()
 
-const activeBookKey = props.activeBookKey || ''
 const innerBooks = ref<KnowledgeItem[]>([])
-const deleteKnowledgeVisible = ref(false)
-const curBook = ref<KnowledgeItem | null>(null)
-const getMenuItems = (book: KnowledgeItem): (ItemType & { hidden?: boolean })[] => {
-    return [
-        {
-            label: '权限',
-            key: 'auth',
-            icon: () => h(LockOutlined)
-        },
-        { type: 'divider' as const, hidden: !book?.ability?.[KnowledgeAbility.DELETE_BOOK] },
-        {
-            label: '删除',
-            danger: true,
-            key: 'delete',
-            icon: () => h(DeleteOutlined),
-            hidden: !book?.ability?.[KnowledgeAbility.DELETE_BOOK]
-        }
-    ].filter((item) => !item.hidden)
+const {
+    buildMenuItems,
+    handleMenuClick,
+    deleteKnowledgeVisible,
+    renameInputRef,
+    isRenaming,
+    handleRenameBlur,
+    currentBook,
+} = useKnowledgeBookMenu()
+
+const onMenuClick = (e: { key: string }, book: KnowledgeItem) => {
+    handleMenuClick(e.key, book)
 }
 
-const handleMenuClick = (e: any, book: KnowledgeItem) => {
-    curBook.value = book
-    switch (e.key) {
-        case 'auth':
-            router.push(`/${book.team.slug}/knowledge/${book.slug}/manage/auth`)
-            break
-        case 'delete':
-            deleteKnowledgeVisible.value = true
-            break
-        default:
-            break
-    }
-}
-
-const onDragEnd = (evt: any) => {
-    // 拖拽结束后，同步更新后的列表到父组件
+const onDragEnd = (evt: { oldIndex: number; newIndex: number }) => {
     emit('drag-end', {
         oldIndex: evt.oldIndex,
         newIndex: evt.newIndex,
@@ -107,6 +88,9 @@ const onDragEnd = (evt: any) => {
 }
 
 const handleBookClick = (book: KnowledgeItem) => {
+    if (isRenaming(book.id)) {
+        return
+    }
     router.push(`/${book.team.slug}/knowledge/${book.slug}`)
 }
 
