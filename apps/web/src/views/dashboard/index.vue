@@ -127,10 +127,9 @@ const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(fal
 // 初始化知识库列表相关 context
 useKnowledgeListProvider();
 
-const { initKnowledgeList, initCommonPinList } = useKnowledgeList();
+const { initCommonPinList } = useKnowledgeList();
 
 onMounted(() => {
-  initKnowledgeList();
   initCommonPinList();
 });
 

@@ -117,6 +117,7 @@ declare module 'vue' {
     PersonSearch: typeof import('./components/personSearch/index.vue')['default']
     PlusCircleFilled: typeof import('@ant-design/icons-vue')['PlusCircleFilled']
     PlusOutlined: typeof import('@ant-design/icons-vue')['PlusOutlined']
+    PushpinFilled: typeof import('@ant-design/icons-vue')['PushpinFilled']
     QuestionCircleOutlined: typeof import('@ant-design/icons-vue')['QuestionCircleOutlined']
     QuestionLeft: typeof import('./components/robot/chat/QuestionLeft.vue')['default']
     ReadOutlined: typeof import('@ant-design/icons-vue')['ReadOutlined']

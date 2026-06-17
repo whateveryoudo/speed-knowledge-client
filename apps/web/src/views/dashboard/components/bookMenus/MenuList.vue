@@ -29,7 +29,7 @@
                     </a-button>
                     <template #overlay>
                         <a-menu @click="(e: any) => onMenuClick(e, book)"
-                            :items="buildMenuItems(book, { isPinned: true })" />
+                            :items="buildMenuItems(book, { showUnpinInMenu: true })" />
                     </template>
                 </a-dropdown>
             </div>

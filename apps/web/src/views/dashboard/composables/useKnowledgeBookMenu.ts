@@ -13,8 +13,8 @@ import { KnowledgeAbility, type KnowledgeItem } from '@sk/types'
 import { useKnowledgeList } from './useKnowledgeListContext'
 
 export interface KnowledgeBookMenuOptions {
-  /** 是否已在常用列表 */
-  isPinned?: boolean
+  /** 菜单展示「移出常用」（左侧常用 / CommonPin）；表格列表走图钉图标，不传 */
+  showUnpinInMenu?: boolean
 }
 
 type MenuItem = ItemType & { hidden?: boolean }
@@ -46,7 +46,7 @@ export function useKnowledgeBookMenu() {
       renamingBookId.value = null
       return
     }
-    await handleRename(book.id, name, () => {
+    await handleRename(book.id, name, book, () => {
       message.success('重命名成功')
       renamingBookId.value = null
     })
@@ -56,17 +56,21 @@ export function useKnowledgeBookMenu() {
     book: KnowledgeItem,
     options: KnowledgeBookMenuOptions = {},
   ): ItemType[] => {
-    const { isPinned = false } = options
+    const { showUnpinInMenu = false } = options
     const canDelete = !!book.ability?.[KnowledgeAbility.DELETE_BOOK]
     const canRename = !!book.ability?.[KnowledgeAbility.MODIFY_BOOK_SETTING]
     const showExit = !canDelete
 
     const items: MenuItem[] = [
-      {
-        label: isPinned ? '移出常用' : '设为常用',
-        key: isPinned ? 'unpin' : 'pin',
-        icon: () => h(PushpinOutlined),
-      },
+      ...(showUnpinInMenu
+        ? [
+            {
+              label: '移出常用',
+              key: 'unpin',
+              icon: () => h(PushpinOutlined),
+            },
+          ]
+        : []),
       {
         label: '权限',
         key: 'auth',
@@ -101,6 +105,16 @@ export function useKnowledgeBookMenu() {
     return items.filter((item) => !item.hidden)
   }
 
+  const handleTogglePin = async (book: KnowledgeItem, pinned: boolean) => {
+    if (pinned) {
+      await handleRemoveUsual(book.id)
+      message.success('已移出常用')
+    } else {
+      await handleAddUsual(book.id)
+      message.success('已设为常用')
+    }
+  }
+
   const handleMenuClick = async (
     key: string,
     book: KnowledgeItem,
@@ -114,10 +128,6 @@ export function useKnowledgeBookMenu() {
       case 'unpin':
         await handleRemoveUsual(book.id)
         message.success('已移出常用')
-        break
-      case 'pin':
-        await handleAddUsual(book.id)
-        message.success('已设为常用')
         break
       case 'rename':
         startRename(book)
@@ -136,6 +146,7 @@ export function useKnowledgeBookMenu() {
   return {
     buildMenuItems,
     handleMenuClick,
+    handleTogglePin,
     deleteKnowledgeVisible,
     renamingBookId,
     renameInputRef,

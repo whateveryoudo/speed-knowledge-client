@@ -107,7 +107,7 @@ const onMenuClick = (e: { key: string }, pin: KnowledgeCommonPinItem) => {
                                 </a-button>
                                 <template #overlay>
                                     <a-menu @click="(e: any) => onMenuClick(e, pin)"
-                                        :items="buildMenuItems(pin.knowledge, { isPinned: true })" />
+                                        :items="buildMenuItems(pin.knowledge, { showUnpinInMenu: true })" />
                                 </template>
                             </a-dropdown>
                         </div>

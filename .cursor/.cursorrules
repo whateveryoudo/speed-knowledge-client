@@ -75,3 +75,35 @@ knowledgeInfo.value = res.data
 - 成功时使用 `res.data` 获取响应数据
 - 错误时根据业务需求进行错误处理（提示用户、记录日志等）
 
+---
+
+# Vue Composable / Hook 拆分原则
+
+避免为「分层」而分层，尤其不要堆叠仅因参数不同而存在的薄封装。
+
+## 基本原则
+
+**需要复用的逻辑，才优先考虑拆成 composable。** 这不是硬性边界——若某个页面 `setup` 里冗余逻辑过多、影响阅读，也可以提取 hook 收敛复杂度。判断时看收益，而非套固定层级。
+
+## 不要拆
+
+- 只是包一层、无实质逻辑的转发（例如 A 调 B，B 再调 `useTable`，中间没有共享状态或副作用）
+- 仅参数不同（如 `scope`、`keyword`），却多拆 1～2 层 composable
+- 只在一个页面用到的列表/表格逻辑——直接在页面里 `useTable` + `computed` 拼 `extraParams`，参数从 props 传入即可
+
+## 适合拆
+
+- 多处复用的业务逻辑（菜单、pin、权限等）
+- 跨组件共享的状态与副作用（Provider + injection）
+- 页面内逻辑过重，提取后能明显提升可读性
+
+## 反例与正例
+
+```text
+❌ 页面 → usePersonalKnowledgeList → useKnowledgeListTable → useTable
+   （本质只是 scope 不同，多两层没必要）
+
+✅ PersonalList / CollaborateList 内直接：
+   useTable(api, computed(() => ({ extraParams: { scope, keyword, sorts } })))
+```
+

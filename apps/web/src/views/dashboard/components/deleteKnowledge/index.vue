@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<{
 const { handleDelete, deleteLoading } = useKnowledgeList();
 const emit = defineEmits<{
     'update:visible': [value: boolean]
+    success: []
 }>()
 const status = computed(() => {
     return (!inputValue.value || inputValue.value.trim() === props.slug) ? '' : 'error'
@@ -43,6 +44,7 @@ const toDelete = async () => {
     handleDelete(props.slug, () => {
         message.success('删除成功')
         emit('update:visible', false)
+        emit('success')
     })
 }
 watch(() => props.visible, (newVal) => {

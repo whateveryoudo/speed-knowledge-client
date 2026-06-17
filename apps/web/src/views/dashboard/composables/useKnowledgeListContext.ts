@@ -6,44 +6,34 @@ import { knowledge as knowledgeApi } from '@sk/api'
 import { useToggle } from '@vueuse/core'
 
 /**
- * KnowledgeList 上下文接口
+ * 知识库全局上下文：常用 pin + 变更操作
+ * 分页列表由 knowledgeMain 各列表页面内 useTable 负责
  */
 export interface KnowledgeListContext {
-  listLoading: Ref<boolean>;
-  knowledgeList: Ref<KnowledgeItem[]>;
   commonPinList: Ref<KnowledgeCommonPinItem[]>;
   commonPinLoading: Ref<boolean>;
   deleteLoading: Ref<boolean>;
   renameLoading: Ref<boolean>;
 
-  initKnowledgeList: () => Promise<void>;
   initCommonPinList: () => Promise<void>;
-  handleRename: (id: string, name: string, cb?: () => void) => Promise<void>;
+  handleRename: (
+    id: string,
+    name: string,
+    book?: KnowledgeItem,
+    cb?: () => void,
+  ) => Promise<void>;
   handleAddUsual: (knowledgeId: string) => Promise<void>;
   handleRemoveUsual: (knowledgeId: string) => Promise<void>;
-  handleDelete: (slug: string, cb: Function) => Promise<void>;
+  handleDelete: (slug: string, cb?: () => void) => Promise<void>;
   handleDragEnd: (evt: { oldIndex: number, newIndex: number }) => Promise<void>;
+  isPinned: (knowledgeId: string) => boolean;
 }
 
-/**
- * 初始化 KnowledgeList 状态
- */
 function initKnowledgeListState(): KnowledgeListContext {
-  const knowledgeList = ref<KnowledgeItem[]>([]);
   const commonPinList = ref<KnowledgeCommonPinItem[]>([]);
-  const [listLoading, toggleListLoading] = useToggle(false);
   const [commonPinLoading, toggleCommonPinLoading] = useToggle(false);
   const [deleteLoading, toggleDeleteLoading] = useToggle(false);
   const [renameLoading, toggleRenameLoading] = useToggle(false);
-
-  const initKnowledgeList = async () => {
-    toggleListLoading(true);
-    const [error, res] = await to(knowledgeApi.getKnowledgeList())
-    if (!error) {
-      knowledgeList.value = res.data
-    }
-    toggleListLoading(false);
-  }
 
   const initCommonPinList = async () => {
     toggleCommonPinLoading(true);
@@ -54,14 +44,10 @@ function initKnowledgeListState(): KnowledgeListContext {
     toggleCommonPinLoading(false);
   }
 
+  const isPinned = (knowledgeId: string) =>
+    commonPinList.value.some((item) => item.knowledge_id === knowledgeId)
+
   const syncKnowledgeName = (id: string, name: string) => {
-    const listIndex = knowledgeList.value.findIndex((item) => item.id === id)
-    if (listIndex !== -1) {
-      const item = knowledgeList.value[listIndex]
-      if (item) {
-        item.name = name
-      }
-    }
     commonPinList.value = commonPinList.value.map((item) =>
       item.knowledge_id === id
         ? {
@@ -75,17 +61,22 @@ function initKnowledgeListState(): KnowledgeListContext {
     )
   }
 
-  const handleRename = async (id: string, name: string, cb?: () => void) => {
-    const book =
-      knowledgeList.value.find((item) => item.id === id) ??
+  const handleRename = async (
+    id: string,
+    name: string,
+    book?: KnowledgeItem,
+    cb?: () => void,
+  ) => {
+    const target =
+      book ??
       commonPinList.value.find((item) => item.knowledge_id === id)?.knowledge
-    if (!book) {
+    if (!target) {
       return
     }
     toggleRenameLoading(true)
     const [error, res] = await to(
       knowledgeApi.updateKnowledge({
-        ...book,
+        ...target,
         name,
       }),
     )
@@ -97,9 +88,12 @@ function initKnowledgeListState(): KnowledgeListContext {
   }
 
   const handleAddUsual = async (knowledgeId: string) => {
-    const [error] = await to(knowledgeApi.createCommonPin(knowledgeId))
-    if (!error) {
-      await initCommonPinList()
+    if (isPinned(knowledgeId)) {
+      return
+    }
+    const [error, res] = await to(knowledgeApi.createCommonPin(knowledgeId))
+    if (!error && res.data) {
+      commonPinList.value = [...commonPinList.value, res.data]
     }
   }
 
@@ -112,19 +106,15 @@ function initKnowledgeListState(): KnowledgeListContext {
     }
   }
 
-  const handleDelete = async (slug: string, cb: Function) => {
+  const handleDelete = async (slug: string, cb?: () => void) => {
     toggleDeleteLoading(true)
     const [error] = await to(knowledgeApi.deleteKnowledge(slug))
     toggleDeleteLoading(false)
     if (!error) {
-      const index = knowledgeList.value.findIndex((item: KnowledgeItem) => item.slug === slug)
-      if (index !== -1) {
-        knowledgeList.value.splice(index, 1)
-      }
       commonPinList.value = commonPinList.value.filter(
         (item) => item.knowledge.slug !== slug,
       )
-      cb && typeof cb === 'function' && cb();
+      cb?.()
     }
   }
 
@@ -148,27 +138,22 @@ function initKnowledgeListState(): KnowledgeListContext {
   }
 
   return {
-    listLoading,
     commonPinLoading,
     deleteLoading,
     renameLoading,
-    knowledgeList,
     commonPinList,
-    initKnowledgeList,
     initCommonPinList,
     handleRename,
     handleAddUsual,
     handleRemoveUsual,
     handleDelete,
     handleDragEnd,
+    isPinned,
   };
 }
 
 const [useKnowledgeListProvider, useKnowledgeListOriginal] = createInjectionState(initKnowledgeListState);
 
-/**
- * 包装 useKnowledgeList，确保总是返回非空（带类型守卫）
- */
 export const useKnowledgeList = (): KnowledgeListContext => {
   const context = useKnowledgeListOriginal();
   if (!context) {

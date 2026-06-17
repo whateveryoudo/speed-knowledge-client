@@ -81,9 +81,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const spaceStore = useSpaceStore();
-const { initKnowledgeList, initCommonPinList } = useKnowledgeList()
+const { initCommonPinList } = useKnowledgeList()
 const emit = defineEmits<{
     (e: 'update:open', value: boolean): void
+    (e: 'ok', slug: string): void
 }>()
 
 const formRef = ref<FormInstance>()
@@ -164,7 +165,7 @@ const handleOk = async () => {
             return
         }
         emit('update:open', false)
-        initKnowledgeList()
+        emit('ok', res.data)
         initCommonPinList()
     } catch (error) {
         console.error('表单验证失败:', error)

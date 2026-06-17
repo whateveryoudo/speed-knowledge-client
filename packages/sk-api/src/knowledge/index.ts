@@ -1,4 +1,7 @@
-import request, { type ResponseType } from "../request";
+import request, {
+  type ResponseType,
+  type PaginationResponse,
+} from "../request";
 import { knowledgePrefix } from "../path";
 import type {
   KnowledgeItem,
@@ -7,11 +10,14 @@ import type {
   DocumentNodeTreeItem,
   KnowledgeIndexPageResponse,
   KnowledgeCommonPinItem,
+  KnowledgeListQuery,
 } from "@sk/types";
 
-// 获取知识库列表（不分页）
-export const getKnowledgeList = (): Promise<ResponseType<KnowledgeItem[]>> => {
-  return request.get(`${knowledgePrefix}/list`);
+/** 分页获取知识库列表（个人 / 协作） */
+export const getKnowledgeListPage = (
+  data: KnowledgeListQuery
+): Promise<ResponseType<PaginationResponse<KnowledgeItem>>> => {
+  return request.post(`${knowledgePrefix}/list`, data);
 };
 // 获取分组列表
 export const getKnowledgeGroupList = (): Promise<

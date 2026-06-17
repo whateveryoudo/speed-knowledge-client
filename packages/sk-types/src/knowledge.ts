@@ -10,6 +10,30 @@ export interface KnowledgeCreate {
   team_id: string;
   space_id: string;
 }
+/** 知识库列表 scope，与后端 KnowledgeFromWay 一致 */
+export enum KnowledgeFromWay {
+  OWN = 'own',
+  COLLABORATION = 'collaboration',
+}
+
+export enum ListSortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
+export interface KnowledgeListSortRule {
+  field: string;
+  order: ListSortOrder;
+}
+
+export interface KnowledgeListQuery {
+  scope?: KnowledgeFromWay;
+  keyword?: string;
+  sorts?: KnowledgeListSortRule[];
+  page: number;
+  page_size: number;
+}
+
 export interface KnowledgeItem extends KnowledgeCreate {
   id: string;
   user_id: number;
@@ -21,6 +45,8 @@ export interface KnowledgeItem extends KnowledgeCreate {
   content_updated_at: string;
   created_at: string;
   updated_at: string;
+  source?: KnowledgeFromWay;
+  collaborator_id?: string | null;
   ability?: Record<Ability, boolean>;
 }
 
