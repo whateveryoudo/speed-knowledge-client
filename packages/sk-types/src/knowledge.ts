@@ -69,14 +69,55 @@ export enum KnowledgeAbility {
   SHARE_BOOK = 'share_book',
   MODIFY_BOOK_PERMISSION = 'modify_book_permission',
 }
+export enum KnowledgeGroupType {
+  CARD = 'card',
+  LIST = 'list',
+}
+
+export enum KnowledgeGroupStyle {
+  SIMPLE = 'simple',
+  BASIC = 'basic',
+  DETAIL = 'detail',
+  IMAGE = 'image',
+}
+
+export interface KnowledgeGroupDisplayConfig {
+  type: KnowledgeGroupType;
+  style: KnowledgeGroupStyle;
+  show_knowledge_icon?: boolean;
+  show_knowledge_description?: boolean;
+  doc_order_type?: number;
+}
+
+export const DEFAULT_GROUP_DISPLAY_CONFIG: KnowledgeGroupDisplayConfig = {
+  type: KnowledgeGroupType.CARD,
+  style: KnowledgeGroupStyle.DETAIL,
+  show_knowledge_icon: true,
+  show_knowledge_description: true,
+  doc_order_type: 1,
+};
+
+export interface KnowledgeGroupUpdateBody {
+  group_name?: string;
+  order_index?: number;
+  display_config?: KnowledgeGroupDisplayConfig;
+}
+
+export interface KnowledgeGroupRelationMoveBody {
+  group_id: string;
+  order_index: number;
+}
+
 export interface KnowledgeGroupItem {
   id: string;
   user_id: number;
   group_name: string;
   order_index: number;
   is_default: boolean;
+  display_config?: KnowledgeGroupDisplayConfig;
   created_at: string;
   updated_at: string;
+  knowledge_items?: KnowledgeItem[];
 }
 
 export enum KnowledgeIndexPageLayout {

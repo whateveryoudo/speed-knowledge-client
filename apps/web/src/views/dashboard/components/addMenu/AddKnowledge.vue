@@ -64,6 +64,7 @@ import to from 'await-to-js'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 interface Props {
     open?: boolean
+    defaultGroupId?: string
 }
 
 
@@ -77,7 +78,8 @@ interface FormValues {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    open: false
+    open: false,
+    defaultGroupId: undefined,
 })
 
 const spaceStore = useSpaceStore();
@@ -122,7 +124,7 @@ watch(() => props.open, (val) => {
         form.value = {
             name: '',
             description: '',
-            group_id: undefined,
+            group_id: props.defaultGroupId,
             icon: 'icon-book-0',
             team_id: '1bc00c0d-8408-442a-9a9a-5c3aa726a127',
             cover: []

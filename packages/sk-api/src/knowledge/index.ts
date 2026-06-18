@@ -6,6 +6,8 @@ import { knowledgePrefix } from "../path";
 import type {
   KnowledgeItem,
   KnowledgeGroupItem,
+  KnowledgeGroupUpdateBody,
+  KnowledgeGroupRelationMoveBody,
   KnowledgeCreate,
   DocumentNodeTreeItem,
   KnowledgeIndexPageResponse,
@@ -24,6 +26,53 @@ export const getKnowledgeGroupList = (): Promise<
   ResponseType<KnowledgeGroupItem[]>
 > => {
   return request.get(`${knowledgePrefix}/group/list`);
+};
+
+// 获取带知识库的分组列表
+export const getKnowledgeGroupListDetail = (
+  keyword?: string
+): Promise<ResponseType<KnowledgeGroupItem[]>> => {
+  return request.get(`${knowledgePrefix}/group/list-detail`, {
+    params: keyword ? { keyword } : undefined,
+  });
+};
+
+// 创建分组
+export const createKnowledgeGroup = (): Promise<ResponseType<string>> => {
+  return request.post(`${knowledgePrefix}/group/create`);
+};
+
+// 更新分组
+export const updateKnowledgeGroup = (
+  groupId: string,
+  data: KnowledgeGroupUpdateBody
+): Promise<ResponseType<null>> => {
+  return request.put(`${knowledgePrefix}/group/update/${groupId}`, data);
+};
+
+// 更新分组排序
+export const updateKnowledgeGroupOrder = (
+  groupId: string,
+  orderIndex: number
+): Promise<ResponseType<null>> => {
+  return request.put(`${knowledgePrefix}/group/order/${groupId}`, null, {
+    params: { order_index: orderIndex },
+  });
+};
+
+// 删除分组
+export const deleteKnowledgeGroup = (
+  groupId: string
+): Promise<ResponseType<null>> => {
+  return request.delete(`${knowledgePrefix}/group/${groupId}`);
+};
+
+// 移动/排序分组内知识库
+export const moveKnowledgeGroupRelation = (
+  knowledgeId: string,
+  data: KnowledgeGroupRelationMoveBody
+): Promise<ResponseType<null>> => {
+  return request.put(`${knowledgePrefix}/group/relation/${knowledgeId}`, data);
 };
 
 // 新增知识库
