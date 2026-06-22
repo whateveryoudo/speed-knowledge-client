@@ -59,7 +59,7 @@ export interface KnowledgeCommonPinItem {
   updated_at: string;
   knowledge: KnowledgeItem;
 }
-
+/****** 知识库权限相关 ***************/
 export enum KnowledgeAbility {
   CREATE_BOOK = 'create_book', // 创建知识库(这个权限不应该出现在这层，先定死吧，目前只有个人空间)
   DELETE_BOOK = 'delete_book',
@@ -69,6 +69,9 @@ export enum KnowledgeAbility {
   SHARE_BOOK = 'share_book',
   MODIFY_BOOK_PERMISSION = 'modify_book_permission',
 }
+
+
+/***********知识库分组相关 ***************/
 export enum KnowledgeGroupType {
   CARD = 'card',
   LIST = 'list',
@@ -108,6 +111,23 @@ export interface KnowledgeGroupRelationMoveBody {
   order_index: number;
 }
 
+
+
+export interface DocumentSummaryItem {
+  id: string;
+  name: string;
+  slug: string;
+  updated_at: string;
+  content_updated_at?: string;
+}
+
+export interface KnowledgeGroupItems {
+  order_index: number;
+  relation_id: string;
+  doc_summary: DocumentSummaryItem[];
+  doc_count: number;
+}
+
 export interface KnowledgeGroupItem {
   id: string;
   user_id: number;
@@ -117,7 +137,7 @@ export interface KnowledgeGroupItem {
   display_config?: KnowledgeGroupDisplayConfig;
   created_at: string;
   updated_at: string;
-  knowledge_items?: KnowledgeItem[];
+  knowledge_group_items?: KnowledgeGroupItems[];
 }
 
 export enum KnowledgeIndexPageLayout {

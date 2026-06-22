@@ -38,7 +38,7 @@ export const getKnowledgeGroupListDetail = (
 };
 
 // 创建分组
-export const createKnowledgeGroup = (): Promise<ResponseType<string>> => {
+export const createKnowledgeGroup = (): Promise<ResponseType<KnowledgeGroupItem>> => {
   return request.post(`${knowledgePrefix}/group/create`);
 };
 

@@ -1,0 +1,45 @@
+---
+description: CSS 变量约定：主题色用 Ant Design，平台色用 --sd-*
+globs: **/*.{vue,css,less}
+alwaysApply: true
+---
+
+# CSS 变量使用约定
+
+## 主题色 → Ant Design 变量
+
+项目通过 Ant Design `ConfigProvider` 注入主题，**主色、链接、hover 高亮等主题相关样式**使用 `--ant-*` 变量，例如：
+
+- `--ant-color-primary`
+- `--ant-color-primary-hover`
+- `--ant-color-primary-text`
+
+```vue
+<!-- ✅ 选中态、hover 高亮 -->
+:class="'border-[var(--ant-color-primary)] text-[var(--ant-color-primary)]'"
+class="hover:text-[var(--ant-color-primary)]"
+
+<!-- ❌ 不要自造未定义的主题变量 -->
+class="text-[var(--sd-primary-color)]"
+```
+
+## 平台 UI → `--sd-*` 变量
+
+`apps/web/src/assets/var.css` 中定义的是**平台设计 token**（灰阶、边框、背景、文案色等），例如：
+
+- `--sd-text-grey-900`、`--sd-grey-7`
+- `--sd-border-light`、`--sd-border-grey-4`
+- `--sd-bg-secondary`、`--sd-bg-primary-hover`
+- `--sd-link-color`
+
+新增样式时优先复用已有 `--sd-*`；**不要在 `--sd-*` 下再定义 primary 主题色**（与 Ant Design 重复且易遗漏）。
+
+## 快速判断
+
+| 用途 | 用哪个 |
+|------|--------|
+| 主色按钮、选中边框、主题 hover | `--ant-color-primary` 等 |
+| 灰字、浅边框、卡片背景 | `--sd-*`（见 `var.css`） |
+| 链接色（非 primary 场景） | `--sd-link-color` 或 `--ant-color-link` |
+
+编写或审查 Tailwind 任意值（`var(--...)`）时，先确认变量在 `var.css` 或 Ant Design 文档中存在，避免无效变量导致样式失效。

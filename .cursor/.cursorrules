@@ -107,3 +107,13 @@ knowledgeInfo.value = res.data
    useTable(api, computed(() => ({ extraParams: { scope, keyword, sorts } })))
 ```
 
+---
+
+# CSS 变量使用约定
+
+详见 `.cursor/rules/css-variables.mdc`。简要：
+
+- **主题色**（primary、选中、主题 hover）→ `--ant-color-primary` 等 Ant Design 注入变量
+- **平台 UI**（灰阶、边框、背景）→ `--sd-*`（定义在 `apps/web/src/assets/var.css`）
+- **禁止**使用未定义的 `--sd-primary-color` 等自造主题变量
+
