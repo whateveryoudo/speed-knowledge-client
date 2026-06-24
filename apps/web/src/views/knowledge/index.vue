@@ -46,15 +46,25 @@
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb" />
+                        <AddMenu :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb"
+                            @add-catalog-node-cb="handleAddCatalogNodeCb" />
                     </a-flex>
 
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
-                        <DocumentMenus :loading="documentLoading" :tree="documentTree"
-                            @delete-document="handleDeleteDocument" @rename-document="handleRenameDocument"
-                            @drag-document-end="knowledgeStore.handleDragDocumentEnd" />
+                        <DocumentMenus
+                            :loading="documentLoading"
+                            :tree="documentTree"
+                            :nodeUIStateMap="nodeUIStateMap"
+                            :focusRenameNodeId="focusRenameNodeId"
+                            @update-node-ui-state="knowledgeStore.setNodeUIState"
+                            @clear-focus-rename-node="knowledgeStore.clearFocusRenameNode"
+                            @rename-node="handleRenameNode"
+                            @edit-document="handleEditDocument"
+                            @delete-document="handleDeleteDocument"
+                            @drag-document-end="knowledgeStore.handleDragDocumentEnd"
+                        />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -91,7 +101,7 @@ import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
 import { useSystemStore } from '#sk-web/store/useSystemStore';
-
+import type { DocumentNodeItem } from '@sk/types';
 import DocumentMenus from './components/documentMenus/index.vue';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_knowledge_expand') || localStorage.getItem('sk_knowledge_expand') === 'true');
@@ -100,7 +110,7 @@ const router = useRouter();
 const route = useRoute();
 const knowledgeStore = useKnowledgeStore()
 const systemStore = useSystemStore();
-const { knowledgeInfo, knowledgeError, documentTree, documentLoading, breadcrumbName, showKnowledgeLeftPanel } = storeToRefs(knowledgeStore)
+const { knowledgeInfo, knowledgeError, documentTree, documentLoading, breadcrumbName, showKnowledgeLeftPanel, focusRenameNodeId, nodeUIStateMap } = storeToRefs(knowledgeStore)
 const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(localStorage.getItem('sk_knowledge_expand_width')) || DEFAULT_EXPAND_WIDTH }, {
     minWidth: 200, maxWidth: 400,
     onResizeEnd: ({ width, height }: { width: number; height: number }) => {
@@ -110,7 +120,6 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
     }
 })
 const openTooltip = ref(false);
-const documentMenusRef = ref<InstanceType<typeof DocumentMenus> | null>(null);
 const slug = computed(() => route.params.knowledge_slug)
 type ItemType = {
     type?: 'group';
@@ -134,30 +143,36 @@ const handleToggle = () => {
 const handleTogglePublic = () => {
     // TODO:
 }
-const handleAddDocumentCb = async (newDocSlug: string) => {
-    console.log('新增文档', newDocSlug)
-    await knowledgeStore.initDocumentTree();
-    // 这里修改当前知识库节点为编辑中
-    knowledgeStore.updateDocumentAttrs(newDocSlug, {
-        mode: 'edit',
-    })
-    // 跳转对应链接
-    router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/document/${newDocSlug}`);
+const handleAddDocumentCb = (node: DocumentNodeItem) => {
+    knowledgeStore.appendDocumentNode(node)
+    knowledgeStore.updateNode(node.id, { mode: 'edit' })
+    router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/document/${node.document_slug}`)
+}
+// 新增目录节点（这里主要是目录节点）
+const handleAddCatalogNodeCb = (node: DocumentNodeItem) => {
+    knowledgeStore.appendDocumentNode(node)
+    knowledgeStore.setNodeUIState(node.id, { renaming: true, showActions: true })
+}
+
+const handleRenameNode = async (params: {
+    nodeId: string,
+    documentId?: string,
+    title: string,
+    cb?: () => void,
+}) => {
+    debugger;
+    await knowledgeStore.handleRenameNode(params, params.cb)
+}
+
+const handleEditDocument = (params: { nodeId: string; documentSlug: string }) => {
+    knowledgeStore.handleEditDocument(params.nodeId, params.documentSlug)
 }
 
 const handleDeleteDocument = async (params: {
-    id: string,
+    nodeId: string,
     cb?: (res: any) => void
 }) => {
-    await knowledgeStore.deleteDocument(params.id, params.cb);
-}
-const handleRenameDocument = async (params: {
-    id: string,
-    title: string,
-    cb?: () => void
-}) => {
-    await knowledgeStore.handleUpdateDocumentName(params.id, params.title, 'outer', params.cb);
-    params.cb && params.cb();
+    await knowledgeStore.deleteTreeNode(params.nodeId, params.cb);
 }
 const handleMoreOpt = (e: any) => {
     switch (e.key) {

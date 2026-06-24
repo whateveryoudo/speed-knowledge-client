@@ -5,13 +5,13 @@
             :tree-data="transformedTree" @dragenter="onDragEnter" @drop="onDrop" @select="handleTreeSelect">
             <template #title="{ dataRef: record }">
                 <a-input ref="renameInputRef" @blur="(e: any) => handleRenameBlur(e.target.value, record)" size="small"
-                    v-if="getNodeUIState(record.id, 'renaming')" :value="record.title" />
+                    v-if="isRenaming(record.id)" :value="record.title" />
                 <div v-else class="flex items-center justify-between" @mouseenter="handleMouseEnter(record)"
                     @mouseleave="handleMouseLeave(record)">
                     <span class="flex-1 truncate" :title="record.title">
                         {{ record.title }}
                     </span>
-                    <a-space :size="4" class="shrink-0" v-if="getNodeUIState(record.id, 'showActions')">
+                    <a-space :size="4" class="shrink-0" v-if="showActions(record.id)">
                         <a-dropdown :overlayStyle="{ width: '150px' }" placement="bottomLeft" trigger="click"
                             @open-change="(open: boolean) => handleMoreOpenChange(open, record)">
                             <a-button type="text" class="shadow-btn-wrapper icon" @click.stop>
@@ -43,31 +43,42 @@
     </SkeletonList>
 </template>
 <script lang="ts" setup>
-import { computed, ref, h } from 'vue';
+import { computed, ref, h, watch, nextTick } from 'vue';
 import { useTree } from './useTree';
-import { type DragDocumentParams, type DocumentNodeTreeItem } from '@sk/types';
+import { type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState } from '@sk/types';
 import { documentMoreMenus } from './menus';
 import { Modal, message } from 'ant-design-vue';
+
 const props = withDefaults(defineProps<{
     loading: boolean;
     tree: DocumentNodeTreeItem[];
+    nodeUIStateMap: Record<string, TreeNodeUIState>;
+    focusRenameNodeId?: string | null;
 }>(), {
     loading: false,
     tree: () => [],
+    nodeUIStateMap: () => ({}),
+    focusRenameNodeId: null,
 })
 
-const cptTree = computed(() => {
-    return props.tree
-})
+const cptTree = computed(() => props.tree)
 const renameInputRef = ref<HTMLInputElement | null>(null)
+
 const emit = defineEmits<{
-    (e: 'rename-document', params: {
-        id: string,
+    (e: 'update-node-ui-state', nodeId: string, updates: Partial<TreeNodeUIState>): void
+    (e: 'clear-focus-rename-node'): void
+    (e: 'rename-node', params: {
+        nodeId: string,
+        documentId?: string,
         title: string,
         cb: () => void
     }): Promise<void>
+    (e: 'edit-document', params: {
+        nodeId: string,
+        documentSlug: string,
+    }): void
     (e: 'delete-document', params: {
-        id: string,
+        nodeId: string,
         cb: (res: any) => void
     }): Promise<void>
     (e: 'drag-document-end', params: {
@@ -75,21 +86,44 @@ const emit = defineEmits<{
         operation: DragDocumentParams
     }): Promise<void>
 }>();
-const { handleTreeSelect, onDrop, activeKey, transformedTree, onDragEnter, expandedKeys,
-    getNodeUIState,
-    setNodeUIState,
-} = useTree(cptTree, emit)
+
+const patchUIState = (nodeId: string, updates: Partial<TreeNodeUIState>) => {
+    emit('update-node-ui-state', nodeId, updates)
+}
+
+const getUI = (nodeId: string): TreeNodeUIState => props.nodeUIStateMap[nodeId] ?? {
+    showActions: false,
+    moreOpen: false,
+    addOpen: false,
+    renaming: false,
+}
+
+const isRenaming = (nodeId: string) => getUI(nodeId).renaming
+const showActions = (nodeId: string) => getUI(nodeId).showActions
+
+const { handleTreeSelect, onDrop, activeKey, transformedTree, onDragEnter, expandedKeys } = useTree(cptTree, emit)
+
+watch(
+    () => props.focusRenameNodeId,
+    (nodeId) => {
+        if (!nodeId) return
+        nextTick(() => {
+            renameInputRef.value?.focus()
+            emit('clear-focus-rename-node')
+        })
+    },
+)
+
 const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
-    console.log(key)
     switch (key) {
         case 'rename':
-            setNodeUIState(record.id, { renaming: true })
-            setTimeout(() => {
-                renameInputRef.value?.focus()
-            }, 100)
+            patchUIState(record.id, { renaming: true, showActions: true })
+            nextTick(() => renameInputRef.value?.focus())
             break
         case 'edit':
-            record.mode = 'edit'
+            if (record.document_slug) {
+                emit('edit-document', { nodeId: record.id, documentSlug: record.document_slug })
+            }
             break
         case 'delete':
             Modal.confirm({
@@ -99,12 +133,9 @@ const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
                 cancelText: '取消',
                 onOk: async () => {
                     await emit('delete-document', {
-                        id: record.document_id,
+                        nodeId: record.id,
                         cb: (res: any) => {
-                            console.log(res)
-                            if (res.code === 0) {
-                                message.success('删除成功')
-                            }
+                            if (res.errCode === 0) message.success('删除成功')
                         }
                     })
                 }
@@ -112,49 +143,47 @@ const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
             break
     }
 }
+
 const handleMoreOpenChange = (open: boolean, record: DocumentNodeTreeItem) => {
-    setNodeUIState(record.id, { moreOpen: open })
-    if (!open && !getNodeUIState(record.id, 'addOpen')) {
+    patchUIState(record.id, { moreOpen: open })
+    if (!open && !getUI(record.id).addOpen) {
         setTimeout(() => {
-            if (!getNodeUIState(record.id, 'moreOpen') && !getNodeUIState(record.id, 'addOpen')) {
-                setNodeUIState(record.id, { showActions: false })
-            }
+            const ui = getUI(record.id)
+            if (!ui.moreOpen && !ui.addOpen) patchUIState(record.id, { showActions: false })
         }, 100)
     }
 }
+
 const handleAddOpenChange = (open: boolean, record: DocumentNodeTreeItem) => {
-    setNodeUIState(record.id, { addOpen: open })
-    // 如果关闭了，且另一个 dropdown 也没打开，且鼠标不在节点上，则隐藏 actions
-    if (!open && !getNodeUIState(record.id, 'moreOpen')) {
+    patchUIState(record.id, { addOpen: open })
+    if (!open && !getUI(record.id).moreOpen) {
         setTimeout(() => {
-            if (!getNodeUIState(record.id, 'moreOpen') &&
-                !getNodeUIState(record.id, 'addOpen')) {
-                setNodeUIState(record.id, { showActions: false })
-            }
+            const ui = getUI(record.id)
+            if (!ui.moreOpen && !ui.addOpen) patchUIState(record.id, { showActions: false })
         }, 100)
     }
 }
+
 const handleMouseEnter = (record: DocumentNodeTreeItem) => {
-    setNodeUIState(record.id, { showActions: true })
+    patchUIState(record.id, { showActions: true })
 }
+
 const handleMouseLeave = (record: DocumentNodeTreeItem) => {
-    const moreOpen = getNodeUIState(record.id, 'moreOpen')
-    const addOpen = getNodeUIState(record.id, 'addOpen')
-    if (moreOpen || addOpen) return
-    setNodeUIState(record.id, { showActions: false })
+    const ui = getUI(record.id)
+    if (ui.moreOpen || ui.addOpen) return
+    patchUIState(record.id, { showActions: false })
 }
+
 const handleRenameBlur = async (value: string, record: DocumentNodeTreeItem) => {
     if (value === record.title || value.trim() === '') {
-        setNodeUIState(record.id, { renaming: false })
+        patchUIState(record.id, { renaming: false })
         return
     }
-    await emit('rename-document', {
-        id: record.document_id, // 这里直接更改文档信息
+    await emit('rename-node', {
+        nodeId: record.id,
+        documentId: record.document_id || undefined,
         title: value,
-        cb: () => {
-            record.title = value
-            setNodeUIState(record.id, { renaming: false })
-        }
+        cb: () => patchUIState(record.id, { renaming: false }),
     })
 }
 </script>
@@ -177,14 +206,10 @@ const handleRenameBlur = async (value: string, record: DocumentNodeTreeItem) => 
         }
     }
 
-    // 移除默认的选中样式
     .ant-tree-node-content-wrapper.ant-tree-node-selected,
     .ant-tree-checkbox+span.ant-tree-node-selected {
         background-color: transparent;
     }
-
-    // .ant-tree-node-content-wrapper .ant-tree-switcher {
-    // }
 
     .ant-tree-node-content-wrapper {
         line-height: @tree-line-height;
@@ -204,9 +229,7 @@ const handleRenameBlur = async (value: string, record: DocumentNodeTreeItem) => 
         &:hover,
         &.ant-tree-treenode-selected {
             background-color: var(--sd-bg-primary-hover);
-
         }
     }
-
 }
 </style>

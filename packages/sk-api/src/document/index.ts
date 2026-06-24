@@ -1,13 +1,18 @@
 import request, { type ResponseType } from "../request";
 import { documentPrefix, documentNodePrefix } from "../path";
-import type { DocumentType, DocumentItem, DragDocumentParams } from "@sk/types";
-import type { UserInfo } from "@sk/types";
+import type {
+  DocumentType,
+  DocumentItem,
+  DragDocumentParams,
+  DocumentNodeItem,
+} from "@sk/types";
+import type { UserInfo, DocumentNodeType } from "@sk/types";
 // 新增文档（需携带知识库id）
 export const addDocument = (data: {
   knowledge_id: string;
   type: DocumentType;
   name: string;
-}): Promise<ResponseType<string>> => {
+}): Promise<ResponseType<DocumentNodeItem>> => {
   return request.post(`${documentPrefix}/docs`, data);
 };
 
@@ -33,13 +38,28 @@ export const getDocumentContent = (
   return request.get(`${documentPrefix}/content/${documentId}`);
 };
 
-// 删除文档
+// 删除文档（旧接口，按 document_id）
 export const deleteDocument = (
   documentId: string,
 ): Promise<ResponseType<any>> => {
   return request.delete(`${documentPrefix}/${documentId}`);
 };
 
+// 删除文档树节点（文档 / 目录统一入口，支持递归删子树）
+export const deleteDocumentNode = (
+  nodeId: string,
+): Promise<ResponseType<any>> => {
+  return request.delete(`${documentNodePrefix}/${nodeId}`);
+};
+// 新建文档节点（这里是主要是目录（其他文档是走的其他接口，后端自己创建的node））
+export const createCatalogNode = (data: {
+  knowledge_id: string;
+  type: DocumentNodeType;
+  name: string;
+  parent_id: string | null;
+}): Promise<ResponseType<DocumentNodeItem>> => {
+  return request.post(`${documentNodePrefix}/catalog_nodes`, data);
+};
 // 拖拽文档
 export const dragDocument = (
   data: DragDocumentParams,

@@ -7,6 +7,7 @@ export enum DocumentNodeType {
 export enum DocumentType {
   WORD = "word",
   SHEET = "sheet",
+  GROUP = "group",
 }
 
 export const documentTypeOptions = [
@@ -19,6 +20,11 @@ export const documentTypeOptions = [
     label: '表格',
     value: DocumentType.SHEET,
     icon: 'icon-sheet',
+  },
+  {
+    label: '分组',
+    value: DocumentType.GROUP,
+    icon: 'icon-group',
   },
 ] as const
 
@@ -63,22 +69,42 @@ export interface DocumentItem {
   created_at: string;
   updated_at: string;
 }
-export interface DocumentNodeTreeItem {
+/** 接口返回的文档树节点（无前端 mode） */
+export interface DocumentNodeItem {
   id: string;
   type: DocumentType;
   document_slug: string;
   title: string;
-  parent_id: string;
-  first_child_id: string;
+  parent_id?: string | null;
+  first_child_id?: string | null;
   document_id: string;
-  prev_id: string;
-  next_id: string;
+  prev_id?: string | null;
+  next_id?: string | null;
   knowledge_id: string;
   created_at: string;
   updated_at: string;
+}
+
+/** 前端文档树节点 = 接口节点 + mode */
+export interface DocumentNodeTreeItem extends DocumentNodeItem {
+  parent_id: string;
+  first_child_id: string;
+  prev_id: string;
+  next_id: string;
   mode: 'preview' | 'edit';
   children?: DocumentNodeTreeItem[];
 }
+
+/** 左侧文档树节点的临时 UI 状态（与树结构分离） */
+export interface TreeNodeUIState {
+  showActions: boolean
+  moreOpen: boolean
+  addOpen: boolean
+  renaming: boolean
+}
+
+/** 前端文档树节点的临时 UI 状态（可扩展） */
+export type DocumentNodeUIState = Partial<Pick<DocumentNodeTreeItem, 'mode'>>
 
 
 

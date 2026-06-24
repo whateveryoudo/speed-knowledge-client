@@ -9,6 +9,7 @@ import type {
   KnowledgeGroupUpdateBody,
   KnowledgeGroupRelationMoveBody,
   KnowledgeCreate,
+  DocumentNodeItem,
   DocumentNodeTreeItem,
   KnowledgeIndexPageResponse,
   KnowledgeCommonPinItem,
@@ -99,7 +100,7 @@ export const getKnowledgeDetail = (
 // 通过知识库id查询文档节点树
 export const getDocumentNodesTreeById = (
   knowledge_id: string
-): Promise<ResponseType<DocumentNodeTreeItem[]>> => {
+): Promise<ResponseType<DocumentNodeItem[]>> => {
   return request.get(`${knowledgePrefix}/${knowledge_id}/document/tree`);
 };
 

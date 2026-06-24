@@ -5,7 +5,10 @@ import { computed, ref } from 'vue'
 import {
   type KnowledgeItem,
   type DocumentItem,
+  type DocumentNodeItem,
   type DocumentNodeTreeItem,
+  type DocumentNodeUIState,
+  type TreeNodeUIState,
   DocumentType,
 } from '@sk/types'
 import type { WorkbookSnapshot } from '@speed-sheet/shared'
@@ -37,6 +40,8 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     content_updated_at: '',
     created_at: '',
     updated_at: '',
+    team_id: '',
+    space_id: '',
     team: {
       id: '',
       name: '',
@@ -94,6 +99,43 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     mode: 'preview',
   }
   const documentLoading = ref(false)
+
+  const defaultTreeNodeUIState = (): TreeNodeUIState => ({
+    showActions: false,
+    moreOpen: false,
+    addOpen: false,
+    renaming: false,
+  })
+  const nodeUIStateMap = ref<Record<string, TreeNodeUIState>>({})
+  const focusRenameNodeId = ref<string | null>(null)
+
+  const getNodeUIState = (nodeId: string, key: keyof TreeNodeUIState) => {
+    return nodeUIStateMap.value[nodeId]?.[key] ?? defaultTreeNodeUIState()[key]
+  }
+
+  const setNodeUIState = (nodeId: string, updates: Partial<TreeNodeUIState>) => {
+    nodeUIStateMap.value = {
+      ...nodeUIStateMap.value,
+      [nodeId]: {
+        ...defaultTreeNodeUIState(),
+        ...nodeUIStateMap.value[nodeId],
+        ...updates,
+      },
+    }
+    if (updates.renaming) {
+      focusRenameNodeId.value = nodeId
+    }
+  }
+
+  const clearFocusRenameNode = () => {
+    focusRenameNodeId.value = null
+  }
+
+  const clearNodeUIState = (nodeId: string) => {
+    const { [nodeId]: _, ...rest } = nodeUIStateMap.value
+    nodeUIStateMap.value = rest
+  }
+
   // 当前知识库下的文档树
   const documentTree = ref<DocumentNodeTreeItem[]>([])
   // 扁平化的文档树
@@ -121,43 +163,157 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       mode: 'preview',
     }
   })
+  // 将接口节点转换为前端文档树节点
+  const toTreeNode = (node: DocumentNodeItem, attrs: DocumentNodeUIState = {}): DocumentNodeTreeItem => ({
+    ...node,
+    document_slug: node.document_slug ?? '',
+    parent_id: node.parent_id ?? '',
+    first_child_id: node.first_child_id ?? '',
+    prev_id: node.prev_id ?? '',
+    next_id: node.next_id ?? '',
+    mode: 'preview',
+    ...attrs,
+  })
+
+  const rebuildDocumentTree = () => {
+    documentTree.value = arrayToTree(flattenDocumentTree.value, {
+      useChainOrder: true,
+    })
+  }
+
+  const findNodeIndex = (identifier: string) =>
+    flattenDocumentTree.value.findIndex(
+      (item) =>
+        item.id === identifier
+        || item.document_id === identifier
+        || item.document_slug === identifier,
+    )
+
+  /** 合并更新节点（支持 nodeId / documentId / documentSlug） */
+  const updateNode = (identifier: string, attrs: Partial<DocumentNodeTreeItem>) => {
+    const index = findNodeIndex(identifier)
+    if (index === -1) {
+      return
+    }
+    Object.assign(flattenDocumentTree.value[index]!, attrs)
+    rebuildDocumentTree()
+  }
+
+  const patchNodeById = (nodeId: string, attrs: Partial<DocumentNodeTreeItem>) => {
+    const index = flattenDocumentTree.value.findIndex((item) => item.id === nodeId)
+    if (index === -1) {
+      return
+    }
+    Object.assign(flattenDocumentTree.value[index]!, attrs)
+  }
+
+  const syncSiblingLinksForInsert = (node: DocumentNodeTreeItem) => {
+    // 后端 create_node 将新节点插入 sibling 链头部：new.next = 原第一个，原第一个.prev = new
+    if (node.next_id) {
+      patchNodeById(node.next_id, { prev_id: node.id })
+    }
+    if (node.parent_id) {
+      const parent = flattenDocumentTree.value.find((item) => item.id === node.parent_id)
+      if (parent && (!parent.first_child_id || parent.first_child_id === node.next_id)) {
+        patchNodeById(node.parent_id, { first_child_id: node.id })
+      }
+
+    }
+  }
+
   const initDocumentTree = async () => {
     documentLoading.value = true
     const [error, res] = await to(knowledgeApi.getDocumentNodesTreeById(knowledgeInfo.value.id))
+    documentLoading.value = false
     if (error) {
       return
     }
-    documentLoading.value = false
-
-    // 初始化一些 中间态
 
     flattenDocumentTree.value = res.data
-      ? res.data.map((item) => ({ ...item, mode: 'preview' }))
+      ? res.data.map((item) => toTreeNode(item))
       : []
-    // 转换为树结构
-    documentTree.value = arrayToTree(flattenDocumentTree.value, {
-      useChainOrder: true,
-    })
-    console.log('documentTree.value', documentTree.value)
+    rebuildDocumentTree()
   }
 
-  // 更新文档属性(支持通过id或slug更新)
-  const updateDocumentAttrs = (identifier: string, attrs: Partial<DocumentNodeTreeItem>) => {
-    const index = flattenDocumentTree.value.findIndex(
-      (item) => item.document_id === identifier || item.document_slug === identifier,
-    )
-    if (index !== -1) {
-      Object.entries(attrs).forEach(([key, value]) => {
-        const item = flattenDocumentTree.value[index]!
-        if (item) {
-          item[key as keyof DocumentNodeTreeItem] = value as never
-        }
+  const appendDocumentNode = (node: DocumentNodeItem) => {
+    const treeNode = toTreeNode(node)
+    syncSiblingLinksForInsert(treeNode)
+    debugger;
+    flattenDocumentTree.value.push(treeNode)
+    rebuildDocumentTree()
+  }
+
+  const collectDescendantIds = (rootId: string): string[] => {
+    const result: string[] = []
+    const queue = flattenDocumentTree.value
+      .filter((item) => item.parent_id === rootId)
+      .map((item) => item.id)
+
+    while (queue.length > 0) {
+      const id = queue.shift()!
+      result.push(id)
+      flattenDocumentTree.value
+        .filter((item) => item.parent_id === id)
+        .forEach((item) => queue.push(item.id))
+    }
+
+    return result
+  }
+
+  const removeDocumentNode = (nodeId: string) => {
+    const node = flattenDocumentTree.value.find((item) => item.id === nodeId)
+    if (!node) {
+      return
+    }
+
+    const idsToRemove = new Set([nodeId, ...collectDescendantIds(nodeId)])
+
+    if (node.prev_id && !idsToRemove.has(node.prev_id)) {
+      patchNodeById(node.prev_id, {
+        next_id: node.next_id && !idsToRemove.has(node.next_id) ? node.next_id : '',
       })
     }
-    documentTree.value = arrayToTree(flattenDocumentTree.value, {
-      useChainOrder: true,
-    })
+    if (node.next_id && !idsToRemove.has(node.next_id)) {
+      patchNodeById(node.next_id, {
+        prev_id: node.prev_id && !idsToRemove.has(node.prev_id) ? node.prev_id : '',
+      })
+    }
+
+    if (node.parent_id && !idsToRemove.has(node.parent_id)) {
+      const parent = flattenDocumentTree.value.find((item) => item.id === node.parent_id)
+      if (parent?.first_child_id === node.id) {
+        patchNodeById(node.parent_id, {
+          first_child_id: node.next_id && !idsToRemove.has(node.next_id) ? node.next_id : '',
+        })
+      }
+    }
+
+    flattenDocumentTree.value = flattenDocumentTree.value.filter(
+      (item) => !idsToRemove.has(item.id),
+    )
+    idsToRemove.forEach((id) => clearNodeUIState(id))
+    rebuildDocumentTree()
   }
+
+  const handleRenameNode = async (
+    params: { nodeId: string; documentId?: string; title: string },
+    cb?: () => void,
+  ) => {
+    if (params.documentId) {
+      await handleUpdateDocumentName(params.documentId, params.title, 'outer', cb)
+      return
+    }
+    updateNode(params.nodeId, { title: params.title })
+    cb?.()
+  }
+
+  const handleEditDocument = (nodeId: string, documentSlug: string) => {
+    updateNode(nodeId, { mode: 'edit' })
+    router.push(
+      `/${route.params.team_slug as string}/knowledge/${currentKnowledgeSlug.value}/document/${documentSlug}`,
+    )
+  }
+
   const initKnowledge = async () => {
     const [error, res] = await to(
       knowledgeApi.getKnowledgeDetail(currentKnowledgeSlug.value as string, !!document_slug.value),
@@ -236,7 +392,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     if (!error) {
       documentInfo.value = res.data
       // 同步节点树中的文档名称
-      updateDocumentAttrs(documentInfo.value.id, {
+      updateNode(documentInfo.value.id, {
         title: text,
       })
       if (cb && typeof cb === 'function') {
@@ -245,49 +401,62 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
 
-  // 删除文档后跳转下一个文档
-  const setNextDocumentNode = (nodeId: string) => {
-    if (!nodeId || nodeId !== currentDocNode.value.id) {
-      // 如果删除不是当前选中，则不管
-      return
-    }
-    if (flattenDocumentTree.value.length === 1) {
-      // 跳转知识库首页
-      router.push(`/knowledge/${currentKnowledgeSlug.value}`)
-      return
-    }
-    const index = flattenDocumentTree.value.findIndex((item) => item.id === nodeId)
-    if (index !== -1) {
-      if (index === documentTree.value.length - 1) {
-        // 如果是最后一项，则找上一个
-        const prevNode = flattenDocumentTree.value[index - 1]
-        if (prevNode) {
-          router.push(`/knowledge/${currentKnowledgeSlug.value}/document/${prevNode.document_slug}`)
-        }
-      } else {
-        // 找下一个
-        const nextNode = flattenDocumentTree.value[index + 1]
-        if (nextNode) {
-          router.push(`/knowledge/${currentKnowledgeSlug.value}/document/${nextNode.document_slug}`)
-        }
+  const findNavigableDocNode = (startIndex: number, step: 1 | -1) => {
+    const flat = flattenDocumentTree.value
+    for (let i = startIndex; i >= 0 && i < flat.length; i += step) {
+      const node = flat[i]
+      if (node?.document_slug) {
+        return node
       }
     }
+    return null
   }
 
-  // 删除文档
-  const deleteDocument = async (document_id: string, cb?: (res: any) => void) => {
-    // 查找当前文档对应的node节点
-    const node = flattenDocumentTree.value.find(
-      (item) => item.document_id === document_id,
-    )
+  // 删除后：若当前页在被删节点（或其子树）内，则跳转相邻文档或知识库首页
+  const setNextDocumentNode = (removedNodeIds: Set<string>) => {
+    const currentNodeId = currentDocNode.value.id
+    if (!currentNodeId || !removedNodeIds.has(currentNodeId)) {
+      return
+    }
 
-    const [error, res] = await to(documentApi.deleteDocument(document_id))
+    const flatBeforeRemove = flattenDocumentTree.value
+    const index = flatBeforeRemove.findIndex((item) => item.id === currentNodeId)
+    if (index === -1) {
+      return
+    }
+
+    const teamSlug = route.params.team_slug as string
+    const knowledgePath = `/${teamSlug}/knowledge/${currentKnowledgeSlug.value}`
+    const remaining = flatBeforeRemove.filter((item) => !removedNodeIds.has(item.id))
+    const navigableRemaining = remaining.filter((item) => item.document_slug)
+
+    if (navigableRemaining.length === 0) {
+      router.push(knowledgePath)
+      return
+    }
+
+    const nextNode =
+      findNavigableDocNode(index + 1, 1) ??
+      findNavigableDocNode(index - 1, -1)
+
+    if (nextNode?.document_slug) {
+      router.push(`${knowledgePath}/document/${nextNode.document_slug}`)
+      return
+    }
+
+    router.push(knowledgePath)
+  }
+
+  // 删除文档树节点（目录 / 文档统一走 nodeId）
+  const deleteTreeNode = async (nodeId: string, cb?: (res: any) => void) => {
+    const descendantIds = collectDescendantIds(nodeId)
+    const removedNodeIds = new Set([nodeId, ...descendantIds])
+
+    const [error, res] = await to(documentApi.deleteDocumentNode(nodeId))
     if (!error) {
-      setNextDocumentNode(node ? node.id : '')
-      initDocumentTree()
-      if (cb && typeof cb === 'function') {
-        cb(res)
-      }
+      setNextDocumentNode(removedNodeIds)
+      removeDocumentNode(nodeId)
+      cb?.(res)
     }
   }
   // 拖拽树结束
@@ -313,6 +482,8 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentSheetSnapshot,
     documentTree,
     documentLoading,
+    nodeUIStateMap,
+    focusRenameNodeId,
     currentDocState,
     breadcrumbName,
     showKnowledgeLeftPanel,
@@ -320,10 +491,17 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     // 方法
     initKnowledge,
     initDocumentTree,
-    updateDocumentAttrs,
+    appendDocumentNode,
+    removeDocumentNode,
+    updateNode,
     initDocumentDetail,
     handleUpdateDocumentName,
     handleDragDocumentEnd,
-    deleteDocument,
+    deleteTreeNode,
+    getNodeUIState,
+    setNodeUIState,
+    clearFocusRenameNode,
+    handleRenameNode,
+    handleEditDocument,
   }
 })

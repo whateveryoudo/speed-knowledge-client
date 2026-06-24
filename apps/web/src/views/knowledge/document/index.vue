@@ -152,11 +152,11 @@ const onWordTitleUpdate = (val: string) => {
 }
 
 const changeToEdit = () => {
-  knowledgeStore.updateDocumentAttrs(documentInfo.value.id, { mode: 'edit' })
+  knowledgeStore.updateNode(documentInfo.value.id, { mode: 'edit' })
 }
 
 const setPreviewMode = () => {
-  knowledgeStore.updateDocumentAttrs(documentInfo.value.id, { mode: 'preview' })
+  knowledgeStore.updateNode(documentInfo.value.id, { mode: 'preview' })
   knowledgeStore.initDocumentDetail(false)
 }
 

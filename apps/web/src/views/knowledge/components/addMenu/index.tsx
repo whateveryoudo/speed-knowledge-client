@@ -4,11 +4,11 @@ import { Tooltip, Button, Dropdown, Menu } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { type ItemType } from 'ant-design-vue'
 import { document as documentApi } from '@sk/api'
-import { type DocumentItem, DocumentType } from '@sk/types'
+import { DocumentType, DocumentNodeType } from '@sk/types'
 import { to } from 'await-to-js'
 export default defineComponent({
   name: 'AddMenu',
-  emits: ['add-document-cb'],
+  emits: ['add-document-cb', 'add-catalog-node-cb'],
   props: {
     knowledgeId: {
       type: String,
@@ -29,6 +29,14 @@ export default defineComponent({
         key: 'sheet',
         icon: <IconFont type="icon-sheet" svg-sprite style={{ width: '18px', height: '18px' }} />,
       },
+      {
+        type: 'divider',
+      },
+      {
+        label: '分组',
+        key: 'group',
+        icon: <IconFont type="icon-group" svg-sprite style={{ width: '18px', height: '18px' }} />,
+      },
     ])
     const handleMenuClick = async ({ key }: { key: DocumentType }) => {
       if ([DocumentType.WORD, DocumentType.SHEET].includes(key)) {
@@ -44,6 +52,20 @@ export default defineComponent({
           emit('add-document-cb', res.data)
         }
       }
+      if (key === DocumentType.GROUP) {
+        // 调用新增分组节点接口
+        const [error, res] = await to(
+          documentApi.createCatalogNode({
+            knowledge_id: props.knowledgeId,
+            type: DocumentNodeType.TITLE,
+            name: '无标题分组',
+            parent_id: null,
+          }),
+        )
+        if (!error) {
+          emit('add-catalog-node-cb', res.data)
+        }
+      }
     }
     const renderMenu = () => {
       return <Menu items={items.value} onClick={handleMenuClick} />
@@ -51,7 +73,7 @@ export default defineComponent({
 
     return () => (
       <>
-        <Dropdown overlayClassName="w-[120px]"  placement="bottomLeft" overlay={renderMenu()}>
+        <Dropdown overlayClassName="w-[120px]" placement="bottomLeft" overlay={renderMenu()}>
           <Button type="default" class="px-2">
             <PlusOutlined />
           </Button>

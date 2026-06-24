@@ -1,0 +1,48 @@
+---
+description: Vue 模板中 props 绑定使用 camelCase，避免 kebab-case 透传失效
+globs: **/*.{vue,tsx}
+alwaysApply: false
+---
+
+# Vue Props 命名：模板用 camelCase
+
+## 规则
+
+在 `<template>` 里向子组件传 **props** 时，**优先且统一使用 camelCase 绑定**，不要用 kebab-case。
+
+```vue
+<!-- ✅ GOOD -->
+<CatelogTree
+  :nodeUIStateMap="nodeUIStateMap"
+  :focusRenameNodeId="focusRenameNodeId"
+/>
+
+<!-- ❌ BAD：可能导致 props 未正确传入、TS 校验报错、子组件读不到值 -->
+<CatelogTree
+  :node-ui-state-map="nodeUIStateMap"
+  :focus-rename-node-id="focusRenameNodeId"
+/>
+```
+
+`defineProps` / 组件 props 定义侧保持 **camelCase**：
+
+```typescript
+defineProps<{
+  nodeUIStateMap: Record<string, TreeNodeUIState>
+  focusRenameNodeId?: string | null
+}>()
+```
+
+## 说明
+
+- Vue 虽支持模板 kebab-case 自动映射到 camelCase props，但在 **多层透传**（index → DocumentMenus → CatelogTree）+ **TypeScript 模板检查** 场景下，kebab-case 容易出现 props 丢失或类型不匹配。
+- **事件名**仍可用 kebab-case（如 `@update-node-ui-state`），与 props 命名约定分开。
+- 新增多词 prop（尤其含 `Map`、`Id`、`State` 等后缀）时，全程 camelCase：`定义 → 绑定 → 透传`。
+
+## 快速检查
+
+改 Vue 组件传参时，确认链路上每一层都是：
+
+```
+:nodeUIStateMap="..."  而不是  :node-ui-state-map="..."
+```

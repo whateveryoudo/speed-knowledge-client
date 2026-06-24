@@ -176,8 +176,15 @@ export function arrayToTree<T extends TreeNode>(
     );
 
     if (rootNodesWithoutPrev.length > 0) {
-      // 找到第一个根节点（可能有多个，取第一个）
-      const firstRootNode = rootNodesWithoutPrev[0];
+      // 链头 = prev 为空且不被其他根节点的 next_id 指向
+      const referencedNextIds = new Set(
+        result
+          .map((node) => node[nextKey] as string | number | null | undefined)
+          .filter((id) => id != null && id !== ""),
+      );
+      const firstRootNode =
+        rootNodesWithoutPrev.find((node) => !referencedNextIds.has(node[idKey])) ??
+        rootNodesWithoutPrev[0]!;
       const firstRootId = firstRootNode[idKey];
 
       // 构建有序的根节点列表

@@ -14,6 +14,7 @@ import {
   type KnowledgeGroupDisplayConfig,
   type KnowledgeGroupItem,
 } from '@sk/types'
+import type { SelectValue } from 'ant-design-vue/es/select'
 import ListCardActiveIcon from '#sk-web/assets/images/list_card_active.png'
 import ListCardDefaultIcon from '#sk-web/assets/images/list_card_default.png'
 import GroupCardActiveIcon from '#sk-web/assets/images/group_card_active.png'
@@ -79,14 +80,15 @@ const onStyleChange = (style: KnowledgeGroupStyle) => {
   emitUpdate()
 }
 
-const onDocOrderChange = (value: number) => {
-  localConfig.value.doc_order_type = value
+const onDocOrderChange = (value: SelectValue) => {
+  localConfig.value.doc_order_type = Number(value)
   emitUpdate()
 }
 </script>
 
 <template>
-  <a-popover v-model:open="open"  placement="bottomRight">
+  <!-- 调整为click触发，避免内部select 的 浮层导致关闭（难得内部组件全部写append） -->
+  <a-popover v-model:open="open" trigger="click" placement="bottomRight">
     <template #content>
       <div class="w-[280px]">
         <div class="mb-3 text-[14px] font-medium text-[var(--sd-text-grey-900)]">样式设置</div>
@@ -137,10 +139,12 @@ const onDocOrderChange = (value: number) => {
         </div>
       </div>
     </template>
-    <a-button type="text" class="shadow-btn-wrapper icon" @click.stop>
-      <template #icon>
-        <AppstoreOutlined />
-      </template>
-    </a-button>
+    <a-tooltip title="样式设置" @click.stop>
+      <a-button type="text" class="shadow-btn-wrapper icon">
+        <template #icon>
+          <AppstoreOutlined />
+        </template>
+      </a-button>
+    </a-tooltip>
   </a-popover>
 </template>
