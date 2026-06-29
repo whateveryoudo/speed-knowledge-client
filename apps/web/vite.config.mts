@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       vueJsx(),
-      vueDevTools(),
+      ...(mode === 'development' ? [vueDevTools()] : []),
       Unocss(),
       Components({
         resolvers: [
@@ -75,10 +75,13 @@ export default defineConfig(({ mode }) => {
       alias: {
         ...singletonPackages,
         '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
+        // 你可以配置别名来本地调试源码
         ...(mode === 'development'
           ? {
               '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
               '@st': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
+              'speed-tiptap-editor/dist': fileURLToPath(new URL('../../../speed-tiptap-editor/dist', import.meta.url)),
+              'speed-tiptap-editor': fileURLToPath(new URL('../../../speed-tiptap-editor/src/index.ts', import.meta.url)),
               ...speedComponentsDistAliases(),
               '@speed-sheet/vue3-antd': fileURLToPath(
                 new URL('../../../speed-sheet/packages/vue3-antd/src/index.ts', import.meta.url),

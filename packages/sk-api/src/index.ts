@@ -9,6 +9,7 @@ import * as collaborator from "./collaborator";
 import * as notification from "./notification";
 import { initSkApiConfig } from "./request";
 import * as space from "./space";
+import * as team from "./team";
 export * from "./path";
 export {
   attachment,
@@ -21,5 +22,6 @@ export {
   document,
   initSkApiConfig,
   space,
+  team,
   notification,
 };

@@ -1,7 +1,7 @@
 // store/useKnowledgeStore.ts
 // 存放当前进入的知识库相关信息
 import { defineStore, storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   type KnowledgeItem,
   type DocumentItem,
@@ -56,9 +56,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     },
   })
   const knowledgeError = ref<{ errMessage: string } | null>(null)
-  const showKnowledgeLeftPanel = ref(true); // 是否显示知识库左侧面板（默认显示,仅有文档权限下不显示）
+  const showKnowledgeLeftPanel = ref(true) // 是否显示知识库左侧面板（默认显示,仅有文档权限下不显示）
   const breadcrumbName = computed(() => {
-    return knowledgeInfo.value.team.owner_id === userStore.userInfo.id ? '个人知识库' : knowledgeInfo.value.team.name
+    return knowledgeInfo.value.team.owner_id === userStore.userInfo.id
+      ? '个人知识库'
+      : knowledgeInfo.value.team.name
   })
   const currentKnowledgeSlug = computed(() => route.params.knowledge_slug as string)
   const document_slug = computed(() => {
@@ -148,23 +150,29 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       ) || { ...defaultDocumentNode }
     )
   })
+
   // 构建一个中间态（这里不去动之前的currentDocNode，构建一个类似的结构，组合一下）
   const currentDocState = computed(() => {
-    return showKnowledgeLeftPanel.value ? currentDocNode.value : {
-      id: 'doc_node',
-      type: documentInfo.value.type,
-      document_slug: document_slug.value,
-      title: documentInfo.value.name,
-      parent_id: '',
-      first_child_id: '',
-      document_id: documentInfo.value.id,
-      prev_id: '',
-      next_id: '',
-      mode: 'preview',
-    }
+    return showKnowledgeLeftPanel.value
+      ? currentDocNode.value
+      : {
+          id: 'doc_node',
+          type: documentInfo.value.type,
+          document_slug: document_slug.value,
+          title: documentInfo.value.name,
+          parent_id: '',
+          first_child_id: '',
+          document_id: documentInfo.value.id,
+          prev_id: '',
+          next_id: '',
+          mode: 'preview',
+        }
   })
   // 将接口节点转换为前端文档树节点
-  const toTreeNode = (node: DocumentNodeItem, attrs: DocumentNodeUIState = {}): DocumentNodeTreeItem => ({
+  const toTreeNode = (
+    node: DocumentNodeItem,
+    attrs: DocumentNodeUIState = {},
+  ): DocumentNodeTreeItem => ({
     ...node,
     document_slug: node.document_slug ?? '',
     parent_id: node.parent_id ?? '',
@@ -184,9 +192,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const findNodeIndex = (identifier: string) =>
     flattenDocumentTree.value.findIndex(
       (item) =>
-        item.id === identifier
-        || item.document_id === identifier
-        || item.document_slug === identifier,
+        item.id === identifier ||
+        item.document_id === identifier ||
+        item.document_slug === identifier,
     )
 
   /** 合并更新节点（支持 nodeId / documentId / documentSlug） */
@@ -217,7 +225,6 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       if (parent && (!parent.first_child_id || parent.first_child_id === node.next_id)) {
         patchNodeById(node.parent_id, { first_child_id: node.id })
       }
-
     }
   }
 
@@ -229,16 +236,13 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       return
     }
 
-    flattenDocumentTree.value = res.data
-      ? res.data.map((item) => toTreeNode(item))
-      : []
+    flattenDocumentTree.value = res.data ? res.data.map((item) => toTreeNode(item)) : []
     rebuildDocumentTree()
   }
 
   const appendDocumentNode = (node: DocumentNodeItem) => {
     const treeNode = toTreeNode(node)
     syncSiblingLinksForInsert(treeNode)
-    debugger;
     flattenDocumentTree.value.push(treeNode)
     rebuildDocumentTree()
   }
@@ -294,17 +298,13 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     idsToRemove.forEach((id) => clearNodeUIState(id))
     rebuildDocumentTree()
   }
-
-  const handleRenameNode = async (
-    params: { nodeId: string; documentId?: string; title: string },
-    cb?: () => void,
-  ) => {
-    if (params.documentId) {
-      await handleUpdateDocumentName(params.documentId, params.title, 'outer', cb)
-      return
+  // 节点重命名（这里不调用handleUpdateDocumentName，直接调用新的接口）
+  const handleRenameNode = async (params: { nodeId: string; title: string }, cb?: () => void) => {
+    const [error] = await to(documentApi.updateDocumentNode(params.nodeId, { title: params.title }))
+    if (!error) {
+      updateNode(params.nodeId, { title: params.title })
+      cb?.()
     }
-    updateNode(params.nodeId, { title: params.title })
-    cb?.()
   }
 
   const handleEditDocument = (nodeId: string, documentSlug: string) => {
@@ -326,9 +326,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     } else {
       if (!document_slug.value) {
         const errorRes = (error as any)?.response?.data as {
-          errCode: number;
-          errMessage?: string;
-        };
+          errCode: number
+          errMessage?: string
+        }
         if (errorRes?.errCode === 403) {
           knowledgeError.value = { errMessage: errorRes.errMessage || '你无权访问此知识库' }
         }
@@ -367,22 +367,27 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       }
     } else {
       const errorRes = (error as any)?.response?.data as {
-        errCode: number;
-        errMessage?: string;
-      };
+        errCode: number
+        errMessage?: string
+      }
       if (errorRes?.errCode === 403) {
         documentError.value = { errMessage: errorRes.errMessage || '你无权访问此文档' }
       }
     }
   }
-  // 文档更新(追加触发方式：编辑器自身触发不用更新后端二进制文件)
+  /**
+   * 文档标题更新（outer=顶栏/树，editor=编辑器内标题）
+   *
+   * @see #sk-web/views/knowledge/document/COLLABORATION.md — 协同闪屏记忆点
+   * 成功回调里只 patch `documentInfo.name`，禁止 `documentInfo = res.data`：
+   * 整对象替换会触发 useWordEditorProps 重算 → collaboration 新引用 → useCollaboration destroy → 编辑器闪屏。
+   */
   const handleUpdateDocumentName = async (
     documentId: string,
     text: string,
     trigger: 'outer' | 'editor' = 'outer',
     cb?: any,
   ) => {
-    // debugger;
     const [error, res] = await to(
       documentApi.updateDocument(documentId, {
         name: text,
@@ -390,8 +395,16 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       }),
     )
     if (!error) {
-      documentInfo.value = res.data
+      documentInfo.value.name = res.data.name
       // 同步节点树中的文档名称
+      const index = findNodeIndex(documentInfo.value.id)
+      if (index === -1) {
+        return
+      }
+      Object.assign(flattenDocumentTree.value[index]!, {
+        title: text,
+      })
+      rebuildDocumentTree()
       updateNode(documentInfo.value.id, {
         title: text,
       })
@@ -435,9 +448,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       return
     }
 
-    const nextNode =
-      findNavigableDocNode(index + 1, 1) ??
-      findNavigableDocNode(index - 1, -1)
+    const nextNode = findNavigableDocNode(index + 1, 1) ?? findNavigableDocNode(index - 1, -1)
 
     if (nextNode?.document_slug) {
       router.push(`${knowledgePath}/document/${nextNode.document_slug}`)
@@ -461,16 +472,15 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
   // 拖拽树结束
   const handleDragDocumentEnd = async (params: {
-    newTree: DocumentNodeTreeItem[],
+    newTree: DocumentNodeTreeItem[]
     operation: DragDocumentParams
   }) => {
     const [error] = await to(documentApi.dragDocument(params.operation))
     if (error) {
       return
     }
-    documentTree.value = params.newTree; // 同步最新的树
+    documentTree.value = params.newTree // 同步最新的树
   }
-
 
   return {
     // 状态

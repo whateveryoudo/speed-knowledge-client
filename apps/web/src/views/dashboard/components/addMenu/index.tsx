@@ -41,7 +41,7 @@ export default defineComponent({
                     <PlusOutlined />
                 </Button>
             </Dropdown>
-            <AddKnowledge open={openAddKnowledge.value} onOk={(newId:string) => emit('add-knowledge-cb', newId)}
+            <AddKnowledge open={openAddKnowledge.value} onOk={(knowledge) => emit('add-knowledge-cb', knowledge)}
                 onUpdate:open={(flag: boolean) => openAddKnowledge.value = flag}
             />
         </>

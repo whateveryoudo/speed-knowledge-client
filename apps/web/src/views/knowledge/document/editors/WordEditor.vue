@@ -18,6 +18,7 @@
 </template>
 
 <script setup lang="ts">
+/** 协同挂载：v-if="ready" 等 ydoc sync；ydoc 变 null 会卸载编辑器。详见 ../COLLABORATION.md */
 import { computed } from 'vue'
 import { SpeedTiptapEditor, useCollaboration } from 'speed-tiptap-editor'
 import type { CSSProperties } from 'vue'

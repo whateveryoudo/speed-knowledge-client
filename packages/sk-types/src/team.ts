@@ -3,10 +3,11 @@ export interface TeamItem {
   name: string;
   slug: string;
   description: string;
-  icon: string;
-  visibility: boolean;
+  icon: string | null;
+  visibility: string;
   owner_id: number;
   space_id: string;
+  is_default?: boolean;
   created_at: string;
   updated_at: string;
 }

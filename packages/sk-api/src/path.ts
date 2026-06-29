@@ -8,4 +8,5 @@ export const documentNodePrefix = `${apiVersion}/document-node`
 export const dashboardPrefix = `${apiVersion}/dashboard`
 export const notificationPrefix = `${apiVersion}/notification`
 export const spacePrefix = `${apiVersion}/space`
+export const teamPrefix = `${apiVersion}/team`
 export const collaboratorPrefix = `${apiVersion}/collaborator`

@@ -22,19 +22,10 @@
                                     :items="documentMoreMenus" />
                             </template>
                         </a-dropdown>
-                        <a-dropdown :overlayStyle="{ width: '150px' }" placement="bottomLeft" trigger="click"
-                            @open-change="(open: boolean) => handleAddOpenChange(open, record)">
-                            <template #overlay>
-                                <a-menu>
-                                    <a-menu-item>
-                                        文档
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                            <a-button type="text" class="shadow-btn-wrapper icon" @click.stop>
-                                <PlusOutlined />
-                            </a-button>
-                        </a-dropdown>
+                        <AddMenu :knowledge-id="knowledgeId" :parent-id="record.id" trigger-type="icon"
+                            popover-trigger="click" @open-change="(open: boolean) => handleAddOpenChange(open, record)"
+                            @add-document-cb="(node) => emit('add-document-cb', node)"
+                            @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)" />
                     </a-space>
                 </div>
             </template>
@@ -45,15 +36,17 @@
 <script lang="ts" setup>
 import { computed, ref, h, watch, nextTick } from 'vue';
 import { useTree } from './useTree';
-import { type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState } from '@sk/types';
+import { type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState, type DocumentNodeItem } from '@sk/types';
 import { documentMoreMenus } from './menus';
 import { Modal, message } from 'ant-design-vue';
+import AddMenu from '../addMenu';
 
 const props = withDefaults(defineProps<{
     loading: boolean;
     tree: DocumentNodeTreeItem[];
     nodeUIStateMap: Record<string, TreeNodeUIState>;
     focusRenameNodeId?: string | null;
+    knowledgeId: string;
 }>(), {
     loading: false,
     tree: () => [],
@@ -69,7 +62,6 @@ const emit = defineEmits<{
     (e: 'clear-focus-rename-node'): void
     (e: 'rename-node', params: {
         nodeId: string,
-        documentId?: string,
         title: string,
         cb: () => void
     }): Promise<void>
@@ -85,6 +77,8 @@ const emit = defineEmits<{
         newTree: DocumentNodeTreeItem[],
         operation: DragDocumentParams
     }): Promise<void>
+    (e: 'add-document-cb', node: DocumentNodeItem): void
+    (e: 'add-catalog-node-cb', node: DocumentNodeItem): void
 }>();
 
 const patchUIState = (nodeId: string, updates: Partial<TreeNodeUIState>) => {
@@ -181,7 +175,6 @@ const handleRenameBlur = async (value: string, record: DocumentNodeTreeItem) => 
     }
     await emit('rename-node', {
         nodeId: record.id,
-        documentId: record.document_id || undefined,
         title: value,
         cb: () => patchUIState(record.id, { renaming: false }),
     })

@@ -53,18 +53,14 @@
                     <a-divider class="my-1" />
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
-                        <DocumentMenus
-                            :loading="documentLoading"
-                            :tree="documentTree"
+                        <DocumentMenus :loading="documentLoading" :tree="documentTree" :knowledge-id="knowledgeInfo.id"
                             :nodeUIStateMap="nodeUIStateMap"
-                            :focusRenameNodeId="focusRenameNodeId"
-                            @update-node-ui-state="knowledgeStore.setNodeUIState"
+                            :focusRenameNodeId="focusRenameNodeId" @update-node-ui-state="knowledgeStore.setNodeUIState"
                             @clear-focus-rename-node="knowledgeStore.clearFocusRenameNode"
-                            @rename-node="handleRenameNode"
-                            @edit-document="handleEditDocument"
+                            @rename-node="handleRenameNode" @edit-document="handleEditDocument"
                             @delete-document="handleDeleteDocument"
                             @drag-document-end="knowledgeStore.handleDragDocumentEnd"
-                        />
+                            @add-document-cb="handleAddDocumentCb" @add-catalog-node-cb="handleAddCatalogNodeCb" />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -156,11 +152,9 @@ const handleAddCatalogNodeCb = (node: DocumentNodeItem) => {
 
 const handleRenameNode = async (params: {
     nodeId: string,
-    documentId?: string,
     title: string,
     cb?: () => void,
 }) => {
-    debugger;
     await knowledgeStore.handleRenameNode(params, params.cb)
 }
 

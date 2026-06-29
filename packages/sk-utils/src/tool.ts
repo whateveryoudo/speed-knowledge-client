@@ -1,5 +1,21 @@
 import dayjs from "dayjs";
 import type { DocumentRouteContext, KnowledgeRouteContext } from "@sk/types";
+
+const IPV4_HOST_RE = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+/** 从 Host 解析空间子域名；localhost / IP / 裸域名 返回空字符串 */
+export const getSpaceSubdomain = (hostname: string): string => {
+  const host = hostname.split(":")[0]?.toLowerCase() ?? "";
+  if (!host || host === "localhost" || host === "127.0.0.1" || IPV4_HOST_RE.test(host)) {
+    return "";
+  }
+  const parts = host.split(".");
+  if (parts.length >= 3 && parts[0] && parts[0] !== "www") {
+    return parts[0];
+  }
+  return "";
+};
+
 export const transformDatatimeToRecentText = (datetime: Date | string) => {
   const diffMinutes = dayjs().diff(dayjs(datetime), "minutes");
   const now = dayjs();

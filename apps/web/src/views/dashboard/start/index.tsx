@@ -99,7 +99,9 @@ export default defineComponent({
               <span
                 class="cursor-pointer"
                 onClick={() => {
-                  router.push(`/knowledge/${record.doc_belong_knowledge_slug}`)
+                  router.push(
+                    `/${record.doc_belong_team_slug}/knowledge/${record.doc_belong_knowledge_slug}`,
+                  )
                 }}
               >
                 {record.doc_belong_knowledge_name}
@@ -223,7 +225,6 @@ export default defineComponent({
 
         <AddKnowledge
           open={openAddKnowledge.value}
-          onOk={(newSlug: string) => router.push(`/knowledge/${newSlug}`)}
           onUpdate:open={(flag: boolean) => (openAddKnowledge.value = flag)}
         />
       </Flex>

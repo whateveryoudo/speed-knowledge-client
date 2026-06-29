@@ -12,6 +12,7 @@ export const addDocument = (data: {
   knowledge_id: string;
   type: DocumentType;
   name: string;
+  parent_id?: string | null;
 }): Promise<ResponseType<DocumentNodeItem>> => {
   return request.post(`${documentPrefix}/docs`, data);
 };
@@ -45,6 +46,13 @@ export const deleteDocument = (
   return request.delete(`${documentPrefix}/${documentId}`);
 };
 
+// 更新文档节点
+export const updateDocumentNode = (
+  nodeId: string,
+  data: Record<string, any>,
+): Promise<ResponseType<any>> => {
+  return request.put(`${documentNodePrefix}/${nodeId}`, data);
+};
 // 删除文档树节点（文档 / 目录统一入口，支持递归删子树）
 export const deleteDocumentNode = (
   nodeId: string,

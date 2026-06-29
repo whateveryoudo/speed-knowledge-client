@@ -14,15 +14,15 @@ export const documentHistoryTypeOptions = [
   {
     label: '浏览过',
     value: DocumentHistoryType.VIEW,
-  },
-  {
-    label: '我点赞的',
-    value: DocumentHistoryType.LIKE,
-  },
-  {
-    label: '我评论的',
-    value: DocumentHistoryType.COMMENT,
-  },
+  }
+  // {
+  //   label: '我点赞的',
+  //   value: DocumentHistoryType.LIKE,
+  // },
+  // {
+  //   label: '我评论的',
+  //   value: DocumentHistoryType.COMMENT,
+  // },
 ]
 // 编辑历史列表基础结构
 interface DocumentHistoryBase {

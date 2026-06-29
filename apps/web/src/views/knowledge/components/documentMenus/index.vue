@@ -7,27 +7,21 @@
       }" @click="handleHomeClick()">
       <HomeOutlined class="mr-2" /> 首页
     </div>
-    <div class="text-[var(--sd-text-body)] cursor-pointer flex items-center h-[32px] my-[4px] px-[2px] rounded-[6px]">
-      <a-dropdown>
-        <a-button type="text" class="shadow-btn-wrapper">
-          <template #icon>
-            <UnorderedListOutlined />
-          </template>
-          目录
-        </a-button>
-        <template #overlay>
-          <a-menu>
-            <a-menu-item key="1">1st menu item</a-menu-item>
-            <a-menu-item key="2">2nd menu item</a-menu-item>
-            <a-menu-item key="3">3rd item</a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
+    <div
+      class="text-[var(--sd-text-body)] flex items-center justify-between h-[32px] my-[4px] px-[2px] rounded-[6px]">
+      <span class="px-[6px]">目录</span>
+      <AddMenu
+        :knowledge-id="knowledgeId"
+        trigger-type="icon"
+        @add-document-cb="(node) => emit('add-document-cb', node)"
+        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)"
+      />
     </div>
     <div class="flex-1 overflow-y-auto">
       <CatelogTree
         :loading="loading"
         :tree="tree"
+        :knowledge-id="knowledgeId"
         :nodeUIStateMap="nodeUIStateMap"
         :focusRenameNodeId="focusRenameNodeId"
         @update-node-ui-state="(nodeId, updates) => emit('update-node-ui-state', nodeId, updates)"
@@ -36,6 +30,8 @@
         @edit-document="emit('edit-document', $event)"
         @delete-document="emit('delete-document', $event)"
         @drag-document-end="emit('drag-document-end', $event)"
+        @add-document-cb="(node) => emit('add-document-cb', node)"
+        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)"
       />
     </div>
   </a-flex>
@@ -47,14 +43,17 @@ import {
   type DocumentNodeTreeItem,
   type DragDocumentParams,
   type TreeNodeUIState,
+  type DocumentNodeItem,
 } from '@sk/types';
 import { CatelogTree } from '../documentTree';
+import AddMenu from '../addMenu';
 
 defineProps<{
   loading: boolean;
   tree: DocumentNodeTreeItem[];
   nodeUIStateMap: Record<string, TreeNodeUIState>;
   focusRenameNodeId?: string | null;
+  knowledgeId: string;
 }>()
 
 const route = useRoute();
@@ -64,7 +63,6 @@ const emit = defineEmits<{
   (e: 'clear-focus-rename-node'): void
   (e: 'rename-node', params: {
     nodeId: string,
-    documentId?: string,
     title: string,
     cb: () => void
   }): Promise<void>
@@ -74,10 +72,12 @@ const emit = defineEmits<{
     newTree: DocumentNodeTreeItem[],
     operation: DragDocumentParams
   }): Promise<void>
+  (e: 'add-document-cb', node: DocumentNodeItem): void
+  (e: 'add-catalog-node-cb', node: DocumentNodeItem): void
 }>();
 
 const handleHomeClick = () => {
-  router.push(`/${route.params.team_slug as string}/knowledge/${route.params.slug as string}`);
+  router.push(`/${route.params.team_slug as string}/knowledge/${route.params.knowledge_slug as string}`);
 }
 
 const activeKey = computed(() => route.params.document_slug as string || '');

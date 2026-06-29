@@ -3,6 +3,13 @@ import { apiVersion } from '@sk/api'
 import type { DocumentItem } from '@sk/types'
 import type { UserInfo } from '@sk/types'
 
+/**
+ * Word 编辑器 props（含 collaboration 配置）。
+ *
+ * @see ../COLLABORATION.md
+ * computed 仅跟踪 documentInfo.id / knowledge_id；改 name 不会重算。
+ * 若 documentInfo 整对象替换导致重算，每次都会 new collaboration 对象 → useCollaboration 全量重建。
+ */
 export function useWordEditorProps(options: {
   documentInfo: Ref<DocumentItem>
   userInfo: Ref<UserInfo>

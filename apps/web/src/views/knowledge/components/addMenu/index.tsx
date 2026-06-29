@@ -1,21 +1,35 @@
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, type PropType } from 'vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { Tooltip, Button, Dropdown, Menu } from 'ant-design-vue'
+import { Button, Dropdown, Menu } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { type ItemType } from 'ant-design-vue'
 import { document as documentApi } from '@sk/api'
 import { DocumentType, DocumentNodeType } from '@sk/types'
 import { to } from 'await-to-js'
+
 export default defineComponent({
   name: 'AddMenu',
-  emits: ['add-document-cb', 'add-catalog-node-cb'],
+  emits: ['add-document-cb', 'add-catalog-node-cb', 'open-change'],
   props: {
     knowledgeId: {
       type: String,
       required: true,
     },
+    parentId: {
+      type: String as PropType<string | null>,
+      default: null,
+    },
+    triggerType: {
+      type: String as PropType<'default' | 'icon'>,
+      default: 'default',
+    },
+    popoverTrigger: {
+      type: String as PropType<'click' | 'hover'>,
+      default: 'hover',
+    },
   },
   setup(props, { emit }) {
+    const open = ref(false)
     const items = ref<ItemType[]>([
       {
         label: '文档',
@@ -38,14 +52,21 @@ export default defineComponent({
         icon: <IconFont type="icon-group" svg-sprite style={{ width: '18px', height: '18px' }} />,
       },
     ])
-    const handleMenuClick = async ({ key }: { key: DocumentType }) => {
+
+    const resolveParentId = () => props.parentId || null
+
+    const handleMenuClick = async (info: { key: string | number }) => {
+      const key = String(info.key) as DocumentType
+      open.value = false
+      const parent_id = resolveParentId()
+
       if ([DocumentType.WORD, DocumentType.SHEET].includes(key)) {
-        // 直接调用新增接口
         const [error, res] = await to(
           documentApi.addDocument({
             knowledge_id: props.knowledgeId,
             type: key,
             name: key === DocumentType.WORD ? '无标题文档' : '无标题表格',
+            parent_id,
           }),
         )
         if (!error) {
@@ -53,13 +74,12 @@ export default defineComponent({
         }
       }
       if (key === DocumentType.GROUP) {
-        // 调用新增分组节点接口
         const [error, res] = await to(
           documentApi.createCatalogNode({
             knowledge_id: props.knowledgeId,
             type: DocumentNodeType.TITLE,
             name: '无标题分组',
-            parent_id: null,
+            parent_id,
           }),
         )
         if (!error) {
@@ -67,18 +87,39 @@ export default defineComponent({
         }
       }
     }
+
+    const handleOpenChange = (visible: boolean) => {
+      open.value = visible
+      emit('open-change', visible)
+    }
+
     const renderMenu = () => {
       return <Menu items={items.value} onClick={handleMenuClick} />
     }
 
     return () => (
-      <>
-        <Dropdown overlayClassName="w-[120px]" placement="bottomLeft" overlay={renderMenu()}>
+      <Dropdown
+        open={open.value}
+        overlayClassName="w-[120px]"
+        placement="bottomLeft"
+        trigger={props.popoverTrigger}
+        overlay={renderMenu()}
+        onOpenChange={handleOpenChange}
+      >
+        {props.triggerType === 'icon' ? (
+          <Button
+            type="text"
+            class="shadow-btn-wrapper icon"
+            onClick={(e: Event) => e.stopPropagation()}
+          >
+            <PlusOutlined />
+          </Button>
+        ) : (
           <Button type="default" class="px-2">
             <PlusOutlined />
           </Button>
-        </Dropdown>
-      </>
+        )}
+      </Dropdown>
     )
   },
 })
