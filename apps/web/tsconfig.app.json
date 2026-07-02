@@ -10,6 +10,8 @@
       // "@/*": ["../../speed-components/src/*"],
       "@/*": ["../../speed-tiptap-editor/src/*"],
       "#sk-web/*": ["./src/*"],
+      // 子路径须在 @speed-sheet/vue3 之前，避免 style.css 被解析成 index.ts/style.css
+      "@speed-sheet/vue3/style.css": ["../../../speed-sheet/packages/vue3/dist/style.css"],
       "@speed-sheet/vue3-antd": ["../../../speed-sheet/packages/vue3-antd/src/index.ts"],
       "@speed-sheet/core": ["../../../speed-sheet/packages/core/src/index.ts"],
       "@speed-sheet/vue3": ["../../../speed-sheet/packages/vue3/src/index.ts"],

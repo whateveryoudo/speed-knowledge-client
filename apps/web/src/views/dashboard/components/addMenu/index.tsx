@@ -5,12 +5,14 @@ import { Tooltip, Button, Dropdown, Menu } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { type ItemType } from 'ant-design-vue';
 import AddKnowledge from './AddKnowledge.vue'
+import SelectKnowledgeForDocument from './SelectKnowledgeForDocument.vue'
 
 export default defineComponent({
     name: 'AddMenu',
     emits: ['add-knowledge-cb'],
     setup(props, { emit }) {
         const openAddKnowledge = ref(false)
+        const openSelectKnowledge = ref(false)
         const items = ref<ItemType[]>([
             {
                 label: '文档',
@@ -28,6 +30,9 @@ export default defineComponent({
             if (key === 'knowledge-base') {
                 openAddKnowledge.value = true
             }
+            if (key === 'document') {
+                openSelectKnowledge.value = true
+            }
         }
         const renderMenu = () => {
             return (
@@ -43,6 +48,10 @@ export default defineComponent({
             </Dropdown>
             <AddKnowledge open={openAddKnowledge.value} onOk={(knowledge) => emit('add-knowledge-cb', knowledge)}
                 onUpdate:open={(flag: boolean) => openAddKnowledge.value = flag}
+            />
+            <SelectKnowledgeForDocument
+                open={openSelectKnowledge.value}
+                onUpdate:open={(flag: boolean) => (openSelectKnowledge.value = flag)}
             />
         </>
     }

@@ -85,6 +85,8 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   const documentContentJson = ref<string | null>(null)
   const documentSheetSnapshot = ref<WorkbookSnapshot | null>(null)
   const showEditor = ref(false) // 是否显示编辑器（用于处理不同文档切换时序问题）
+  /** 无左侧面板时，路由 query.edit 指定的文档模式 */
+  const documentModeOverride = ref<'preview' | 'edit' | null>(null)
   const defaultDocumentNode: DocumentNodeTreeItem = {
     id: '',
     type: DocumentType.WORD,
@@ -165,8 +167,23 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
           document_id: documentInfo.value.id,
           prev_id: '',
           next_id: '',
-          mode: 'preview',
+          mode: documentModeOverride.value ?? 'preview',
         }
+  })
+
+  /** 读取 ?edit=1，进入编辑态（切换文档时 push 不带 query，自然回到 preview） */
+  const applyEditModeFromQuery = () => {
+    if (!route.query.edit) {
+      return
+    }
+    documentModeOverride.value = 'edit'
+    if (document_slug.value) {
+      updateNode(document_slug.value, { mode: 'edit' })
+    }
+  }
+
+  watch(document_slug, () => {
+    documentModeOverride.value = null
   })
   // 将接口节点转换为前端文档树节点
   const toTreeNode = (
@@ -238,6 +255,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
 
     flattenDocumentTree.value = res.data ? res.data.map((item) => toTreeNode(item)) : []
     rebuildDocumentTree()
+    applyEditModeFromQuery()
   }
 
   const appendDocumentNode = (node: DocumentNodeItem) => {
@@ -354,6 +372,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
   }
   const initDocumentDetail = async (showLoading = true) => {
+    applyEditModeFromQuery()
     showEditor.value = false
     documentContentJson.value = null
     documentSheetSnapshot.value = null

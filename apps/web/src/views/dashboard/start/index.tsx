@@ -25,6 +25,7 @@ import {
 } from '@sk/types'
 import router from '#sk-web/router'
 import AddKnowledge from '../components/addMenu/AddKnowledge.vue'
+import SelectKnowledgeForDocument from '../components/addMenu/SelectKnowledgeForDocument.vue'
 type MenuBtnItem = {
   label: string
   key: string
@@ -58,6 +59,7 @@ export default defineComponent({
       },
     ])
     const openAddKnowledge = ref<boolean>(false)
+    const openSelectKnowledge = ref<boolean>(false)
     const getDocumentTypeIcon = (type: DocumentType) => {
       return documentTypeOptions.find((item) => item.value === type)?.icon
     }
@@ -140,12 +142,23 @@ export default defineComponent({
 
     // 初始化列表
     getList()
+    const handleStartMenuClick = (key: string) => {
+      if (key === 'knowledge') {
+        openAddKnowledge.value = true
+      }
+      if (key === 'document') {
+        openSelectKnowledge.value = true
+      }
+    }
     const triggerRender = (item: MenuBtnItem) => (
       <div
         class="flex items-center relative px-4 py-[8px] rounded-[8px] border border-solid border-[var(--sd-border-grey-4)] cursor-pointer hover:bg-[var(--sd-bg-secondary)]"
         onClick={() => {
           if (item.key === 'knowledge') {
             openAddKnowledge.value = true
+          }
+          if (item.key === 'document-trigger') {
+            openSelectKnowledge.value = true
           }
         }}
       >
@@ -166,7 +179,7 @@ export default defineComponent({
     )
     const overlayRender = (overLayList: MenuBtnItem[]) => {
       return (
-        <Menu>
+        <Menu onClick={({ key }) => handleStartMenuClick(String(key))}>
           {overLayList.map((item: MenuBtnItem) => (
             <MenuItem key={item.key}>
               <div class="flex items-center gap-2">
@@ -226,6 +239,10 @@ export default defineComponent({
         <AddKnowledge
           open={openAddKnowledge.value}
           onUpdate:open={(flag: boolean) => (openAddKnowledge.value = flag)}
+        />
+        <SelectKnowledgeForDocument
+          open={openSelectKnowledge.value}
+          onUpdate:open={(flag: boolean) => (openSelectKnowledge.value = flag)}
         />
       </Flex>
     )

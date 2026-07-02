@@ -34,6 +34,15 @@ export interface KnowledgeListQuery {
   page_size: number;
 }
 
+/** 我的知识库列表（支持 abilities 过滤，如新建文档选库） */
+export interface KnowledgeListMineQuery {
+  keyword?: string;
+  abilities?: string[];
+  sorts?: KnowledgeListSortRule[];
+  page: number;
+  page_size: number;
+}
+
 export interface KnowledgeItem extends KnowledgeCreate {
   id: string;
   user_id: number;

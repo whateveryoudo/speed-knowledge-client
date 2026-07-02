@@ -14,6 +14,7 @@ import type {
   KnowledgeIndexPageResponse,
   KnowledgeCommonPinItem,
   KnowledgeListQuery,
+  KnowledgeListMineQuery,
 } from "@sk/types";
 
 /** 分页获取知识库列表（个人 / 协作） */
@@ -21,6 +22,13 @@ export const getKnowledgeListPage = (
   data: KnowledgeListQuery
 ): Promise<ResponseType<PaginationResponse<KnowledgeItem>>> => {
   return request.post(`${knowledgePrefix}/list`, data);
+};
+
+/** 我的知识库列表（个人 + 协作，支持 abilities 过滤） */
+export const getKnowledgeMineList = (
+  data: KnowledgeListMineQuery
+): Promise<ResponseType<PaginationResponse<KnowledgeItem>>> => {
+  return request.post(`${knowledgePrefix}/mine/list`, data);
 };
 // 获取分组列表
 export const getKnowledgeGroupList = (): Promise<

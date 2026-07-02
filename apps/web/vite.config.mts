@@ -43,6 +43,32 @@ const singletonPackages = {
   lib0: lib0Root,
 } as const
 
+/** 本地联调 speed-sheet 源码（development 下 spread 进 alias） */
+const speedSheetSourceAliases = {
+  // 须在 @speed-sheet/vue3 之前，避免子路径 style.css 解析失败
+  '@speed-sheet/vue3/style.css': fileURLToPath(
+    new URL('../../../speed-sheet/packages/vue3/dist/style.css', import.meta.url),
+  ),
+  '@speed-sheet/vue3-antd': fileURLToPath(
+    new URL('../../../speed-sheet/packages/vue3-antd/src/index.ts', import.meta.url),
+  ),
+  '@speed-sheet/core': fileURLToPath(
+    new URL('../../../speed-sheet/packages/core/src/index.ts', import.meta.url),
+  ),
+  '@speed-sheet/vue3': fileURLToPath(
+    new URL('../../../speed-sheet/packages/vue3/src/index.ts', import.meta.url),
+  ),
+  '@speed-sheet/shared': fileURLToPath(
+    new URL('../../../speed-sheet/packages/shared/src/index.ts', import.meta.url),
+  ),
+  '@speed-sheet/extension-formula': fileURLToPath(
+    new URL(
+      '../../../speed-sheet/packages/extensions/extension-formula/src/index.ts',
+      import.meta.url,
+    ),
+  ),
+} as const
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -80,27 +106,14 @@ export default defineConfig(({ mode }) => {
           ? {
               '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
               '@st': fileURLToPath(new URL('../../../speed-tiptap-editor/src', import.meta.url)),
-              'speed-tiptap-editor/dist': fileURLToPath(new URL('../../../speed-tiptap-editor/dist', import.meta.url)),
-              'speed-tiptap-editor': fileURLToPath(new URL('../../../speed-tiptap-editor/src/index.ts', import.meta.url)),
+              'speed-tiptap-editor/dist': fileURLToPath(
+                new URL('../../../speed-tiptap-editor/dist', import.meta.url),
+              ),
+              'speed-tiptap-editor': fileURLToPath(
+                new URL('../../../speed-tiptap-editor/src/index.ts', import.meta.url),
+              ),
               ...speedComponentsDistAliases(),
-              '@speed-sheet/vue3-antd': fileURLToPath(
-                new URL('../../../speed-sheet/packages/vue3-antd/src/index.ts', import.meta.url),
-              ),
-              '@speed-sheet/core': fileURLToPath(
-                new URL('../../../speed-sheet/packages/core/src/index.ts', import.meta.url),
-              ),
-              '@speed-sheet/vue3': fileURLToPath(
-                new URL('../../../speed-sheet/packages/vue3/src/index.ts', import.meta.url),
-              ),
-              '@speed-sheet/shared': fileURLToPath(
-                new URL('../../../speed-sheet/packages/shared/src/index.ts', import.meta.url),
-              ),
-              '@speed-sheet/extension-formula': fileURLToPath(
-                new URL(
-                  '../../../speed-sheet/packages/extensions/extension-formula/src/index.ts',
-                  import.meta.url,
-                ),
-              ),
+              ...speedSheetSourceAliases,
             }
           : {}),
       },
