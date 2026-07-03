@@ -21,7 +21,7 @@ const lib0Root = path.dirname(
 
 /** 本地联调 speed-components build 产物（pnpm build:lib 后生效，不走 src） */
 function speedComponentsDistAliases() {
-  const toDist = true
+  const toDist = false
   const packagePrefix = toDist
     ? fileURLToPath(new URL('../../../speed-components/dist', import.meta.url))
     : fileURLToPath(new URL('../../../speed-components/src', import.meta.url))

@@ -10,6 +10,8 @@ import * as notification from "./notification";
 import { initSkApiConfig } from "./request";
 import * as space from "./space";
 import * as team from "./team";
+import * as search from "./search";
+import * as resource from "./resource";
 export * from "./path";
 export {
   attachment,
@@ -24,4 +26,6 @@ export {
   space,
   team,
   notification,
+  search,
+  resource,
 };

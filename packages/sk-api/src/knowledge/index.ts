@@ -119,6 +119,13 @@ export const deleteKnowledge = (
   return request.delete(`${knowledgePrefix}/${slug}`);
 };
 
+/** 切换知识库公开性 */
+export const toggleKnowledgePublic = (
+  identifier: string,
+): Promise<ResponseType<boolean>> => {
+  return request.put(`${knowledgePrefix}/${identifier}/toggle-public`);
+};
+
 
 
 // 获取知识库首页信息

@@ -64,8 +64,20 @@ h6 {
 }
 
 // 一些antd组件的样式覆盖(禁用显示)
+.ant-input-readonly {
+  background-color: var(--sd-bg-primary-hover);
+  color: var(--sd-grey-8);
+  .ant-input {
+    cursor: pointer;
+    background-color: var(--sd-bg-primary-hover);
+  }
+  .ant-input-prefix {
+    cursor: pointer;
+  }
+}
+
 .ant-btn-primary[disabled] {
-  opacity: .3;
+  opacity: 0.3;
 }
 
 .ant-btn-primary[disabled],
@@ -92,4 +104,17 @@ h6 {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+// 搜索弹窗：穿透 s-full-modal / ant-modal 内边距
+.search-modal-shell {
+  .ant-modal-content {
+    padding: 0;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .ant-modal-body {
+    padding: 0;
+  }
 }

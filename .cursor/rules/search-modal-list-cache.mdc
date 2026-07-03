@@ -1,0 +1,46 @@
+---
+description: 全局搜索弹窗默认知识库列表的加载与缓存约定
+globs: apps/web/src/components/search/**/*
+alwaysApply: false
+---
+
+# 搜索弹窗：默认列表缓存
+
+## 场景
+
+`GlobalSearchModal` 无关键词时展示「我的知识库」浏览列表（`useLoadMore` + `getKnowledgeMineList`），有关键词时才调搜索 API。
+
+## 约定
+
+1. **同一次弹窗会话内，默认知识库列表只首载一次**
+   - 弹窗 `open` 时调用 `ensureKnowledgeBrowse()`，用 `knowledgeBrowseLoaded` 标记，避免重复 `initLoad`
+   - `knowledgeList` 即内存缓存；滚动加载更多的页也保留在同一份 `list` 里
+
+2. **清空关键词不要重新请求**
+   - 清空时只重置 `searchKnowledgeItems` / `searchDocumentItems` 和 `visibility`
+   - **禁止**再调 `initKnowledgeLoad(true)`（会清空 list 并重新打接口）
+   - UI 切回 `knowledgeBrowseItems`（读 `knowledgeList` 缓存）即可
+
+3. **何时允许重新拉取**
+   - 用户显式「刷新」能力（若产品需要）再单独做，不要绑在 keyword 清空上
+   - 弹窗 `destroy-on-close` 关闭后组件卸载，下次打开是新会话，自然首载
+
+## 反例
+
+```typescript
+// ❌ 清空关键词又 initLoad(true) → 闪 loading、重复请求
+if (!isKeywordMode.value) {
+  initKnowledgeLoad(true)
+}
+```
+
+## 正例
+
+```typescript
+// ✅ 仅首次 open 加载；清空关键词只清搜索结果
+const ensureKnowledgeBrowse = () => {
+  if (knowledgeBrowseLoaded.value || knowledgeInitLoading.value) return
+  knowledgeBrowseLoaded.value = true
+  void initKnowledgeLoad()
+}
+```

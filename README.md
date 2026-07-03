@@ -2,6 +2,14 @@
 
 一个类似语雀的知识库管理系统前端应用，支持知识库创建、文档编辑、协同编辑等功能。
 
+## 🌐 线上体验
+
+| 项目 | 地址 |
+|------|------|
+| **生产环境（Web）** | [http://speeddoc.cn/](http://speeddoc.cn/) |
+
+> **GitHub 仓库主页配置**：进入仓库 → 右侧 **About** → ⚙️ → **Website** 填 `http://speeddoc.cn/` 并 Save。这样仓库首页会显示可点击的官网链接（仅展示用，不负责部署）。部署本身仍在你的服务器 / CI 上完成。
+
 ## 📋 项目简介
 
 Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提供知识库管理、文档编辑、团队协作等功能。采用 Vue 3 + TypeScript 构建，提供流畅的用户体验和强大的编辑能力。
@@ -21,6 +29,21 @@ Speed Knowledge Client 是一个现代化的知识管理平台前端应用，提
 ![新增表格](./screenshots/新增sheet创建功能.png)
 
 ## 📅 更新日志
+
+### 2026-07-03 — 知识库公开性 & 高级访问设置
+
+#### 🔐 权限管理（知识库）
+
+- ✅ 知识库管理 → **权限**：公开性单选（仅协作者 / 互联网公开），对接 `PUT /knowledge/{identifier}/toggle-public`
+- ✅ 公开状态下展示 **高级设置** 弹窗（无会员/VIP 相关 UI）
+- ✅ **密码设置**：4 位随机密码，支持开启 / 重新生成 / 关闭 / 复制（VueUse `useClipboard` + `/resource` API）
+- ✅ **搜索设置**：默认开启占位；已配置文案「开启密码后公开搜索无效」（搜索能力后续接入 `allow_public_search`）
+
+#### 🔧 工程
+
+- ✅ 新增 `sk-api/resource`：资源访问配置 CRUD
+- ✅ 新增 `sk-types/resourceAccess` 类型
+- ✅ `AuthManage.vue` / `AuthAdvancedSettings.vue` 权限页组件
 
 ### 2026-06-01 — 表格列筛选
 

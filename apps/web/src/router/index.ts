@@ -34,6 +34,9 @@ const router = createRouter({
           name: 'knowledge',
           component: () => import('../views/knowledge/index.vue'),
           redirect: '/:team_slug/knowledge/',
+          meta: {
+            guestEntry: true
+          },
           children: [
             {
               path: '/:team_slug/knowledge/',
@@ -86,7 +89,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   console.log(to, from)
   const whiteList = ['/login']
-  if (whiteList.includes(to.path)) {
+  // 部分页面支持公开页，在页面内部去做权限判断这里不拦截
+  if (whiteList.includes(to.path) || to.meta.guestEntry) {
     next()
   } else {
     const access_token = localStorage.getItem('access_token')

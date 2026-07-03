@@ -40,9 +40,9 @@
 
                     </a-flex>
                     <a-flex class="px-2" :gap="10">
-                        <a-input disabled class="cursor-pointer max-w-[250px]">
+                        <a-input readonly class="ant-input-readonly border-none max-w-[250px]" @click="openKnowledgeSearch">
                             <template #prefix>
-                                <SearchOutlined class="mr-1" />
+                                <s-icon-font type="icon-kl-sousuo" class="mr-1" />
                                 搜索
                             </template>
                         </a-input>
@@ -82,23 +82,33 @@
         <div class="flex-1 overflow-y-auto">
             <router-view></router-view>
         </div>
+        <KnowledgeSearchModal
+            v-model:open="knowledgeSearchOpen"
+            :knowledge-id="knowledgeInfo.id"
+            :knowledge-name="knowledgeInfo.name"
+            :knowledge-slug="knowledgeInfo.slug"
+            :team-slug="knowledgeInfo.team?.slug"
+            :document-tree="documentTree"
+        />
         <!-- 拦截操作 -->
     </a-flex>
     <not-found v-else :title="knowledgeError.errMessage" />
 </template>
 
 <script lang="tsx" setup>
-import { ref, watch, computed, onMounted, type VNode, h } from 'vue';
+import { ref, watch, computed, onMounted, onBeforeUnmount, type VNode, h } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { useRouter, useRoute } from 'vue-router';
-import { CaretRightOutlined, CaretLeftOutlined, RightOutlined, LockOutlined } from '@ant-design/icons-vue';
+import { CaretRightOutlined, CaretLeftOutlined, RightOutlined, LockOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import type { DocumentNodeItem } from '@sk/types';
 import DocumentMenus from './components/documentMenus/index.vue';
+import { KnowledgeSearchModal } from '#sk-web/components/search';
+import { useToggle } from '@vueuse/core';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_knowledge_expand') || localStorage.getItem('sk_knowledge_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -116,6 +126,10 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
     }
 })
 const openTooltip = ref(false);
+const [knowledgeSearchOpen, toggleKnowledgeSearch] = useToggle(false);
+const openKnowledgeSearch = () => {
+    toggleKnowledgeSearch(true);
+};
 const slug = computed(() => route.params.knowledge_slug)
 type ItemType = {
     type?: 'group';

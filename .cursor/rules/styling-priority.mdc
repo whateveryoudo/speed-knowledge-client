@@ -1,0 +1,45 @@
+---
+description: 样式优先级：UnoCSS > Ant Design 布局 > class/style（speed-knowledge-client）
+globs: **/*.{vue,tsx}
+alwaysApply: true
+---
+
+# 样式编写优先级
+
+本仓库（speed-knowledge-client）新增或修改 Vue 组件样式时，按以下顺序选择手段（靠前的优先）：
+
+1. **UnoCSS 原子类** — 布局、间距、尺寸、字号、颜色、hover、truncate 等
+2. **Ant Design Vue 布局组件** — `a-flex`、`a-space` 等承担结构
+3. **组件 `<style>` / 语义化 class** — 仅当原子类难以表达时（复杂伪元素、动画、第三方 DOM 穿透）
+4. **行内 `style`** — 最后手段，仅用于运行时动态值
+
+> **说明**：speed-sheet 等组件库/表格类项目可大量使用语义化 class；**本业务前端项目优先原子样式**。
+
+## ✅ 推荐
+
+```vue
+<a-flex vertical class="max-h-[70vh]">
+  <a-flex align="center" gap="small" class="px-4 py-3.5 border-b border-solid border-[var(--sd-border-light)]">
+    <SearchOutlined class="text-16px text-[var(--ant-color-text-tertiary)]" />
+    <a-input v-model:value="keyword" :bordered="false" placeholder="搜索" class="flex-1" />
+  </a-flex>
+  <div class="flex-1 min-h-[280px] overflow-y-auto">...</div>
+</a-flex>
+```
+
+## ❌ 避免
+
+- 为新页面写大段 scoped less 替代 UnoCSS（如 `.search-panel { display:flex; ... }`）
+- 能用 `a-flex` / `a-space` 却手写 `display:flex` 语义 class
+- 无必要的行内 style
+
+## 例外（允许用 class / 全局样式）
+
+- 穿透 Ant Design / `s-full-modal` 内部结构（如 `wrap-class-name` 下改 `.ant-modal-body` padding）→ 可放在 `base.less` 或组件内极少量 unscoped 样式
+- 与全局约定绑定的工具 class（如 `menu-item-base`、`shadow-btn-wrapper`）
+- 颜色变量规则见 `css-variables.mdc`（`--ant-*` 主题色，`--sd-*` 平台色）
+
+## 参考
+
+- 列表行：`apps/web/src/views/dashboard/components/addMenu/SelectKnowledgeForDocument.vue`
+- 颜色 token：`apps/web/src/assets/var.css`、`.cursor/rules/css-variables.mdc`

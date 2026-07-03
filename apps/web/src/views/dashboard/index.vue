@@ -23,9 +23,9 @@
                         </a-space>
                     </a-flex>
                     <a-flex class="px-2" :gap="10">
-                        <a-input disabled class="cursor-pointer max-w-[250px]">
+                        <a-input readonly  class="ant-input-readonly border-none max-w-[250px]" @click="openGlobalSearch">
                             <template #prefix>
-                                <SearchOutlined class="mr-1" />
+                                <s-icon-font type="icon-kl-sousuo" class="mr-1" />
                                 搜索
                             </template>
                         </a-input>
@@ -58,7 +58,7 @@
                         </a-badge>
                     </a-tooltip>
                     <a-tooltip title="搜索" placement="right">
-                        <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!">
+                        <a-button type="text" class="shadow-btn-wrapper w-[32px] h-[32px]!" @click="openGlobalSearch">
                             <SearchOutlined class="text-18px" />
                         </a-button>
                     </a-tooltip>
@@ -88,15 +88,16 @@
         </div>
 
         <NotificationModal v-model:visible="notificationModalVisible" />
+        <GlobalSearchModal v-model:open="globalSearchOpen" />
     </a-flex>
 
 </template>
 
 <script lang="tsx" setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
-import { BellOutlined, CaretRightOutlined, CaretLeftOutlined, ClockCircleOutlined, ClockCircleFilled, PlusOutlined } from '@ant-design/icons-vue';
+import { BellOutlined, CaretRightOutlined, CaretLeftOutlined, ClockCircleOutlined, ClockCircleFilled, PlusOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import BookMenus from './components/bookMenus/index.vue';
 import StartMenus from './components/StartMenus';
 import { type KnowledgeItem } from '@sk/types'
@@ -107,6 +108,7 @@ import { useKnowledgeListProvider, useKnowledgeList } from './composables/useKno
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useToggle } from '@vueuse/core'
 import NotificationModal from './components/notificationModal/index.vue';
+import { GlobalSearchModal } from '#sk-web/components/search';
 import { storeToRefs } from 'pinia';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_dashboard_expand') || localStorage.getItem('sk_dashboard_expand') === 'true');
@@ -124,13 +126,30 @@ const { unreadNotificationCount } = storeToRefs(useSystemStore());
 const openTooltip = ref(false);
 const title = import.meta.env.VITE_SYS_TITLE;
 const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(false);
+const [globalSearchOpen, toggleGlobalSearch] = useToggle(false);
 // 初始化知识库列表相关 context
 useKnowledgeListProvider();
 
 const { initCommonPinList } = useKnowledgeList();
 
+const openGlobalSearch = () => {
+    toggleGlobalSearch(true);
+};
+
+const handleGlobalSearchShortcut = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        openGlobalSearch();
+    }
+};
+
 onMounted(() => {
   initCommonPinList();
+  window.addEventListener('keydown', handleGlobalSearchShortcut);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleGlobalSearchShortcut);
 });
 
 const activeModuleKey = ref('start');

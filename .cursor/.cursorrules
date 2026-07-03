@@ -117,3 +117,23 @@ knowledgeInfo.value = res.data
 - **平台 UI**（灰阶、边框、背景）→ `--sd-*`（定义在 `apps/web/src/assets/var.css`）
 - **禁止**使用未定义的 `--sd-primary-color` 等自造主题变量
 
+---
+
+# 样式编写优先级
+
+详见 `.cursor/rules/styling-priority.mdc`。简要：**UnoCSS 原子类 → a-flex/a-space → class/style → 行内**。本仓库业务页优先原子样式；speed-sheet 等组件库项目可用语义化 class。
+
+---
+
+# 后端 SQLAlchemy 枚举查询（speed-knowledge-server）
+
+详见 `speed-knowledge-server/python-fastapi/.cursor/rules/sqlalchemy-enum-query.mdc`。
+
+`Collaborator` 等 `Column[Enum](Integer/String)` 列：**filter/写入用 `.value`**，不要假设 ORM 会自动转成枚举。
+
+---
+
+# 搜索弹窗默认列表缓存
+
+详见 `.cursor/rules/search-modal-list-cache.mdc`。全局搜索无关键词时的知识库列表：**同会话首载一次，清空关键词复用 `knowledgeList` 缓存，勿 `initLoad(true)` 重刷。**
+
