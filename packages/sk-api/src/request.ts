@@ -60,7 +60,10 @@ request.interceptors.request.use(
     config.baseURL = apiOptions.baseURL;
     // 其他请求优先使用路由守卫写入的 token；无则回退到测试 token
     const token = localStorage.getItem("access_token");
-    config.headers && (config.headers["Authorization"] = `Bearer ${token}`);
+    // 这里新增逻辑，无token则不添加Authorization头（否则会强制触发后端进行token校验）
+    if (token && config.headers) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     return config;
   },
   (err) => Promise.reject(err)

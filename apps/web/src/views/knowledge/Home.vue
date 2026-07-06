@@ -8,6 +8,7 @@
                 </a-space>
                 <a-space>
                     <a-button
+                        v-if="canCollect"
                         @click="handleCollect(knowledgeIndexPage.has_collected, { identifier: knowledgeInfo.id, resource_type: CollectResourceType.KNOWLEDGE, onSuccess: () => { knowledgeIndexPage.has_collected = !knowledgeIndexPage.has_collected; } })">
                         <template #icon>
                             <StarFilled v-if="knowledgeIndexPage.has_collected" style="color: var(--sd-yellow-6);" />
@@ -15,7 +16,7 @@
                         </template>
                         {{ knowledgeIndexPage.has_collected ? '已收藏' : '收藏' }}
                     </a-button>
-                    <knowledge-share />
+                    <knowledge-share v-if="canShare" />
                 </a-space>
             </a-flex>
             <a-flex class="ml-[40px] mb-8" :gap="24">
@@ -40,7 +41,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ref, watch, h } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { StarOutlined, StarFilled } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
@@ -48,11 +49,16 @@ import KnowledgeShare from './components/knowledgeCollaborator/KnowledgeShare.vu
 import { SpeedTiptapEditor } from 'speed-tiptap-editor'
 import { to } from 'await-to-js';
 import { knowledge as knowledgeApi, common as commonApi } from '@sk/api';
-import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort } from '@sk/types';
+import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort, KnowledgeAbility } from '@sk/types';
 import { useRouter } from 'vue-router';
 import { OutlineTree } from './components/documentTree';
 import { useCollect } from './hooks/useCollect';
+import { useAbility } from '#sk-web/hooks/useAbility';
+import { isLoggedIn } from '@sk/utils';
 const { handleCollect } = useCollect();
+const { canRef } = useAbility();
+const canShare = canRef(KnowledgeAbility.SHARE_BOOK);
+const canCollect = computed(() => isLoggedIn() && canRef(KnowledgeAbility.COLLECT_BOOK).value);
 const { knowledgeInfo, documentLoading, documentTree } = storeToRefs(useKnowledgeStore());
 const welcomeContent = ref('<p><span data-name="wave" data-type="emoji">👋</span> <strong>欢迎来到知识库</strong></p><p style="padding-left: 1em;"> 知识库就像书一样，让多篇文档结构化，方便知识的创作与沉淀</p>');
 const knowledgeIndexPage = ref<KnowledgeIndexPageResponse>({

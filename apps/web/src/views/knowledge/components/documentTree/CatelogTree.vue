@@ -1,7 +1,7 @@
 <template>
     <SkeletonList :loading="loading">
         <a-tree v-if="transformedTree.length > 0" :selectedKeys="[activeKey]" v-model:expandedKeys="expandedKeys"
-            :fieldNames="{ key: 'id' }" :virtual="false" class="speed-knowledge-tree" blockNode draggable
+            :fieldNames="{ key: 'id' }" :virtual="false" class="speed-knowledge-tree" blockNode :draggable="canDocEdit"
             :tree-data="transformedTree" @dragenter="onDragEnter" @drop="onDrop" @select="handleTreeSelect">
             <template #title="{ dataRef: record }">
                 <a-input ref="renameInputRef" @blur="(e: any) => handleRenameBlur(e.target.value, record)" size="small"
@@ -11,18 +11,18 @@
                     <span class="flex-1 truncate" :title="record.title">
                         {{ record.title }}
                     </span>
-                    <a-space :size="4" class="shrink-0" v-if="showActions(record.id)">
-                        <a-dropdown :overlayStyle="{ width: '150px' }" placement="bottomLeft" trigger="click"
+                    <a-space :size="4" class="shrink-0" v-if="showActions(record.id) && canShowNodeActions">
+                        <a-dropdown v-if="nodeMoreMenus.length" :overlayStyle="{ width: '150px' }" placement="bottomLeft" trigger="click"
                             @open-change="(open: boolean) => handleMoreOpenChange(open, record)">
                             <a-button type="text" class="shadow-btn-wrapper icon" @click.stop>
                                 <MoreOutlined />
                             </a-button>
                             <template #overlay>
                                 <a-menu @click="(e: any) => handleDocumentMoreClick(record, e.key)"
-                                    :items="documentMoreMenus" />
+                                    :items="nodeMoreMenus" />
                             </template>
                         </a-dropdown>
-                        <AddMenu :knowledge-id="knowledgeId" :parent-id="record.id" trigger-type="icon"
+                        <AddMenu v-if="canDocCreate" :knowledge-id="knowledgeId" :parent-id="record.id" trigger-type="icon"
                             popover-trigger="click" @open-change="(open: boolean) => handleAddOpenChange(open, record)"
                             @add-document-cb="(node) => emit('add-document-cb', node)"
                             @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)" />
@@ -37,7 +37,7 @@
 import { computed, ref, h, watch, nextTick } from 'vue';
 import { useTree } from './useTree';
 import { type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState, type DocumentNodeItem } from '@sk/types';
-import { documentMoreMenus } from './menus';
+import { buildDocumentMoreMenus } from './menus';
 import { Modal, message } from 'ant-design-vue';
 import AddMenu from '../addMenu';
 
@@ -47,12 +47,28 @@ const props = withDefaults(defineProps<{
     nodeUIStateMap: Record<string, TreeNodeUIState>;
     focusRenameNodeId?: string | null;
     knowledgeId: string;
+    canDocCreate?: boolean;
+    canDocEdit?: boolean;
+    canDocDelete?: boolean;
 }>(), {
     loading: false,
     tree: () => [],
     nodeUIStateMap: () => ({}),
     focusRenameNodeId: null,
+    canDocCreate: false,
+    canDocEdit: false,
+    canDocDelete: false,
 })
+
+const nodeMoreMenus = computed(() => buildDocumentMoreMenus({
+    canEdit: props.canDocEdit,
+    canCreate: props.canDocCreate,
+    canDelete: props.canDocDelete,
+}))
+
+const canShowNodeActions = computed(() => (
+    props.canDocCreate || props.canDocEdit || props.canDocDelete
+))
 
 const cptTree = computed(() => props.tree)
 const renameInputRef = ref<HTMLInputElement | null>(null)
@@ -159,6 +175,7 @@ const handleAddOpenChange = (open: boolean, record: DocumentNodeTreeItem) => {
 }
 
 const handleMouseEnter = (record: DocumentNodeTreeItem) => {
+    if (!canShowNodeActions.value) return
     patchUIState(record.id, { showActions: true })
 }
 

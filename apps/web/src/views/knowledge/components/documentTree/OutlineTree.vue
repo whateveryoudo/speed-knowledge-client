@@ -23,7 +23,6 @@
 import { computed, ref, h } from 'vue';
 import { useTree } from './useTree';
 import { type DragDocumentParams, type DocumentNodeTreeItem } from '@sk/types';
-import { documentMoreMenus } from './menus';
 import { DownOutlined } from '@ant-design/icons-vue';
 import { Modal, message } from 'ant-design-vue';
 import { DocumentNodeType } from '@sk/types';

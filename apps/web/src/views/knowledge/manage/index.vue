@@ -36,10 +36,12 @@ import {
    type KnowledgeItem,
    type TeamItem,
 } from '@sk/types'
-import { LockOutlined } from '@ant-design/icons-vue';
+import { LockOutlined, ExportOutlined } from '@ant-design/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
 import { to } from 'await-to-js'
 import { knowledge as knowledgeApi } from '@sk/api'
+import { KnowledgeAbility } from '@sk/types'
+import { useAbility } from '#sk-web/hooks/useAbility'
 const route = useRoute();
 const router = useRouter();
 const knowledgeSlug = computed(() => route.params.knowledge_slug as string);
@@ -68,22 +70,34 @@ type ItemType = {
    key: string;
    icon?: () => VNode;
 }
-const manageMenus = ref<ItemType[]>([
-   {
-      type: 'group',
-      label: '设置',
-      key: 'setting',
-   },
-   {
-      label: '权限',
-      key: 'auth',
-      icon: () => h(LockOutlined)
+const abilitySource = computed(() => knowledgeInfo.value.ability)
+const { can } = useAbility(abilitySource)
+const manageMenus = computed<ItemType[]>(() => {
+   const items: ItemType[] = [
+      { type: 'group', label: '设置', key: 'setting' },
+   ]
+   if (can(KnowledgeAbility.MODIFY_BOOK_PERMISSION)) {
+      items.push({
+         label: '权限',
+         key: 'auth',
+         icon: () => h(LockOutlined),
+      })
+   } else {
+      items.push({
+         label: '退出知识库',
+         key: 'exit',
+         icon: () => h(ExportOutlined),
+      })
    }
-]);
+   return items
+})
 const selectedKey = ref<string>('');
 const handleClick = (item: ItemType) => {
    if (item.key === 'auth') {
       router.push(`/${teamSlug.value}/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
+   }
+   if (item.key === 'exit') {
+      // TODO: 调用退出知识库接口
    }
 };
 const teamSlug = computed(() => knowledgeInfo.value.team.slug);

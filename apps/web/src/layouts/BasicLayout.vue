@@ -1,7 +1,7 @@
 <template>
     <router-view />
     <!-- 机器人显示 -->
-    <Robot :config="robotConfig" />
+    <Robot :config="robotConfig" v-if="isLoggedIn()" />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +11,7 @@ import { apiVersion } from '@sk/api'
 import { io } from "socket.io-client";
 import type { Socket } from "socket.io-client";
 import { useSystemStore } from '../store/useSystemStore';
+import { getAccessToken, isLoggedIn } from '@sk/utils';
 import { notification as notificationApi } from '@sk/api';
 
 // 机器人相关接口前缀
@@ -33,9 +34,13 @@ const getUnreadNotificationCount = async () => {
 }
 // 监听通知
 onMounted(() => {
+    // 新增逻辑，无token则不调用相关接口
+    const rawToken = getAccessToken() || ''
+    if (!rawToken) {
+        return
+    }
     getUnreadNotificationCount(); // 初始化调用一次获取未读通知数量
     // 建立socket连接
-    const rawToken = localStorage.getItem('access_token') || ''
     const token = rawToken.startsWith('Bearer ') ? rawToken : `Bearer ${rawToken}`
 
     socket = io(`${import.meta.env.VITE_NOTIFICATION_URL}/notification`, {

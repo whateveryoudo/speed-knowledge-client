@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { getCurrentInstance, nextTick, onMounted, type App, ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { computed, getCurrentInstance, nextTick, onMounted, type App } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import SiteBeian from './components/SiteBeian.vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -18,6 +19,14 @@ const { token } = useToken();
 const instance = getCurrentInstance()
 const app = instance?.appContext.app as App
 initSpace()
+
+const route = useRoute()
+const showSiteBeian = computed(() => {
+  if (route.path === '/login') return true
+  if (route.path.includes('/invite')) return true
+  return route.matched.some((record) => record.meta.guestEntry)
+})
+
 onMounted(async () => {
   await nextTick();
   SpeedComponents.updateTheme(app, {
@@ -35,6 +44,7 @@ onMounted(async () => {
     },
   }">
     <RouterView />
+    <SiteBeian v-if="showSiteBeian" />
   </a-config-provider>
 </template>
 

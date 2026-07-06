@@ -7,15 +7,20 @@
       :style="{ left: showKnowledgeLeftPanel ? `${knowledgeSidebarWidth}px` : '0' }"
     >
       <span>
-        <s-toggle-input :text="documentInfo?.name || defaultTitle" :updateText="toggleInputChange" />
+        <s-toggle-input
+          v-if="canEditDoc"
+          :text="documentInfo?.name || defaultTitle"
+          :updateText="toggleInputChange"
+        />
+        <span v-else class="font-medium">{{ documentInfo?.name || defaultTitle }}</span>
       </span>
       <a-space>
         <CollaboratingPersonAvatars
-          v-if="currentDocState?.mode === 'edit'"
+          v-if="currentDocState?.mode === 'edit' && canEditDoc"
           :collaborators="collaborating_persons"
         />
-        <CollaboratorAddPopver />
-        <a-tooltip title="收藏" class="mr-2">
+        <CollaboratorAddPopver v-if="canShareDoc" />
+        <a-tooltip v-if="canCollectDoc" title="收藏" class="mr-2">
           <a-button
             type="text"
             class="shadow-btn-wrapper"
@@ -25,9 +30,9 @@
             <StarOutlined v-else style="font-size: 18px;" />
           </a-button>
         </a-tooltip>
-        <DocumentShare />
-        <a-button v-if="currentDocState.mode !== 'edit'" type="primary" @click="changeToEdit">编辑</a-button>
-        <template v-if="currentDocState.mode === 'edit'">
+        <DocumentShare v-if="canShareDoc" />
+        <a-button v-if="currentDocState.mode !== 'edit' && canEditDoc" type="primary" @click="changeToEdit">编辑</a-button>
+        <template v-if="currentDocState.mode === 'edit' && canEditDoc">
           <a-tooltip title="文档会自动更新到阅读页">
             <a-button @click="setPreviewMode">保存</a-button>
           </a-tooltip>
@@ -44,7 +49,7 @@
           v-if="isWordDocument && knowledgeStore.showEditor"
           :editor-key="editorKey"
           :content-json="documentContentJson"
-          :editable="currentDocState.mode === 'edit'"
+          :editable="currentDocState.mode === 'edit' && canEditDoc"
           :title="documentInfo.name"
           :header-style="wordHeaderStyle"
           :main-style="wordMainStyle"
@@ -57,7 +62,7 @@
           :editor-key="editorKey"
           :document-id="documentInfo.id"
           :knowledge-id="documentInfo.knowledge_id"
-          :editable="currentDocState.mode === 'edit'"
+          :editable="currentDocState.mode === 'edit' && canEditDoc"
           :sheet-snapshot="documentSheetSnapshot"
           :collaboration-url="collaborationBaseUrl"
           :collaboration-token="collaborationToken"
@@ -88,11 +93,11 @@ import { storeToRefs } from 'pinia'
 import { useSystemStore } from '#sk-web/store/useSystemStore'
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore'
 import { useUserStore } from '#sk-web/store/useUserStore'
-import { StarOutlined } from '@ant-design/icons-vue'
-import { transformDatatimeToRecentText } from '@sk/utils'
+import { StarOutlined, StarFilled } from '@ant-design/icons-vue'
+import { transformDatatimeToRecentText, isLoggedIn } from '@sk/utils'
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue'
 import { useCollect } from '../hooks/useCollect'
-import { CollectResourceType, DocumentType } from '@sk/types'
+import { CollectResourceType, DocumentType, DocumentAbility } from '@sk/types'
 import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator'
 import { usePersonSearch } from '#sk-web/components/personSearch/usePersonSearch'
 import dayjs from 'dayjs'
@@ -100,6 +105,7 @@ import WordEditor from './editors/WordEditor.vue'
 import SheetEditor from './editors/SheetEditor.vue'
 import { useDocumentCollaborators } from './composables/useDocumentCollaborators'
 import { useWordEditorProps } from './composables/useWordEditorProps'
+import { useAbility } from '#sk-web/hooks/useAbility'
 
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore())
 const knowledgeStore = useKnowledgeStore()
@@ -115,6 +121,10 @@ const { userInfo } = storeToRefs(useUserStore())
 const { collaborating_persons, handleCollaboratorsChange, resetCollaborators } = useDocumentCollaborators()
 const { handleCollect } = useCollect()
 const { fetchDocContextUsers } = usePersonSearch()
+const { canRef } = useAbility()
+const canEditDoc = canRef(DocumentAbility.DOC_EDIT)
+const canShareDoc = canRef(DocumentAbility.DOC_SHARE)
+const canCollectDoc = computed(() => isLoggedIn())
 
 const isWordDocument = computed(() => documentInfo.value.type === DocumentType.WORD)
 const isSheetDocument = computed(() => documentInfo.value.type === DocumentType.SHEET)

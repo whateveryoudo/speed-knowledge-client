@@ -23,6 +23,10 @@ const router = createRouter({
               component: () => import('../views/dashboard/start/index'),
             },
             {
+              path: 'collect',
+              component: () => import('../views/collect/index.vue'),
+            },
+            {
               path: 'knowledge',
               component: () => import('../views/dashboard/knowledgeMain/index.vue'),
             },

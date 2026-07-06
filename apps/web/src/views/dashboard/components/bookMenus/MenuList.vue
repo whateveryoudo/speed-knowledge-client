@@ -20,6 +20,7 @@
                     {{ book.name }}
                 </span>
                 <LockOutlined class="text-[12px]" v-if="!book.is_public" />
+                <GlobalOutlined class="text-[12px]" v-else />
                 <a-dropdown trigger="click">
                     <a-button type="text" @click.stop
                         class="shadow-btn-wrapper ml-1 icon group-hover:opacity-100  opacity-0" v-if="showMore">
@@ -42,7 +43,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import draggable from 'vuedraggable'
-import { LockOutlined, HolderOutlined, MoreOutlined } from '@ant-design/icons-vue'
+import { LockOutlined, HolderOutlined, MoreOutlined, GlobalOutlined } from '@ant-design/icons-vue'
 import { type KnowledgeItem } from '@sk/types'
 import { cloneDeep } from 'lodash-es'
 import { useRouter } from 'vue-router'

@@ -31,7 +31,7 @@ export const useCollect = () => {
                         class: 'text-blue-500 cursor-pointer',
                         onClick: (e: Event) => {
                             e.preventDefault();
-                            router.push('/collect');
+                            router.push('/dashboard/collect');
                         }
                     }, '收藏夹'),
                     '查看'

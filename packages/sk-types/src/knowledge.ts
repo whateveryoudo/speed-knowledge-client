@@ -70,7 +70,9 @@ export interface KnowledgeCommonPinItem {
 }
 /****** 知识库权限相关 ***************/
 export enum KnowledgeAbility {
+  COLLECT_BOOK = 'collect_book',
   CREATE_BOOK = 'create_book', // 创建知识库(这个权限不应该出现在这层，先定死吧，目前只有个人空间)
+  READ_BOOK = 'read_book',
   DELETE_BOOK = 'delete_book',
   CREATE_BOOK_COLLABORATOR = 'create_book_collaborator',
   EXPORT_BOOK = 'export_book',

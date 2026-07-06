@@ -1,6 +1,11 @@
 import { defineComponent, ref } from 'vue'
 import type { ModuleMenuItem } from '../type'
-import { ClockCircleOutlined, ClockCircleFilled, TeamOutlined } from '@ant-design/icons-vue'
+import {
+  ClockCircleOutlined,
+  ClockCircleFilled,
+  StarOutlined,
+  StarFilled,
+} from '@ant-design/icons-vue'
 import { Tooltip } from 'ant-design-vue'
 import { IconFont } from 'speed-components-ui/components'
 import { useRoute, useRouter } from 'vue-router'
@@ -21,6 +26,12 @@ export default defineComponent({
         key: '/dashboard/start',
         icon: () => <ClockCircleOutlined />,
         filledIcon: () => <ClockCircleFilled />,
+      },
+      {
+        title: '收藏',
+        key: '/dashboard/collect',
+        icon: () => <StarOutlined />,
+        filledIcon: () => <StarFilled />,
       },
       // {
       //   title: '团队',

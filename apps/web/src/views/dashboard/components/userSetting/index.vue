@@ -9,12 +9,13 @@
                     </a-flex>
                 </a-flex>
                 <a-divider class="my-2"></a-divider>
-                <div v-for="item in menuItems" :key="item.key" @click="menuClick(item.key)"
+                <!-- TODO:个人信息配置 -->
+                <!-- <div v-for="item in menuItems" :key="item.key" @click="menuClick(item.key)"
                     class="flex items-center h-[32px] my-[4px] px-[10px] rounded-[6px] hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200 cursor-pointer">
                     <s-icon-font class="mr-3" :icon-render="item.icon" />
                     <span>{{ item.label }}</span>
                 </div>
-                <a-divider class="my-2"></a-divider>
+                <a-divider class="my-2"></a-divider> -->
                 <div @click="loginOut"
                     class="flex items-center h-[32px] my-[4px] px-[10px] rounded-[6px] hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200 cursor-pointer">
                     <LoginOutlined class="mr-3" />

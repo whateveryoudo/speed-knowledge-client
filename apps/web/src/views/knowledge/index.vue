@@ -22,15 +22,18 @@
                             <span class="font-bold">{{ knowledgeInfo.name || '--' }}</span>
                             <a-tooltip>
                                 <template #title>
-                                    <span>{{ knowledgeInfo.is_public ? '公开知识库' : '私有知识库' }}</span>
-                                    <a-button type="link" size="small" @click="handleTogglePublic">切换公开性</a-button>
+                                    <span class="text-sm">
+                                        <span>{{ knowledgeInfo.is_public ? '互联网所有人可见' : '私有知识库' }}</span>
+                                        <a-button v-if="can(KnowledgeAbility.MODIFY_BOOK_PERMISSION)" class="text-sm!" type="link" size="small" @click="handleTogglePublic">切换公开性</a-button>
+                                    </span>
                                 </template>
-                                <UnlockOutlined class="text-[var(--sd-grey-7)]" v-if="knowledgeInfo.is_public" />
-                                <LockOutlined class="text-[var(--sd-grey-7)]" v-else />
+                                <LockOutlined class="text-[var(--sd-grey-7)]" v-if="!knowledgeInfo.is_public" />
+                                <GlobalOutlined class="text-[var(--sd-grey-7)]" v-else/>
+
                             </a-tooltip>
                         </a-space>
                         <!-- 更多操作 -->
-                        <a-dropdown>
+                        <a-dropdown v-if="manageMenus.length">
                             <EllipsisOutlined />
                             <template #overlay>
                                 <a-menu @click="handleMoreOpt" :items="manageMenus">
@@ -40,13 +43,14 @@
 
                     </a-flex>
                     <a-flex class="px-2" :gap="10">
-                        <a-input readonly class="ant-input-readonly border-none max-w-[250px]" @click="openKnowledgeSearch">
+                        <a-input readonly class="ant-input-readonly border-none max-w-[250px]"
+                            @click="openKnowledgeSearch">
                             <template #prefix>
                                 <s-icon-font type="icon-kl-sousuo" class="mr-1" />
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb"
+                        <AddMenu v-if="can(DocumentAbility.DOC_CTEATE)" :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb"
                             @add-catalog-node-cb="handleAddCatalogNodeCb" />
                     </a-flex>
 
@@ -54,8 +58,11 @@
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库下的文档树 -->
                         <DocumentMenus :loading="documentLoading" :tree="documentTree" :knowledge-id="knowledgeInfo.id"
-                            :nodeUIStateMap="nodeUIStateMap"
-                            :focusRenameNodeId="focusRenameNodeId" @update-node-ui-state="knowledgeStore.setNodeUIState"
+                            :nodeUIStateMap="nodeUIStateMap" :focusRenameNodeId="focusRenameNodeId"
+                            :can-doc-create="can(DocumentAbility.DOC_CTEATE)"
+                            :can-doc-edit="can(DocumentAbility.DOC_EDIT)"
+                            :can-doc-delete="can(DocumentAbility.DOC_DELETE)"
+                            @update-node-ui-state="knowledgeStore.setNodeUIState"
                             @clear-focus-rename-node="knowledgeStore.clearFocusRenameNode"
                             @rename-node="handleRenameNode" @edit-document="handleEditDocument"
                             @delete-document="handleDeleteDocument"
@@ -82,14 +89,9 @@
         <div class="flex-1 overflow-y-auto">
             <router-view></router-view>
         </div>
-        <KnowledgeSearchModal
-            v-model:open="knowledgeSearchOpen"
-            :knowledge-id="knowledgeInfo.id"
-            :knowledge-name="knowledgeInfo.name"
-            :knowledge-slug="knowledgeInfo.slug"
-            :team-slug="knowledgeInfo.team?.slug"
-            :document-tree="documentTree"
-        />
+        <KnowledgeSearchModal v-model:open="knowledgeSearchOpen" :knowledge-id="knowledgeInfo.id"
+            :knowledge-name="knowledgeInfo.name" :knowledge-slug="knowledgeInfo.slug"
+            :team-slug="knowledgeInfo.team?.slug" :document-tree="documentTree" />
         <!-- 拦截操作 -->
     </a-flex>
     <not-found v-else :title="knowledgeError.errMessage" />
@@ -100,15 +102,18 @@ import { ref, watch, computed, onMounted, onBeforeUnmount, type VNode, h } from 
 import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { useRouter, useRoute } from 'vue-router';
-import { CaretRightOutlined, CaretLeftOutlined, RightOutlined, LockOutlined, SearchOutlined } from '@ant-design/icons-vue';
+import { CaretRightOutlined, CaretLeftOutlined, RightOutlined, LockOutlined, GlobalOutlined, ExportOutlined } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import { storeToRefs } from 'pinia'
 import AddMenu from './components/addMenu';
 import { useSystemStore } from '#sk-web/store/useSystemStore';
+import { DocumentAbility, KnowledgeAbility } from '@sk/types';
 import type { DocumentNodeItem } from '@sk/types';
 import DocumentMenus from './components/documentMenus/index.vue';
 import { KnowledgeSearchModal } from '#sk-web/components/search';
+import { useAbility } from '#sk-web/hooks/useAbility';
 import { useToggle } from '@vueuse/core';
+import { isLoggedIn } from '@sk/utils';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_knowledge_expand') || localStorage.getItem('sk_knowledge_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -131,19 +136,32 @@ const openKnowledgeSearch = () => {
     toggleKnowledgeSearch(true);
 };
 const slug = computed(() => route.params.knowledge_slug)
+const { can } = useAbility()
 type ItemType = {
     type?: 'group';
     label: string;
     key: string;
     icon?: () => VNode;
+    danger?: boolean;
 }
-const manageMenus = ref<ItemType[]>([
-    {
-        label: '权限',
-        key: 'auth',
-        icon: () => h(LockOutlined)
+const manageMenus = computed<ItemType[]>(() => {
+    const items: ItemType[] = []
+    if (can(KnowledgeAbility.MODIFY_BOOK_PERMISSION)) {
+        items.push({
+            label: '权限',
+            key: 'auth',
+            icon: () => h(LockOutlined),
+        })
+    } else if (isLoggedIn()) {
+        items.push({
+            label: '退出知识库',
+            key: 'exit',
+            icon: () => h(ExportOutlined),
+            danger: true,
+        })
     }
-]);
+    return items
+})
 const handleToggle = () => {
     open.value = !open.value;
     openTooltip.value = false;
@@ -151,7 +169,7 @@ const handleToggle = () => {
 }
 
 const handleTogglePublic = () => {
-    // TODO:
+    router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/manage/auth`)
 }
 const handleAddDocumentCb = (node: DocumentNodeItem) => {
     knowledgeStore.appendDocumentNode(node)
@@ -186,6 +204,9 @@ const handleMoreOpt = (e: any) => {
     switch (e.key) {
         case 'auth':
             router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/manage/auth`);
+            break;
+        case 'exit':
+            // TODO: 调用退出知识库接口
             break;
     }
 }

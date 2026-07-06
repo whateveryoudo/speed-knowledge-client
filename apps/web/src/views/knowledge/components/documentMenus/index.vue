@@ -7,32 +7,24 @@
       }" @click="handleHomeClick()">
       <HomeOutlined class="mr-2" /> 首页
     </div>
-    <div
-      class="text-[var(--sd-text-body)] flex items-center justify-between h-[32px] my-[4px] px-[2px] rounded-[6px]">
+    <div class="text-[var(--sd-text-body)] flex items-center justify-between h-[32px] my-[4px] px-[2px] rounded-[6px]">
       <span class="px-[6px]">目录</span>
-      <AddMenu
-        :knowledge-id="knowledgeId"
-        trigger-type="icon"
+      <AddMenu v-if="canDocCreate" :knowledge-id="knowledgeId" trigger-type="icon"
         @add-document-cb="(node) => emit('add-document-cb', node)"
-        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)"
-      />
+        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)" />
     </div>
     <div class="flex-1 overflow-y-auto">
-      <CatelogTree
-        :loading="loading"
-        :tree="tree"
-        :knowledge-id="knowledgeId"
-        :nodeUIStateMap="nodeUIStateMap"
+      <CatelogTree :loading="loading" :tree="tree" :knowledge-id="knowledgeId" :nodeUIStateMap="nodeUIStateMap"
         :focusRenameNodeId="focusRenameNodeId"
+        :can-doc-create="canDocCreate"
+        :can-doc-edit="canDocEdit"
+        :can-doc-delete="canDocDelete"
         @update-node-ui-state="(nodeId, updates) => emit('update-node-ui-state', nodeId, updates)"
-        @clear-focus-rename-node="emit('clear-focus-rename-node')"
-        @rename-node="emit('rename-node', $event)"
-        @edit-document="emit('edit-document', $event)"
-        @delete-document="emit('delete-document', $event)"
+        @clear-focus-rename-node="emit('clear-focus-rename-node')" @rename-node="emit('rename-node', $event)"
+        @edit-document="emit('edit-document', $event)" @delete-document="emit('delete-document', $event)"
         @drag-document-end="emit('drag-document-end', $event)"
         @add-document-cb="(node) => emit('add-document-cb', node)"
-        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)"
-      />
+        @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)" />
     </div>
   </a-flex>
 </template>
@@ -50,6 +42,9 @@ import AddMenu from '../addMenu';
 
 defineProps<{
   loading: boolean;
+  canDocCreate: boolean;
+  canDocEdit: boolean;
+  canDocDelete: boolean;
   tree: DocumentNodeTreeItem[];
   nodeUIStateMap: Record<string, TreeNodeUIState>;
   focusRenameNodeId?: string | null;
