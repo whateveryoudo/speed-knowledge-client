@@ -53,7 +53,11 @@ onMounted(() => {
         // 新消息通知
         setUnreadNotificationCount(data?.unreadCount ?? 0)
     })
-    socket.on("connect", () => console.log("connected", socket?.id));
+    socket.on("connect", () => {
+
+        console.log("connected", socket?.id);
+        console.log(socket?.io?.engine?.transport?.name)
+    })
     socket.on("connect_error", (e) =>
         console.log("connect_error", e.message, e),
     );

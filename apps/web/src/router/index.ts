@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '../views/login/index.vue'
-import BasicLayout from '../layouts/BasicLayout.vue'
+import { ensureTiptap } from '#sk-web/plugins/ensureEditors'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +37,9 @@ const router = createRouter({
           name: 'knowledge',
           component: () => import('../views/knowledge/index.vue'),
           redirect: '/:team_slug/knowledge/',
+          beforeEnter: async () => {
+            await ensureTiptap()
+          },
           meta: {
             guestEntry: true
           },
@@ -85,7 +87,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: Login,
+      component: () => import('../views/login/index.vue'),
     },
   ],
 })

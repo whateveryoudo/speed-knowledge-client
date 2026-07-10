@@ -53,7 +53,7 @@
                 </template>
                 <template v-else-if="column.dataIndex === 'role'">
                     <span v-if="record.source === CollaboratorSource.CREATOR">{{ formatRoleText(record.role)
-                        }}</span>
+                    }}</span>
                     <a-dropdown v-else trigger="click">
                         <template #overlay>
                             <a-menu class="py-2!" @click="(e: any) => handleRoleChange(record.id, { role: e.key })">
@@ -93,8 +93,8 @@
         </a-table>
         <CollaboratorAdd :visible="collaboratorAddVisible"
             @update:visible="(val: boolean) => collaboratorAddVisible = val" />
-        <AuthAdvancedSettings v-model:open="advancedOpen" :knowledge-id="knowledgeId"
-            :can-manage="canManagePermission" @password-change="passwordProtected = $event" />
+        <AuthAdvancedSettings v-model:open="advancedOpen" :knowledge-id="knowledgeId" :can-manage="canManagePermission"
+            @password-change="passwordProtected = $event" />
     </a-flex>
 </template>
 <script lang="ts" setup>
@@ -163,7 +163,7 @@ const handlePublicChange = async (e: { target: { value: boolean } }) => {
     const [err, res] = await to(knowledgeApi.toggleKnowledgePublic(knowledgeSlug.value));
     publicToggling.value = false;
     if (err) return;
-    isPublic.value = res!.data;
+    isPublic.value = !isPublic.value;
     if (!isPublic.value) {
         advancedOpen.value = false;
     }

@@ -33,7 +33,7 @@
                     </span>
                 </a-space>
             </a-flex>
-            <SpeedTiptapEditor hide-border :editorStyle="{ minHeight: 'auto' }" :content="welcomeContent"
+            <LiteEditor hide-border :editorStyle="{ minHeight: 'auto' }" :content="welcomeContent"
                 :editable="false" :menubar="false" />
             <!-- 大纲树显示 -->
             <OutlineTree :loading="documentLoading" :tree="documentTree" />
@@ -46,7 +46,7 @@ import { storeToRefs } from 'pinia';
 import { StarOutlined, StarFilled } from '@ant-design/icons-vue';
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore';
 import KnowledgeShare from './components/knowledgeCollaborator/KnowledgeShare.vue';
-import { SpeedTiptapEditor } from 'speed-tiptap-editor'
+import { LiteEditor } from '@speed-tiptap-editor/lite-editor'
 import { to } from 'await-to-js';
 import { knowledge as knowledgeApi, common as commonApi } from '@sk/api';
 import { type KnowledgeIndexPageResponse, CollectResourceType, KnowledgeIndexPageLayout, KnowledgeIndexPageSort, KnowledgeAbility } from '@sk/types';

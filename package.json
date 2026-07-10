@@ -18,7 +18,12 @@
   },
   "pnpm": {
     "overrides": {
-      "yjs": "13.6.31"
+      "yjs": "13.6.31",
+      "y-protocols": "1.0.7",
+      "@tiptap/core": "^3.0.6",
+      "@tiptap/pm": "^3.0.0",
+      "@tiptap/vue-3": "3.6.6",
+      "@tiptap/y-tiptap": "3.0.1"
     }
   }
 }

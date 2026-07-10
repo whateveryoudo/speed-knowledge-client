@@ -1,7 +1,5 @@
 <template>
-  <SpeedTiptapEditor
-    v-if="ready"
-    preset="knowledge"
+  <KnowledgeEditor
     :json="contentJson"
     :header-style="headerStyle"
     :main-style="mainStyle"
@@ -9,24 +7,20 @@
     :editable="editable"
     :menubar="editable"
     :title="title"
-    :ydoc="editable ? (ydoc ?? undefined) : undefined"
-    :provider="editable ? (provider ?? undefined) : undefined"
-    :collaboration-user="collaborationUser"
-    v-bind="editorBindProps"
+    v-bind="editorProps"
     @update:title="onTitleUpdate"
+    @update:collaborators="(users) => emit('update:collaborators', users as Collaborator[])"
   />
 </template>
 
 <script setup lang="ts">
-/** 协同挂载：v-if="ready" 等 ydoc sync；ydoc 变 null 会卸载编辑器。详见 ../COLLABORATION.md */
-import { computed } from 'vue'
-import { SpeedTiptapEditor, useCollaboration } from 'speed-tiptap-editor'
+import { KnowledgeEditor } from '@speed-tiptap-editor/knowledge-editor'
+import '@speed-tiptap-editor/knowledge-editor/style.css'
 import type { CSSProperties } from 'vue'
 import type { Collaborator } from '@sk/types'
-
-const props = defineProps<{
+defineProps<{
   editorKey: string
-  contentJson: string | null
+  contentJson: string | null | Record<string, unknown>
   editable: boolean
   title: string
   headerStyle: CSSProperties
@@ -38,41 +32,6 @@ const emit = defineEmits<{
   'update:title': [value: string]
   'update:collaborators': [collaborators: Collaborator[]]
 }>()
-
-const collaborationConfig = computed(() => {
-  const collaboration = props.editorProps?.collaboration as {
-    documentId: string
-    url: string
-    token: string
-    user: Collaborator
-  } | undefined
-
-  if (!props.editable || !collaboration?.documentId) {
-    return null
-  }
-
-  return collaboration
-})
-
-const { ydoc, provider } = useCollaboration({
-  config: collaborationConfig,
-  enabled: computed(() => props.editable),
-  onCollaboratorsChange: (users: Collaborator[]) => emit('update:collaborators', users),
-})
-
-const collaborationUser = computed(() => collaborationConfig.value?.user ?? null)
-
-const editorBindProps = computed(() => {
-  const { collaboration: _collaboration, ...rest } = props.editorProps
-  return rest
-})
-
-const ready = computed(() => {
-  if (!props.editable) {
-    return true
-  }
-  return !!ydoc.value
-})
 
 const onTitleUpdate = (val: string) => emit('update:title', val)
 </script>

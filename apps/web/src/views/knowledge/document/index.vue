@@ -89,6 +89,8 @@
 
 <script lang="ts" setup>
 import { computed, watch } from 'vue'
+import { DocumentType } from '@sk/types'
+import { ensureSheet } from '#sk-web/plugins/ensureEditors'
 import { storeToRefs } from 'pinia'
 import { useSystemStore } from '#sk-web/store/useSystemStore'
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore'
@@ -97,7 +99,7 @@ import { StarOutlined, StarFilled } from '@ant-design/icons-vue'
 import { transformDatatimeToRecentText, isLoggedIn } from '@sk/utils'
 import CollaboratingPersonAvatars from '#sk-web/components/collaboratingPersons/index.vue'
 import { useCollect } from '../hooks/useCollect'
-import { CollectResourceType, DocumentType, DocumentAbility } from '@sk/types'
+import { CollectResourceType, DocumentAbility } from '@sk/types'
 import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator'
 import { usePersonSearch } from '#sk-web/components/personSearch/usePersonSearch'
 import dayjs from 'dayjs'
@@ -176,6 +178,16 @@ watch(
     if (val) {
       resetCollaborators()
       knowledgeStore.initDocumentDetail()
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => documentInfo.value?.type,
+  async (type) => {
+    if (type === DocumentType.SHEET) {
+      await ensureSheet()
     }
   },
   { immediate: true },
