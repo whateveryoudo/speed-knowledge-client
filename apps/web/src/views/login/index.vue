@@ -1,7 +1,12 @@
 <template>
-  <div class="login-page bg-[var(--ant-color-bg-base)]">
+  <div class="grid grid-cols-1 min-h-screen h-screen bg-[var(--ant-color-bg-base)] md:grid-cols-2">
     <!-- Left: animated characters -->
-    <div class="login-page__aside">
+     <!-- TODO:为什么这里要加!?优先级不够？ -->
+    <div class="hidden md:!block relative min-h-screen h-full overflow-hidden">
+      <div
+        class="absolute top-0 right-0 bottom-0 w-px pointer-events-none bg-[linear-gradient(to_bottom,transparent,rgba(0,0,0,0.08)_20%,rgba(0,0,0,0.08)_80%,transparent)]"
+        aria-hidden="true"
+      />
       <AnimatedCharacters
         :is-typing="isTyping"
         :password="form.password"
@@ -15,21 +20,18 @@
     </div>
 
     <!-- Right: login form -->
-    <div class="login-page__form flex items-center justify-center p-6 sm:p-8">
+    <div class="flex min-h-screen items-center justify-center bg-white p-6 sm:p-8">
       <div class="w-full max-w-[420px]">
         <!-- Mobile logo -->
-        <div class="login-page__mobile-brand flex items-center justify-center gap-2 text-lg font-semibold mb-10 text-[var(--ant-color-text)]">
-          <img :src="logo" alt="logo" class="w-8 h-8 object-contain" />
+        <div class="flex md:hidden! items-center justify-center gap-2 text-lg font-semibold mb-10 text-[var(--ant-color-text)]">
+          <img :src="logo" alt="logo" class="w-10 h-10 object-contain" />
           <span>{{ title }}</span>
         </div>
 
         <div class="text-center mb-8 md:mb-10">
-          <h1 class="text-3xl font-bold mb-2 text-[var(--ant-color-text)] tracking-[2px]">
+          <h1 class="text-xl md:text-3xl! font-bold mb-2 text-[var(--ant-color-text)] tracking-[2px]">
             {{ loginMode === 'login' ? '欢迎回来' : '创建账号' }}
           </h1>
-          <!-- <p class="text-[var(--ant-color-text-tertiary)] text-sm">
-            {{ loginMode === 'login' ? '请登录您的账号' : '填写信息完成注册' }}
-          </p> -->
         </div>
 
         <a-form
@@ -79,7 +81,35 @@
             </div>
           </a-form-item>
 
-          <a-form-item name="verificateCode" label="验证码">
+          <!-- 注册：邮箱验证码 -->
+          <a-form-item v-if="loginMode === 'register'" name="email_code" label="邮箱验证码">
+            <a-input-group compact class="flex!">
+              <a-input
+                v-model:value="form.email_code"
+                size="large"
+                class="flex-1!"
+                placeholder="请输入邮箱验证码"
+                :maxlength="6"
+              />
+              <!-- 这里定宽 -->
+              <a-button
+                size="large"
+                class="basis-[114px] rounded-tl-0! rounded-bl-0!"
+                :disabled="emailCodeCountdown > 0 || emailCodeSending"
+                :loading="emailCodeSending"
+                @click="handleSendEmailCode"
+              >
+                {{ emailCodeSending ? "发送中..." : (emailCodeCountdown > 0 ? `${emailCodeCountdown}s` : '获取验证码') }}
+              </a-button>
+            </a-input-group>
+          </a-form-item>
+
+          <!-- 登录：失败多次后才显示图形验证码 -->
+          <a-form-item
+            v-if="loginMode === 'login' && captchaRequired"
+            name="verificateCode"
+            label="验证码"
+          >
             <a-input-group compact class="flex! w-full">
               <a-input
                 v-model:value="form.verificateCode"
@@ -103,11 +133,11 @@
           <div class="flex items-center justify-between mb-2">
             <p v-if="loginMode === 'register'" class="text-[var(--ant-color-text-secondary)] m-0">
               已有账号？
-              <a class="login-page__link cursor-pointer" @click="loginMode = 'login'">立即登录</a>
+              <a class="cursor-pointer text-[var(--sd-ant-color-primary-bg)] transition-colors hover:text-[#009456]" @click="switchMode('login')">立即登录</a>
             </p>
             <p v-else class="text-[var(--ant-color-text-tertiary)] m-0">
               还没有账号？
-              <a class="login-page__link cursor-pointer" @click="loginMode = 'register'">立即注册</a>
+              <a class="cursor-pointer text-[var(--sd-ant-color-primary-bg)] transition-colors hover:text-[#009456]" @click="switchMode('register')">立即注册</a>
             </p>
           </div>
 
@@ -121,9 +151,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import type { AxiosError } from 'axios'
-import type { ResponseType } from '@sk/types'
+import type { LoginErrorDetail } from '@sk/types'
 import { rges } from '@sk/utils'
 import { user as userApi, auth as authApi } from '@sk/api'
 import to from 'await-to-js'
@@ -142,32 +172,40 @@ const loginMode = ref<'login' | 'register'>('login')
 const loading = ref(false)
 const showPassword = ref(false)
 const isTyping = ref(false)
+const captchaRequired = ref(false)
+const verificateImg = ref('')
+const emailCodeCountdown = ref(0)
+const emailCodeSending = ref(false)
+
+let emailCodeTimer: ReturnType<typeof setInterval> | null = null
 
 type FormData = {
-  email?: string
+  email: string
   username: string
   password: string
-  nickname?: string
+  nickname: string
+  email_code: string
   verificateCode: string
   verificateId: string
 }
 
-const form = ref<FormData>({
+const createEmptyForm = (): FormData => ({
   email: '',
   username: '',
   password: '',
   nickname: '',
+  email_code: '',
   verificateCode: '',
   verificateId: '',
 })
 
-const verificateImg = ref('')
+const form = ref<FormData>(createEmptyForm())
 
 const rules = computed(() => {
   const baseRules: Record<string, any[]> = {
     username: loginMode.value === 'login'
       ? [{
-          validator: (_rule: any, value: string) => {
+          validator: (_rule: unknown, value: string) => {
             if (!value) return Promise.reject('请输入用户名或邮箱')
             if (rges.email.test(value) || rges.username.test(value)) return Promise.resolve()
             return Promise.reject('请输入正确的用户名或邮箱格式')
@@ -189,7 +227,7 @@ const rules = computed(() => {
     ],
     nickname: loginMode.value === 'register'
       ? [{
-          validator: (_rule: any, value: string) => {
+          validator: (_rule: unknown, value: string) => {
             if (value && !rges.nickname.test(value)) {
               return Promise.reject('昵称：2-16位中文、数字、字母组合')
             }
@@ -197,119 +235,159 @@ const rules = computed(() => {
           },
         }]
       : [],
+    email_code: loginMode.value === 'register'
+      ? [
+          { required: true, message: '请输入邮箱验证码' },
+          { len: 6, message: '验证码为6位' },
+        ]
+      : [],
+    verificateCode: loginMode.value === 'login' && captchaRequired.value
+      ? [{ required: true, message: '请输入验证码' }]
+      : [],
   }
 
-  return {
-    ...baseRules,
-    verificateCode: [{ required: true, message: '请输入验证码' }],
-  }
+  return baseRules
 })
+
+const clearEmailCodeTimer = () => {
+  if (emailCodeTimer) {
+    clearInterval(emailCodeTimer)
+    emailCodeTimer = null
+  }
+}
+
+const startEmailCodeCountdown = (seconds = 60) => {
+  clearEmailCodeTimer()
+  emailCodeCountdown.value = seconds
+  emailCodeTimer = setInterval(() => {
+    emailCodeCountdown.value -= 1
+    if (emailCodeCountdown.value <= 0) {
+      clearEmailCodeTimer()
+    }
+  }, 1000)
+}
+
+const resetCaptchaState = () => {
+  captchaRequired.value = false
+  verificateImg.value = ''
+  form.value.verificateCode = ''
+  form.value.verificateId = ''
+}
+
+const switchMode = (mode: 'login' | 'register') => {
+  loginMode.value = mode
+  form.value = createEmptyForm()
+  resetCaptchaState()
+  clearEmailCodeTimer()
+  emailCodeCountdown.value = 0
+}
 
 const initVerificateCode = async () => {
   const [err, res] = await to(authApi.getVerificateCode())
-  if (err) {
-    loading.value = false
-    return
-  }
+  if (err) return
   verificateImg.value = res.data.captcha_image
   form.value.verificateId = res.data.captcha_id
 }
 
-initVerificateCode()
+const getLoginErrorDetail = (error: AxiosError): LoginErrorDetail | null => {
+  const detail = (error.response?.data as { detail?: string | LoginErrorDetail })?.detail
+  if (!detail) return null
+  if (typeof detail === 'string') {
+    return { message: detail, captcha_required: false }
+  }
+  return detail
+}
 
-const handleSubmit = async (values: FormData) => {
+const getErrorMessage = (error: AxiosError, fallback: string) => {
+  const detail = (error.response?.data as { detail?: string | { message?: string } })?.detail
+  if (typeof detail === 'string') return detail
+  if (detail && typeof detail === 'object' && detail.message) return detail.message
+  return fallback
+}
+
+const handleSendEmailCode = async () => {
+  if (!form.value.email) {
+    message.warning('请先输入邮箱')
+    return
+  }
+  if (!rges.email.test(form.value.email)) {
+    message.warning('请输入正确的邮箱格式')
+    return
+  }
+
+  emailCodeSending.value = true
+  const [err, res] = await to(authApi.sendEmailCode({
+    email: form.value.email,
+    scene: 'register',
+  }))
+  emailCodeSending.value = false
+
+  if (err) {
+    return
+  }
+
+  message.success(res.data.message || '验证码已发送')
+  startEmailCodeCountdown(60)
+}
+
+const handleRegister = async () => {
+  loading.value = true
+  const [err] = await to(userApi.register({
+    username: form.value.username,
+    email: form.value.email,
+    password: form.value.password,
+    email_code: form.value.email_code,
+    nickname: form.value.nickname || undefined,
+  }))
+  loading.value = false
+
+  if (err) {
+    return
+  }
+
+  message.success('注册成功，请登录')
+  switchMode('login')
+}
+
+const handleLogin = async () => {
+  loading.value = true
+  const [err, res] = await to(authApi.login({
+    username: form.value.username,
+    password: form.value.password,
+    verificateId: form.value.verificateId || undefined,
+    verificateCode: form.value.verificateCode || undefined,
+  }))
+  loading.value = false
+
+  if (err) {
+    const axiosErr = err as AxiosError
+    const loginError = getLoginErrorDetail(axiosErr)
+
+    if (loginError?.captcha_required) {
+      captchaRequired.value = true
+      await initVerificateCode()
+    }
+
+    message.error(loginError?.message || getErrorMessage(axiosErr, '登录失败'))
+    return
+  }
+
+  message.success('登录成功!')
+  localStorage.setItem('access_token', res.data.access_token)
+  await userStore.getUserInfo()
+  const redirect = route.query.redirect as string
+  router.push(redirect || '/dashboard')
+}
+
+const handleSubmit = async () => {
   if (loginMode.value === 'register') {
-    loading.value = true
-    const [err] = await to(userApi.register(form.value))
-    if (err) {
-      loading.value = false
-      initVerificateCode()
-      return
-    }
-    message.success('注册成功!')
-    loading.value = false
+    await handleRegister()
   } else {
-    loading.value = true
-    const tempParams = { ...form.value }
-    delete tempParams.email
-    delete tempParams.nickname
-    const [err, res] = await to(authApi.login(tempParams))
-    if (err) {
-      loading.value = false
-      const axiosErr = err as AxiosError<ResponseType>
-      if (axiosErr.response?.status === 400) {
-        initVerificateCode()
-      }
-      return
-    }
-
-    message.success('登录成功!')
-    localStorage.setItem('access_token', res.data.access_token)
-    await userStore.getUserInfo()
-    const redirect = route.query.redirect as string
-    router.push(redirect || '/dashboard')
-    loading.value = false
+    await handleLogin()
   }
 }
+
+onUnmounted(() => {
+  clearEmailCodeTimer()
+})
 </script>
-
-<style scoped lang="less">
-.login-page {
-  display: grid;
-  grid-template-columns: 1fr;
-  min-height: 100vh;
-  height: 100vh;
-
-  &__aside {
-    display: none;
-    min-height: 100vh;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.08) 20%, rgba(0, 0, 0, 0.08) 80%, transparent);
-      pointer-events: none;
-    }
-  }
-
-  &__form {
-    min-height: 100vh;
-    background: #ffffff;
-  }
-
-  &__link {
-    color: var(--sd-ant-color-primary-bg);
-
-    &:hover {
-      color: #009456;
-    }
-  }
-
-  &__mobile-brand {
-    display: flex;
-  }
-
-  @media (min-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-
-    &__aside {
-      display: block;
-    }
-
-    &__mobile-brand {
-      display: none;
-    }
-  }
-}
-
-:deep(.ant-form-item-label > label) {
-  font-weight: 500;
-}
-</style>
