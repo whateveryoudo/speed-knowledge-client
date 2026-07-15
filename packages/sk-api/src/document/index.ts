@@ -3,8 +3,10 @@ import { documentPrefix, documentNodePrefix } from "../path";
 import type {
   DocumentType,
   DocumentItem,
+  DocumentImportFormat,
   DragDocumentParams,
   DocumentNodeItem,
+  DocumentRouteContext,
 } from "@sk/types";
 import type { UserInfo, DocumentNodeType } from "@sk/types";
 // 新增文档（需携带知识库id）
@@ -15,6 +17,44 @@ export const addDocument = (data: {
   parent_id?: string | null;
 }): Promise<ResponseType<DocumentNodeItem>> => {
   return request.post(`${documentPrefix}/docs`, data);
+};
+
+/** 导入 Word/Markdown 为知识库文档 */
+export const importDocument = (
+  knowledgeIdentifier: string,
+  data: {
+    file: File;
+    format: DocumentImportFormat;
+    parent_id?: string | null;
+  },
+  onUploadProgress?: (percent: number) => void,
+): Promise<ResponseType<DocumentNodeItem>> => {
+  const formData = new FormData();
+  formData.append("file", data.file);
+  formData.append("format", data.format);
+  if (data.parent_id) {
+    formData.append("parent_id", data.parent_id);
+  }
+  return request.post(
+    `${documentPrefix}/${knowledgeIdentifier}/import`,
+    formData,
+    {
+      timeout: 120000,
+      onUploadProgress: (event) => {
+        if (!onUploadProgress || !event.total) return;
+        // 上传阶段约占 0–80%；服务端转换完成前进度会停在这里
+        const percent = Math.min(80, Math.round((event.loaded / event.total) * 80));
+        onUploadProgress(percent);
+      },
+    },
+  );
+};
+
+/** 无知识库时：创建默认知识库并新建文档（返回可跳转路由上下文） */
+export const createDefaultDocument = (
+  spaceId: string,
+): Promise<ResponseType<DocumentRouteContext>> => {
+  return request.post(`${documentPrefix}/${spaceId}/default/docs`);
 };
 
 // 通过id或slug获取文档详情

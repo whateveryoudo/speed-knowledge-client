@@ -23,7 +23,7 @@ const editorExtPkg = (name: string) =>
 
 /** 本地联调 speed-tiptap-editor（toDist: true 走 dist，false 走 src） */
 function speedTiptapEditorAliases() {
-  const toDist = true
+  const toDist = false
   const entry = (name: string, file = 'index.ts') =>
     `${editorPkg(name)}/${toDist ? `dist/${file.replace(/\.ts$/, '.js')}` : `src/${file}`}`
   const extEntry = (name: string, file = 'index.ts') =>
@@ -34,6 +34,8 @@ function speedTiptapEditorAliases() {
   if (toDist) {
     return {
       '@speed-tiptap-editor/base-editor/style.css': cssEntry('base-editor'),
+      '@speed-tiptap-editor/kit-base/style.css': cssEntry('kit-base'),
+      '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/dist/style.css`,
       '@speed-tiptap-editor/base-editor/plugin': entry('base-editor', 'plugin.js'),
       '@speed-tiptap-editor/base-editor': entry('base-editor'),
       '@speed-tiptap-editor/lite-editor': entry('lite-editor'),
@@ -55,6 +57,8 @@ function speedTiptapEditorAliases() {
 
   return {
     '@speed-tiptap-editor/base-editor/style.css': `${editorPkg('base-editor')}/src/style.ts`,
+    '@speed-tiptap-editor/kit-base/style.css': `${editorPkg('kit-base')}/src/style.ts`,
+    '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/src/style.ts`,
     '@speed-tiptap-editor/base-editor/plugin': `${editorPkg('base-editor')}/src/plugin-entry.ts`,
     '@speed-tiptap-editor/base-editor': `${editorPkg('base-editor')}/src/index.ts`,
     '@speed-tiptap-editor/lite-editor': `${editorPkg('lite-editor')}/src/index.ts`,

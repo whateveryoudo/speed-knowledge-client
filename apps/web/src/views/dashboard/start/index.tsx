@@ -90,13 +90,13 @@ export default defineComponent({
         },
       },
       {
-        title: '创建者/知识库',
+        title: '团队/知识库',
         dataIndex: 'doc_belong_knowledge_name',
         customRender: ({ record }: { text: string; record: DashboardDocumentHistoryResponse }) => {
           // TODO:个人花园展示
           return (
             <span class="text-[var(--sd-text-caption)]">
-              {record.doc_creator}
+              {record.doc_belong_team_name}
               <span class="mx-1">/</span>
               <span
                 class="cursor-pointer"

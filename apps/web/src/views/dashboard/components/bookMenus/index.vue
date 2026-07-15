@@ -21,7 +21,7 @@
         <SkeletonList :loading="commonPinLoading">
           <MenuList v-if="commonPinList.length > 0" :books="commonPinBooks" :show-more="true"
             @drag-end="handleDragEnd" />
-          <Empty0 hasTop v-else description="暂无知识库" />
+          <Empty0 hasTop v-else description="暂无常用知识库" />
         </SkeletonList>
       </Collapse>
 

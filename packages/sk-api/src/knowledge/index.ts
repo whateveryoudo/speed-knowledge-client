@@ -169,3 +169,10 @@ export const deleteCommonPin = (
 ): Promise<ResponseType<null>> => {
   return request.delete(`${knowledgePrefix}/common-pin/${knowledge_id}`);
 };
+
+/** 退出知识库 */
+export const leaveKnowledge = (
+  knowledge_id: string
+): Promise<ResponseType<null>> => {
+  return request.delete(`${knowledgePrefix}/${knowledge_id}/leave`);
+};

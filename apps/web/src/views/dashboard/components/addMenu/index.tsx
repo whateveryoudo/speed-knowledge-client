@@ -51,6 +51,7 @@ export default defineComponent({
             />
             <SelectKnowledgeForDocument
                 open={openSelectKnowledge.value}
+                onOk={() => emit('add-knowledge-cb')}
                 onUpdate:open={(flag: boolean) => (openSelectKnowledge.value = flag)}
             />
         </>

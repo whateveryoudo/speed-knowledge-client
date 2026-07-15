@@ -10,6 +10,12 @@ export enum DocumentType {
   GROUP = "group",
 }
 
+/** 文档导入格式（与后端 DocumentImportFormat 对齐） */
+export enum DocumentImportFormat {
+  WORD = "word",
+  MARKDOWN = "markdown",
+}
+
 export const documentTypeOptions = [
   {
     label: '文档',

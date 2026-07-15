@@ -114,6 +114,9 @@ import { KnowledgeSearchModal } from '#sk-web/components/search';
 import { useAbility } from '#sk-web/hooks/useAbility';
 import { useToggle } from '@vueuse/core';
 import { isLoggedIn } from '@sk/utils';
+import { Modal, message } from 'ant-design-vue';
+import { knowledge as knowledgeApi } from '@sk/api';
+import { to } from 'await-to-js';
 const DEFAULT_EXPAND_WIDTH = 253;
 const open = ref(!localStorage.getItem('sk_knowledge_expand') || localStorage.getItem('sk_knowledge_expand') === 'true');
 const expandWrapRef = ref<HTMLElement | null>(null);
@@ -206,7 +209,23 @@ const handleMoreOpt = (e: any) => {
             router.push(`/${route.params.team_slug as string}/knowledge/${slug.value}/manage/auth`);
             break;
         case 'exit':
-            // TODO: 调用退出知识库接口
+            Modal.confirm({
+                title: '退出知识库',
+                content: '退出后将无法再访问该知识库，请谨慎操作!',
+                okText: '退出',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: async () => {
+                    const [error] = await to(
+                        knowledgeApi.leaveKnowledge(knowledgeInfo.value.id),
+                    );
+                    if (error) {
+                        return Promise.reject(error);
+                    }
+                    message.success('已退出知识库');
+                    router.push('/dashboard/start');
+                },
+            });
             break;
     }
 }
