@@ -4,6 +4,7 @@ import {
   DeliveredProcedureOutlined,
   DeleteOutlined,
   FormOutlined,
+  ExportOutlined,
 } from '@ant-design/icons-vue'
 import type { ItemType } from 'ant-design-vue'
 
@@ -11,12 +12,14 @@ export type DocumentMoreMenuAbility = {
   canEdit: boolean
   canCreate: boolean
   canDelete: boolean
+  canExport?: boolean
 }
 
 export function buildDocumentMoreMenus({
   canEdit,
   canCreate,
   canDelete,
+  canExport = false,
 }: DocumentMoreMenuAbility): ItemType[] {
   const items: ItemType[] = []
 
@@ -38,6 +41,13 @@ export function buildDocumentMoreMenus({
       icon: <DeliveredProcedureOutlined />,
       label: '移动',
       key: 'move',
+    })
+  }
+  if (canExport) {
+    items.push({
+      icon: <ExportOutlined />,
+      label: '导出',
+      key: 'export',
     })
   }
   if (canDelete) {

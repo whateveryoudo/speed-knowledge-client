@@ -37,6 +37,7 @@ app.use(store)
 app.use(router)
 app.use(SpeedComponents as any, {
   iconfontUrl: [import.meta.env.VITE_ICONFONT_URL],
+  access_token: localStorage.getItem('access_token'),
   apis: {
     fileUploadSingle: attachmentApi.fileUploadSingle,
     getPreviewUrl: getComponentsPreviewUrl,

@@ -12,18 +12,20 @@
                         {{ record.title }}
                     </span>
                     <a-space :size="4" class="shrink-0" v-if="showActions(record.id) && canShowNodeActions">
-                        <a-dropdown v-if="nodeMoreMenus.length" :overlayStyle="{ width: '150px' }" placement="bottomLeft" trigger="click"
+                        <a-dropdown v-if="getNodeMoreMenus(record).length" :overlayStyle="{ width: '150px' }"
+                            placement="bottomLeft" trigger="click"
                             @open-change="(open: boolean) => handleMoreOpenChange(open, record)">
                             <a-button type="text" class="shadow-btn-wrapper icon" @click.stop>
                                 <MoreOutlined />
                             </a-button>
                             <template #overlay>
                                 <a-menu @click="(e: any) => handleDocumentMoreClick(record, e.key)"
-                                    :items="nodeMoreMenus" />
+                                    :items="getNodeMoreMenus(record)" />
                             </template>
                         </a-dropdown>
-                        <AddMenu v-if="canDocCreate" :knowledge-id="knowledgeId" :parent-id="record.id" trigger-type="icon"
-                            popover-trigger="click" @open-change="(open: boolean) => handleAddOpenChange(open, record)"
+                        <AddMenu v-if="canDocCreate" :knowledge-id="knowledgeId" :parent-id="record.id"
+                            trigger-type="icon" popover-trigger="click"
+                            @open-change="(open: boolean) => handleAddOpenChange(open, record)"
                             @add-document-cb="(node) => emit('add-document-cb', node)"
                             @add-catalog-node-cb="(node) => emit('add-catalog-node-cb', node)" />
                     </a-space>
@@ -32,14 +34,21 @@
         </a-tree>
         <Empty0 v-else description="暂无文档" />
     </SkeletonList>
+    <ExportModal
+        v-model:visible="exportVisible"
+        :document-id="exportDocumentId"
+        :document-title="exportDocumentTitle"
+        :document-type="exportDocumentType"
+    />
 </template>
 <script lang="ts" setup>
 import { computed, ref, h, watch, nextTick } from 'vue';
 import { useTree } from './useTree';
-import { type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState, type DocumentNodeItem } from '@sk/types';
+import { DocumentType, DocumentNodeType, type DragDocumentParams, type DocumentNodeTreeItem, type TreeNodeUIState, type DocumentNodeItem } from '@sk/types';
 import { buildDocumentMoreMenus } from './menus';
 import { Modal, message } from 'ant-design-vue';
 import AddMenu from '../addMenu';
+import ExportModal from '../export/index.vue';
 
 const props = withDefaults(defineProps<{
     loading: boolean;
@@ -50,6 +59,7 @@ const props = withDefaults(defineProps<{
     canDocCreate?: boolean;
     canDocEdit?: boolean;
     canDocDelete?: boolean;
+    canDocExport?: boolean;
 }>(), {
     loading: false,
     tree: () => [],
@@ -58,16 +68,23 @@ const props = withDefaults(defineProps<{
     canDocCreate: false,
     canDocEdit: false,
     canDocDelete: false,
+    canDocExport: false,
 })
 
-const nodeMoreMenus = computed(() => buildDocumentMoreMenus({
+const exportVisible = ref(false)
+const exportDocumentId = ref('')
+const exportDocumentTitle = ref('')
+const exportDocumentType = ref<DocumentType>(DocumentType.WORD)
+
+const getNodeMoreMenus = (record: DocumentNodeTreeItem) => buildDocumentMoreMenus({
     canEdit: props.canDocEdit,
     canCreate: props.canDocCreate,
     canDelete: props.canDocDelete,
-}))
+    canExport: props.canDocExport && !!record.document_id && record.type === DocumentNodeType.DOC,
+})
 
 const canShowNodeActions = computed(() => (
-    props.canDocCreate || props.canDocEdit || props.canDocDelete
+    props.canDocCreate || props.canDocEdit || props.canDocDelete || props.canDocExport
 ))
 
 const cptTree = computed(() => props.tree)
@@ -125,15 +142,27 @@ watch(
 )
 
 const handleDocumentMoreClick = (record: DocumentNodeTreeItem, key: string) => {
+    // 点击触发区域关闭更多操作
+    patchUIState(record.id, { showActions: false })
     switch (key) {
         case 'rename':
-            patchUIState(record.id, { renaming: true, showActions: true })
+            patchUIState(record.id, { renaming: true })
             nextTick(() => renameInputRef.value?.focus())
             break
         case 'edit':
             if (record.document_slug) {
                 emit('edit-document', { nodeId: record.id, documentSlug: record.document_slug })
             }
+            break
+        case 'export':
+            if (!record.document_id) {
+                message.warning('无法导出该节点')
+                return
+            }
+            exportDocumentId.value = record.document_id
+            exportDocumentTitle.value = record.title || ''
+            exportDocumentType.value = record.document_type || DocumentType.WORD
+            exportVisible.value = true
             break
         case 'delete':
             Modal.confirm({

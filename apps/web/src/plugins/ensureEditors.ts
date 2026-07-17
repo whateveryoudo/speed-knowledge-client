@@ -3,7 +3,6 @@ import { getAppContext } from './appContext'
 import {
   attachmentApi,
   getAttachmentPreviewUrl,
-  getComponentsPreviewUrl,
   getFilePreviewUrl,
   transformFileItem,
 } from './editorApis'
@@ -19,6 +18,7 @@ export function ensureTiptap(app: App = getAppContext()) {
       ])
       app.use(mod.default as any, {
         registerGlobal: false,
+        access_token: localStorage.getItem('access_token'),
         apis: {
           fileDownload: attachmentApi.fileDownload,
           fileUploadSingle: attachmentApi.fileUploadSingle,

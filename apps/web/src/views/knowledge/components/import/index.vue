@@ -1,5 +1,5 @@
 <template>
-    <s-full-modal :width="500" :footer="false" :visible="visible" @cancel="handleClose" height="auto"
+    <s-full-modal :width="560" :footer="false" :visible="visible" @cancel="handleClose" height="auto"
         title="文件导入">
         <Flex v-if="currentView === 'progress'" class="mb-2">
             <Space class="cursor-pointer text-[var(--ant-color-text-secondary)]" @click="backToSelect">
@@ -57,6 +57,7 @@ import { ref, computed, watch } from 'vue'
 import { ArrowLeftOutlined, CloseCircleOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
 import WordIcon from '#sk-web/assets/images/menus/word.svg'
 import MarkdownIcon from '#sk-web/assets/images/menus/markdown.svg'
+import SpeedIcon from '#sk-web/assets/images/menus/speed.svg'
 import { document as documentApi } from '@sk/api'
 import { DocumentImportFormat, type DocumentNodeItem } from '@sk/types'
 import { to } from 'await-to-js'
@@ -78,7 +79,7 @@ const emit = defineEmits<{
     (e: 'success', node: DocumentNodeItem): void
 }>()
 
-type ImportType = 'word' | 'markdown'
+type ImportType = 'word' | 'markdown' | 'speed'
 
 interface ImportItem {
     label: string
@@ -120,6 +121,14 @@ const importItems: ImportItem[] = [
         desc: '.md,.markdown',
         accept: '.md,.markdown,.mark,text/markdown,text/x-markdown',
         format: DocumentImportFormat.MARKDOWN,
+    },
+    {
+        label: 'Speed 文档',
+        value: 'speed',
+        icon: SpeedIcon,
+        desc: '.speed',
+        accept: '.speed,text/plain,application/octet-stream',
+        format: DocumentImportFormat.SPEED,
     },
 ]
 

@@ -14,6 +14,14 @@ export enum DocumentType {
 export enum DocumentImportFormat {
   WORD = "word",
   MARKDOWN = "markdown",
+  SPEED = "speed",
+}
+
+/** 文档导出格式（与后端 DocumentExportFormat 对齐） */
+export enum DocumentExportFormat {
+  WORD = "word",
+  MARKDOWN = "markdown",
+  SPEED = "speed",
 }
 
 export const documentTypeOptions = [
@@ -42,6 +50,7 @@ export enum DocumentAbility {
   DOC_JOIN = 'doc_join',
   DOC_SHARE = 'doc_share',
   DOC_COMMENT = 'doc_comment',
+  DOC_EXPORT = 'doc_export',
 }
 // 角色选项
 export const DocumentCollaboratorRoleOptions = [
@@ -78,8 +87,9 @@ export interface DocumentItem {
 /** 接口返回的文档树节点（无前端 mode） */
 export interface DocumentNodeItem {
   id: string;
-  type: DocumentType;
+  type: DocumentNodeType;
   document_slug: string;
+  document_type: DocumentType;
   title: string;
   parent_id?: string | null;
   first_child_id?: string | null;

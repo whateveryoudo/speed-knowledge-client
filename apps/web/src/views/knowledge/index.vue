@@ -62,6 +62,7 @@
                             :can-doc-create="can(DocumentAbility.DOC_CTEATE)"
                             :can-doc-edit="can(DocumentAbility.DOC_EDIT)"
                             :can-doc-delete="can(DocumentAbility.DOC_DELETE)"
+                            :can-doc-export="can(DocumentAbility.DOC_EXPORT)"
                             @update-node-ui-state="knowledgeStore.setNodeUIState"
                             @clear-focus-rename-node="knowledgeStore.clearFocusRenameNode"
                             @rename-node="handleRenameNode" @edit-document="handleEditDocument"

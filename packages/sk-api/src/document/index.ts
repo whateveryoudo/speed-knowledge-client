@@ -4,11 +4,13 @@ import type {
   DocumentType,
   DocumentItem,
   DocumentImportFormat,
+  DocumentExportFormat,
   DragDocumentParams,
   DocumentNodeItem,
   DocumentRouteContext,
 } from "@sk/types";
 import type { UserInfo, DocumentNodeType } from "@sk/types";
+import type { AxiosResponse } from "axios";
 // 新增文档（需携带知识库id）
 export const addDocument = (data: {
   knowledge_id: string;
@@ -45,6 +47,38 @@ export const importDocument = (
         // 上传阶段约占 0–80%；服务端转换完成前进度会停在这里
         const percent = Math.min(80, Math.round((event.loaded / event.total) * 80));
         onUploadProgress(percent);
+      },
+    },
+  );
+};
+
+/** 导出文档为 Word / Markdown / Speed（返回完整 axios 响应，配合 handleExceptDown） */
+export const exportDocument = (
+  identifier: string,
+  format: DocumentExportFormat,
+  onDownloadProgress?: (percent: number) => void,
+): Promise<AxiosResponse<Blob>> => {
+  return request.post(
+    `${documentPrefix}/${identifier}/export`,
+    { format },
+    {
+      timeout: 120000,
+      responseType: "blob",
+      headers: {
+        fullRes: true,
+      },
+      onDownloadProgress: (event) => {
+        if (!onDownloadProgress) return;
+        if (event.total) {
+          // 下载阶段约占 10–90%；转换完成前可先停在较低进度
+          const percent = Math.min(
+            90,
+            Math.max(10, Math.round((event.loaded / event.total) * 80) + 10),
+          );
+          onDownloadProgress(percent);
+          return;
+        }
+        onDownloadProgress(30);
       },
     },
   );
