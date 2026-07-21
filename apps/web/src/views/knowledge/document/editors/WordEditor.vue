@@ -15,7 +15,6 @@
 
 <script setup lang="ts">
 import { KnowledgeEditor } from '@speed-tiptap-editor/knowledge-editor'
-import '@speed-tiptap-editor/knowledge-editor/style.css'
 import type { CSSProperties } from 'vue'
 import type { Collaborator } from '@sk/types'
 defineProps<{

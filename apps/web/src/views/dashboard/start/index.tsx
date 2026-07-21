@@ -135,13 +135,15 @@ export default defineComponent({
       }
     })
 
-    const { dataSource, loading, getList, pagination } = useTable(
+    const { dataSource, loading, getList, pagination, handleTableChange } = useTable(
       dashboardApi.getDocumentHistoryList,
       options,
     )
 
+
     // 初始化列表
     getList()
+
     const handleStartMenuClick = (key: string) => {
       if (key === 'knowledge') {
         openAddKnowledge.value = true
@@ -226,6 +228,7 @@ export default defineComponent({
           loading={loading.value}
           showHeader={false}
           pagination={pagination.value}
+          onChange={handleTableChange}
           v-slots={{
             emptyText: () => (
               <Empty0

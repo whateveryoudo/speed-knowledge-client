@@ -34,10 +34,12 @@ function speedTiptapEditorAliases() {
   if (toDist) {
     return {
       '@speed-tiptap-editor/base-editor/style.css': cssEntry('base-editor'),
+      '@speed-tiptap-editor/ui/style.css': cssEntry('ui'),
       '@speed-tiptap-editor/kit-base/style.css': cssEntry('kit-base'),
       '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/dist/style.css`,
       '@speed-tiptap-editor/base-editor/plugin': entry('base-editor', 'plugin.js'),
       '@speed-tiptap-editor/base-editor': entry('base-editor'),
+      '@speed-tiptap-editor/lite-editor/style.css': cssEntry('lite-editor'),
       '@speed-tiptap-editor/lite-editor': entry('lite-editor'),
       '@speed-tiptap-editor/knowledge-editor/style.css': cssEntry('knowledge-editor'),
       '@speed-tiptap-editor/knowledge-editor': entry('knowledge-editor'),
@@ -57,10 +59,12 @@ function speedTiptapEditorAliases() {
 
   return {
     '@speed-tiptap-editor/base-editor/style.css': `${editorPkg('base-editor')}/src/style.ts`,
+    '@speed-tiptap-editor/ui/style.css': `${editorPkg('ui')}/src/style.ts`,
     '@speed-tiptap-editor/kit-base/style.css': `${editorPkg('kit-base')}/src/style.ts`,
     '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/src/style.ts`,
     '@speed-tiptap-editor/base-editor/plugin': `${editorPkg('base-editor')}/src/plugin-entry.ts`,
     '@speed-tiptap-editor/base-editor': `${editorPkg('base-editor')}/src/index.ts`,
+    '@speed-tiptap-editor/lite-editor/style.css': `${editorPkg('lite-editor')}/src/style.ts`,
     '@speed-tiptap-editor/lite-editor': `${editorPkg('lite-editor')}/src/index.ts`,
     '@speed-tiptap-editor/knowledge-editor/style.css': `${editorPkg('knowledge-editor')}/src/style.ts`,
     '@speed-tiptap-editor/knowledge-editor': `${editorPkg('knowledge-editor')}/src/index.ts`,

@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div v-if="currentTaskTip" class="text-xs text-gray-500 px-1">{{ currentTaskTip }}</div>
-            <div class="text-xs mt-2 text-gray-500 px-1" v-if="exportTasks.some(t => t.type === 'PDF')">pdf导出目前为图片导出，会导致pdf文件过大（待优化）</div>
+            <div class="text-xs mt-2 text-gray-500 px-1" v-if="exportTasks.some(t => t.type === 'PDF')">注：pdf导出目前为前端导出，可能会导致pdf文件过大</div>
             
         </div>
     </s-full-modal>
