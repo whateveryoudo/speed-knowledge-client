@@ -7,8 +7,8 @@
                     <span class="text-[28px] font-700">{{ knowledgeInfo.name }}</span>
                 </a-space>
                 <a-space>
+                    <!-- 收藏不限制权限，可读就可以收藏 -->
                     <a-button
-                        v-if="canCollect"
                         @click="handleCollect(knowledgeIndexPage.has_collected, { identifier: knowledgeInfo.id, resource_type: CollectResourceType.KNOWLEDGE, onSuccess: () => { knowledgeIndexPage.has_collected = !knowledgeIndexPage.has_collected; } })">
                         <template #icon>
                             <StarFilled v-if="knowledgeIndexPage.has_collected" style="color: var(--sd-yellow-6);" />
@@ -58,7 +58,6 @@ import { isLoggedIn } from '@sk/utils';
 const { handleCollect } = useCollect();
 const { canRef } = useAbility();
 const canShare = canRef(KnowledgeAbility.SHARE_BOOK);
-const canCollect = computed(() => isLoggedIn() && canRef(KnowledgeAbility.COLLECT_BOOK).value);
 const { knowledgeInfo, documentLoading, documentTree } = storeToRefs(useKnowledgeStore());
 const welcomeContent = ref('<p><span data-name="wave" data-type="emoji">👋</span> <strong>欢迎来到知识库</strong></p><p style="padding-left: 1em;"> 知识库就像书一样，让多篇文档结构化，方便知识的创作与沉淀</p>');
 const knowledgeIndexPage = ref<KnowledgeIndexPageResponse>({

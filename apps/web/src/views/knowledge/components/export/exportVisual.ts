@@ -100,7 +100,7 @@ async function waitForImages(root: HTMLElement, timeoutMs = 8000) {
 
 /** 离屏 app 需单独 use TipTap 插件（与 ensureTiptap 配置对齐） */
 async function installTiptapOnApp(app: App) {
-  const mod = await import('@speed-tiptap-editor/base-editor/plugin')
+  const mod = await import('@speed-tiptap-editor/knowledge-editor/plugin')
   app.use(mod.default as any, {
     registerGlobal: false,
     access_token: localStorage.getItem('access_token'),

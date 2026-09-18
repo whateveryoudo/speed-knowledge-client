@@ -14,7 +14,7 @@ export function ensureTiptap(app: App = getAppContext()) {
   if (!tiptapReady) {
     tiptapReady = (async () => {
       const [mod] = await Promise.all([
-        import('@speed-tiptap-editor/base-editor/plugin'),
+        import('@speed-tiptap-editor/knowledge-editor/plugin'),
       ])
       app.use(mod.default as any, {
         registerGlobal: false,
