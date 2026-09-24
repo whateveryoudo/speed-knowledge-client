@@ -1,13 +1,21 @@
 import type { TeamItem } from './team';
-import { CollaboratorRole } from './collaborator';
 import type { Ability } from './index';
+
+/** 知识库可见性（V2，替代 is_public） */
+export enum KnowledgeVisibility {
+  PRIVATE = 'private',
+  SPACE = 'space',
+  PUBLIC = 'public',
+}
+
 export interface KnowledgeCreate {
   name: string;
   description?: string;
   cover_url?: any;
   group_id: string;
   icon: string;
-  team_id: string;
+  /** 个人/公共区为 null；仅团队库有值 */
+  team_id?: string | null;
   space_id: string;
 }
 /** 知识库列表 scope，与后端 KnowledgeFromWay 一致 */
@@ -45,17 +53,20 @@ export interface KnowledgeListMineQuery {
 
 export interface KnowledgeItem extends KnowledgeCreate {
   id: string;
-  user_id: number;
-  team: TeamItem;
+  /** 兼容旧字段名：即 creator_id */
+  user_id?: number;
+  creator_id?: number;
+  team?: TeamItem | null;
   slug: string;
   cover_url: any;
-  is_public: boolean;
+  visibility: KnowledgeVisibility;
   items_count: number;
   content_updated_at: string;
   created_at: string;
   updated_at: string;
   source?: KnowledgeFromWay;
-  collaborator_id?: string | null;
+  /** 路由第一段：username / public_area_slug / team.slug */
+  scope_slug?: string;
   ability?: Record<Ability, boolean>;
 }
 
@@ -162,22 +173,22 @@ export enum KnowledgeIndexPageSort {
   LIKE_COUNT = "like_count",
 }
 
-// 角色选项
+/** @deprecated 使用 ResourceRoleOptions */
 export const KnowledgeCollaboratorRoleOptions = [
   {
     label: "可阅读",
-    value: CollaboratorRole.READ,
+    value: "read",
     tip: "仅拥有只读和评论权限",
   },
   {
     label: "可编辑",
-    value: CollaboratorRole.EDIT,
+    value: "edit",
     tip: "拥有文档编辑权限",
   },
   {
     label: "可管理",
-    value: CollaboratorRole.ADMIN,
-    tip: "拥有知识库所有权限权限",
+    value: "admin",
+    tip: "拥有知识库所有权限",
   },
 ];
 // 首页配置

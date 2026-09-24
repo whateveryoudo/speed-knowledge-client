@@ -36,10 +36,10 @@
             :class="creatingId === item.id ? 'opacity-60 pointer-events-none' : ''" @click="handleSelect(item)">
             <IconFont type="icon-book-0" svg-sprite class="shrink-0 w-5 h-5 " />
             <span class="flex-1 truncate">
-              {{ item.team.slug }} / {{ item.name }}
+              {{ resolveKnowledgeScopeSlug(item, userStore.userInfo.username) }} / {{ item.name }}
             </span>
             <LoadingOutlined v-if="creatingId === item.id" />
-            <LockOutlined v-if="!item.is_public" class="shrink-0 text-[12px]" />
+            <LockOutlined v-if="item.visibility !== KnowledgeVisibility.PUBLIC" class="shrink-0 text-[12px]" />
           </div>
           <Empty0 v-if="!initLoading && list.length === 0" class="py-10!"
             :description="keyword.trim() ? '未找到相关知识库' : '暂无可用知识库'" />
@@ -63,13 +63,15 @@ import { knowledge as knowledgeApi, document as documentApi } from '@sk/api'
 import {
   DocumentAbility,
   DocumentType,
+  KnowledgeVisibility,
   ListSortOrder,
   type KnowledgeItem,
 } from '@sk/types'
-import { buildDocumentRouterUrl } from '@sk/utils'
+import { buildDocumentRouterUrl, resolveKnowledgeScopeSlug } from '@sk/utils'
 import to from 'await-to-js'
 import { message } from 'ant-design-vue'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
@@ -83,6 +85,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const spaceStore = useSpaceStore()
+const userStore = useUserStore()
 const { spaceInfo } = storeToRefs(spaceStore)
 const keyword = ref('')
 const creatingId = ref<string | null>(null)
@@ -182,8 +185,9 @@ const handleSelect = async (item: KnowledgeItem) => {
 
   message.success('文档创建成功')
   handleCancel()
+  const scope = resolveKnowledgeScopeSlug(item, userStore.userInfo.username)
   router.push({
-    path: `/${item.team.slug}/knowledge/${item.slug}/document/${res.data.document_slug}`,
+    path: `/${scope}/knowledge/${item.slug}/document/${res.data.document_slug}`,
     query: { edit: '1' },
   })
 }

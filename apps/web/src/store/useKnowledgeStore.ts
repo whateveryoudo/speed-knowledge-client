@@ -10,6 +10,7 @@ import {
   type DocumentNodeUIState,
   type TreeNodeUIState,
   DocumentType,
+  KnowledgeVisibility,
 } from '@sk/types'
 import type { WorkbookSnapshot } from '@speed-sheet/shared'
 import { to } from 'await-to-js'
@@ -32,35 +33,24 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     description: '',
     group_id: '',
     icon: '',
-    user_id: 0,
     slug: '',
     cover_url: null,
-    is_public: false,
+    visibility: KnowledgeVisibility.PRIVATE,
     items_count: 0,
     content_updated_at: '',
     created_at: '',
     updated_at: '',
-    team_id: '',
+    team_id: null,
     space_id: '',
-    team: {
-      id: '',
-      name: '',
-      slug: '',
-      description: '',
-      icon: '',
-      visibility: true,
-      owner_id: 0,
-      space_id: '',
-      created_at: '',
-      updated_at: '',
-    },
+    team: null,
   })
   const knowledgeError = ref<{ errMessage: string } | null>(null)
   const showKnowledgeLeftPanel = ref(true) // 是否显示知识库左侧面板（默认显示,仅有文档权限下不显示）
   const breadcrumbName = computed(() => {
-    return knowledgeInfo.value.team.owner_id === userStore.userInfo.id
-      ? '个人知识库'
-      : knowledgeInfo.value.team.name
+    if (!knowledgeInfo.value.team_id) {
+      return '个人知识库'
+    }
+    return knowledgeInfo.value.team?.name || '团队知识库'
   })
   const currentKnowledgeSlug = computed(() => route.params.knowledge_slug as string)
   const document_slug = computed(() => {

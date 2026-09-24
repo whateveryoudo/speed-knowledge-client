@@ -7,11 +7,13 @@ import { useTable } from 'speed-components-ui/hooks'
 import { knowledge as knowledgeApi } from '@sk/api'
 import {
   KnowledgeFromWay,
+  KnowledgeVisibility,
   ListSortOrder,
   type KnowledgeItem,
   type KnowledgeListQuery,
 } from '@sk/types'
-import { transformDatatimeToRecentText } from '@sk/utils'
+import { resolveKnowledgeScopeSlug, transformDatatimeToRecentText } from '@sk/utils'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import { useKnowledgeList } from '../../composables/useKnowledgeListContext'
 import { useKnowledgeBookMenu } from '../../composables/useKnowledgeBookMenu'
 import DeleteKnowledge from '../../components/deleteKnowledge/index.vue'
@@ -21,6 +23,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const userStore = useUserStore()
 const tableOptions = computed(() => ({
   extraParams: {
     scope: KnowledgeFromWay.COLLABORATION,
@@ -51,7 +54,8 @@ const formatUpdateTime = (record: KnowledgeItem) => {
 
 const goKnowledge = (book: KnowledgeItem) => {
   if (isRenaming(book.id)) return
-  router.push(`/${book.team.slug}/knowledge/${book.slug}`)
+  const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
+  router.push(`/${scope}/knowledge/${book.slug}`)
 }
 
 const onMenuClick = (e: { key: string }, book: KnowledgeItem) => {
@@ -155,7 +159,7 @@ defineExpose({
             {{ (record as KnowledgeItem).name }}
           </span>
           <LockOutlined
-            v-if="!(record as KnowledgeItem).is_public"
+            v-if="(record as KnowledgeItem).visibility !== KnowledgeVisibility.PUBLIC"
             class="shrink-0 text-[12px] text-[var(--sd-grey-7)]"
           />
         </div>

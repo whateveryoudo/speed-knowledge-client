@@ -23,11 +23,11 @@
                             <a-tooltip>
                                 <template #title>
                                     <span class="text-sm">
-                                        <span>{{ knowledgeInfo.is_public ? '互联网所有人可见' : '私有知识库' }}</span>
+                                        <span>{{ knowledgeInfo.visibility === 'public' ? '互联网所有人可见' : '私有知识库' }}</span>
                                         <a-button v-if="can(KnowledgeAbility.MODIFY_BOOK_PERMISSION)" class="text-sm!" type="link" size="small" @click="handleTogglePublic">切换公开性</a-button>
                                     </span>
                                 </template>
-                                <LockOutlined class="text-[var(--sd-grey-7)]" v-if="!knowledgeInfo.is_public" />
+                                <LockOutlined class="text-[var(--sd-grey-7)]" v-if="knowledgeInfo.visibility !== 'public'" />
                                 <GlobalOutlined class="text-[var(--sd-grey-7)]" v-else/>
 
                             </a-tooltip>

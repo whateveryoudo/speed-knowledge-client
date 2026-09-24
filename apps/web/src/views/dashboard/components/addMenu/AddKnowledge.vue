@@ -23,7 +23,7 @@
                 </a-form-item>
             </div>
 
-            <div class="mb-6">
+            <div v-if="!spaceStore.isPersonalSpace" class="mb-6">
                 <div class="mb-2 text-[var(--ant-color-text)]">新建至</div>
                 <a-form-item name="team_id">
                     <a-select
@@ -35,19 +35,13 @@
                     >
                         <template #option="{ team }">
                             <a-flex align="center" :gap="8" class="py-0.5">
-                                <img
-                                    v-if="isPersonalTeam(team)"
-                                    :src="userStore.userInfo.avatar || avatarDef"
-                                    class="w-[24px] h-[24px] rounded-full shrink-0"
-                                />
                                 <IconFont
-                                    v-else
                                     :type="team.icon?.startsWith('icon-') ? team.icon : 'icon-book-0'"
                                     svg-sprite
                                     class="shrink-0"
                                     style="width: 24px; height: 24px"
                                 />
-                                <span class="flex-1 truncate">{{ getTeamLabel(team) }}</span>
+                                <span class="flex-1 truncate">{{ team.name }}</span>
                                 <LockOutlined
                                     v-if="team.visibility === 'private'"
                                     class="text-[12px] text-[var(--sd-text-caption)] shrink-0"
@@ -56,6 +50,10 @@
                         </template>
                     </a-select>
                 </a-form-item>
+            </div>
+            <div v-else class="mb-6">
+                <div class="mb-2 text-[var(--ant-color-text)]">新建至</div>
+                <div class="text-[var(--sd-text-caption)]">个人空间（{{ userStore.userInfo.username }}）</div>
             </div>
 
             <!-- 分组 -->
@@ -78,7 +76,6 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { IconFont } from 'speed-components-ui/components'
 import { LockOutlined } from '@ant-design/icons-vue'
 import type { FormInstance, SelectProps } from 'ant-design-vue'
-import avatarDef from '#sk-web/assets/images/avatar_def.png'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
 import { knowledge as knowledgeApi, team as teamApi } from '@sk/api'
 import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate, TeamItem } from '@sk/types'
@@ -87,6 +84,7 @@ import to from 'await-to-js'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 import { useUserStore } from '#sk-web/store/useUserStore'
 import { useRouter } from 'vue-router'
+import { resolveKnowledgeScopeSlug } from '@sk/utils'
 
 interface Props {
     open?: boolean
@@ -133,38 +131,29 @@ const form = ref<FormValues>({
 })
 const groupOptions = ref<SelectProps['options']>([])
 
-const isPersonalTeam = (team: TeamItem) =>
-    team.is_default || team.owner_id === userStore.userInfo.id
-
-const getTeamLabel = (team: TeamItem) => {
-    if (team.is_default) {
-        return userStore.userInfo.nickname || userStore.userInfo.username || team.name
-    }
-    return team.name
-}
-
 const teamOptions = computed(() =>
     teamList.value.map((team) => ({
         value: team.id,
-        label: getTeamLabel(team),
+        label: team.name,
         team,
     })),
 )
 
 const canSubmit = computed(() => {
-    return !!form.value.name.trim() && !!form.value.group_id && !!form.value.team_id
+    if (!form.value.name.trim() || !form.value.group_id) return false
+    if (spaceStore.isPersonalSpace) return true
+    return !!form.value.team_id
 })
 
 const resolveDefaultTeamId = (teams: TeamItem[]) => {
-    const defaultTeam = teams.find((item) => item.is_default)
-    if (defaultTeam) {
-        return defaultTeam.id
-    }
-    const ownedTeam = teams.find((item) => item.owner_id === userStore.userInfo.id)
-    return ownedTeam?.id ?? teams[0]?.id
+    return teams[0]?.id
 }
 
 const getTeamListData = async () => {
+    if (spaceStore.isPersonalSpace) {
+        form.value.team_id = undefined
+        return
+    }
     const spaceId = spaceStore.spaceInfo.id
     if (!spaceId) {
         return
@@ -210,7 +199,7 @@ const resetForm = () => {
         description: '',
         group_id: resolveDefaultGroupId(groupList.value),
         icon: 'icon-book-0',
-        team_id: resolveDefaultTeamId(teamList.value),
+        team_id: spaceStore.isPersonalSpace ? undefined : resolveDefaultTeamId(teamList.value),
         cover: [],
     }
     formRef.value?.clearValidate()
@@ -226,7 +215,7 @@ const handleOk = async () => {
             cover_url: form.value.cover?.[0],
             group_id: form.value?.group_id ?? '',
             icon: form.value.icon,
-            team_id: form.value.team_id ?? '',
+            team_id: spaceStore.isPersonalSpace ? null : form.value.team_id ?? null,
             space_id: spaceStore.spaceInfo.id,
         }
         const [error, res] = await to(knowledgeApi.addKnowledge(reqParams))
@@ -243,7 +232,8 @@ const handleOk = async () => {
         emit('update:open', false)
         emit('ok', knowledge)
         initCommonPinList()
-        router.push(`/${knowledge.team.slug}/knowledge/${knowledge.slug}`)
+        const scope = resolveKnowledgeScopeSlug(knowledge, userStore.userInfo.username)
+        router.push(`/${scope}/knowledge/${knowledge.slug}`)
     } catch (error) {
         console.error('表单验证失败:', error)
     }

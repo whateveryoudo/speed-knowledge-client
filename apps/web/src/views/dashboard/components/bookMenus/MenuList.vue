@@ -19,7 +19,7 @@
                 <span v-else class="book-title flex-1 text-[14px] truncate" :title="book.name">
                     {{ book.name }}
                 </span>
-                <LockOutlined class="text-[12px]" v-if="!book.is_public" />
+                <LockOutlined class="text-[12px]" v-if="book.visibility !== KnowledgeVisibility.PUBLIC" />
                 <GlobalOutlined class="text-[12px]" v-else />
                 <a-dropdown trigger="click">
                     <a-button type="text" @click.stop
@@ -44,13 +44,16 @@
 import { ref, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { LockOutlined, HolderOutlined, MoreOutlined, GlobalOutlined } from '@ant-design/icons-vue'
-import { type KnowledgeItem } from '@sk/types'
+import { type KnowledgeItem, KnowledgeVisibility } from '@sk/types'
+import { resolveKnowledgeScopeSlug } from '@sk/utils'
 import { cloneDeep } from 'lodash-es'
 import { useRouter } from 'vue-router'
 import DeleteKnowledge from '../deleteKnowledge/index.vue'
 import { useKnowledgeBookMenu } from '../../composables/useKnowledgeBookMenu'
+import { useUserStore } from '#sk-web/store/useUserStore'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const props = withDefaults(defineProps<{
     books?: KnowledgeItem[]
@@ -92,7 +95,8 @@ const handleBookClick = (book: KnowledgeItem) => {
     if (isRenaming(book.id)) {
         return
     }
-    router.push(`/${book.team.slug}/knowledge/${book.slug}`)
+    const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
+    router.push(`/${scope}/knowledge/${book.slug}`)
 }
 
 watch(() => props.books, (newVal) => {

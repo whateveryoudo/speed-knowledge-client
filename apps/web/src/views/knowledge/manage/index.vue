@@ -34,7 +34,7 @@
 import { ref, h, provide, computed, watch, type VNode } from 'vue';
 import {
    type KnowledgeItem,
-   type TeamItem,
+   KnowledgeVisibility,
 } from '@sk/types'
 import { LockOutlined, ExportOutlined } from '@ant-design/icons-vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -42,8 +42,11 @@ import { to } from 'await-to-js'
 import { knowledge as knowledgeApi } from '@sk/api'
 import { KnowledgeAbility } from '@sk/types'
 import { useAbility } from '#sk-web/hooks/useAbility'
+import { resolveKnowledgeScopeSlug } from '@sk/utils'
+import { useUserStore } from '#sk-web/store/useUserStore'
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 const knowledgeSlug = computed(() => route.params.knowledge_slug as string);
 // 当前知识库信息
 const knowledgeInfo = ref<KnowledgeItem>({
@@ -52,16 +55,15 @@ const knowledgeInfo = ref<KnowledgeItem>({
    description: '',
    group_id: '',
    icon: '',
-   user_id: 0,
    slug: '',
    cover_url: null,
-   is_public: false,
+   visibility: KnowledgeVisibility.PRIVATE,
    items_count: 0,
    content_updated_at: '',
-   team: {} as TeamItem,
+   team: null,
    created_at: '',
    updated_at: '',
-   team_id: '',
+   team_id: null,
    space_id: '',
 })
 type ItemType = {
@@ -92,18 +94,21 @@ const manageMenus = computed<ItemType[]>(() => {
    return items
 })
 const selectedKey = ref<string>('');
+const scopeSlug = computed(() =>
+   resolveKnowledgeScopeSlug(knowledgeInfo.value, userStore.userInfo.username) ||
+   (route.params.team_slug as string),
+);
+const goToKnowledge = () => {
+   router.push(`/${scopeSlug.value}/knowledge/${knowledgeSlug.value}`)
+}
 const handleClick = (item: ItemType) => {
    if (item.key === 'auth') {
-      router.push(`/${teamSlug.value}/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
+      router.push(`/${scopeSlug.value}/knowledge/${knowledgeSlug.value}/manage/${item.key}`)
    }
    if (item.key === 'exit') {
       // TODO: 调用退出知识库接口
    }
 };
-const teamSlug = computed(() => knowledgeInfo.value.team.slug);
-const goToKnowledge = () => {
-   router.push(`/${teamSlug.value}/knowledge/${knowledgeSlug.value}`)
-}
 const initKnowledge = async () => {
    const [error, res] = await to(
       knowledgeApi.getKnowledgeDetail(knowledgeSlug.value as string),

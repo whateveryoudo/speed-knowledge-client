@@ -12,17 +12,19 @@ import {
   PlusOutlined,
   UpOutlined,
 } from '@ant-design/icons-vue'
-import { transformDatatimeToRecentText } from '@sk/utils'
+import { resolveKnowledgeScopeSlug, transformDatatimeToRecentText } from '@sk/utils'
 import dayjs from 'dayjs'
 import { knowledge as knowledgeApi } from '@sk/api'
 import {
   DEFAULT_GROUP_DISPLAY_CONFIG,
   KnowledgeGroupType,
+  KnowledgeVisibility,
   type DocumentSummaryItem,
   type KnowledgeGroupDisplayConfig,
   type KnowledgeGroupItem,
   type KnowledgeItem,
 } from '@sk/types'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import { useKnowledgeBookMenu } from '../../composables/useKnowledgeBookMenu'
 import DeleteKnowledge from '../../components/deleteKnowledge/index.vue'
 import AddKnowledge from '../../components/addMenu/AddKnowledge.vue'
@@ -33,6 +35,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const userStore = useUserStore()
 const groups = ref<KnowledgeGroupItem[]>([])
 const loading = ref(false)
 const renamingGroupId = ref<string | null>(null)
@@ -207,11 +210,13 @@ const goKnowledge = (book: KnowledgeItem) => {
   if (isRenaming(book.id)) {
     return
   }
-  router.push(`/${book.team.slug}/knowledge/${book.slug}`)
+  const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
+  router.push(`/${scope}/knowledge/${book.slug}`)
 }
 
 const goDocument = (book: KnowledgeInGroupItem, doc: DocumentSummaryItem) => {
-  router.push(`/${book.team.slug}/knowledge/${book.slug}/document/${doc.slug}`)
+  const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
+  router.push(`/${scope}/knowledge/${book.slug}/document/${doc.slug}`)
 }
 
 const formatDocTime = (doc: DocumentSummaryItem) => {
@@ -433,7 +438,7 @@ defineExpose({
                       <span v-else class="truncate text-[14px] font-medium text-[var(--sd-text-grey-900)]">
                         {{ book.name }}
                       </span>
-                      <LockOutlined v-if="!book.is_public" class="text-[12px] text-[var(--sd-grey-7)]" />
+                      <LockOutlined v-if="book.visibility !== KnowledgeVisibility.PUBLIC" class="text-[12px] text-[var(--sd-grey-7)]" />
                     </div>
                     <!-- 固定高度占位 -->
                     <p v-if="isCardLayout(group)" :title="book.description ?? ''"

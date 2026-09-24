@@ -5,12 +5,15 @@ import draggable from 'vuedraggable'
 import { Collapse } from 'vue-collapsed'
 import { LockOutlined, UpOutlined, DownOutlined, MoreOutlined } from '@ant-design/icons-vue'
 import type { KnowledgeCommonPinItem } from '@sk/types'
+import { resolveKnowledgeScopeSlug } from '@sk/utils'
 import { cloneDeep } from 'lodash-es'
 import { useKnowledgeList } from '../../composables/useKnowledgeListContext'
 import { useKnowledgeBookMenu } from '../../composables/useKnowledgeBookMenu'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import DeleteKnowledge from '../../components/deleteKnowledge/index.vue'
 
 const router = useRouter()
+const userStore = useUserStore()
 const expanded = ref(true)
 const innerList = ref<KnowledgeCommonPinItem[]>([])
 const {
@@ -45,7 +48,8 @@ const handleBookClick = (pin: KnowledgeCommonPinItem) => {
     if (isRenaming(pin.knowledge.id)) {
         return
     }
-    router.push(`/${pin.knowledge.team.slug}/knowledge/${pin.knowledge.slug}`)
+    const scope = resolveKnowledgeScopeSlug(pin.knowledge, userStore.userInfo.username)
+    router.push(`/${scope}/knowledge/${pin.knowledge.slug}`)
 }
 
 const onDragEnd = (evt: { oldIndex: number; newIndex: number }) => {
@@ -90,7 +94,7 @@ const onMenuClick = (e: { key: string }, pin: KnowledgeCommonPinItem) => {
                                         class="truncate text-[14px] font-medium text-[var(--sd-text-grey-900)]">
                                         {{ pin.knowledge.name }}
                                     </span>
-                                    <LockOutlined v-if="!pin.knowledge.is_public"
+                                    <LockOutlined v-if="pin.knowledge.visibility !== 'public'"
                                         class="text-[12px] text-[var(--sd-grey-7)]" />
                                 </div>
                                 <p v-if="pin.knowledge.description"

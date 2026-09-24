@@ -82,6 +82,11 @@ const router = createRouter({
           path: '/:team_slug/:resource_type/:knowledge_slug/:document_slug/invite',
           component: () => import('../views/invite/DocumentInvite.vue'),
         },
+        {
+          path: '/organizations/new',
+          name: 'createSpace',
+          component: () => import('../views/space/CreateSpace.vue'),
+        },
       ],
     },
     {

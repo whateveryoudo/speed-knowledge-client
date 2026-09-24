@@ -10,6 +10,8 @@ import {
   PushpinOutlined,
 } from '@ant-design/icons-vue'
 import { KnowledgeAbility, type KnowledgeItem } from '@sk/types'
+import { resolveKnowledgeScopeSlug } from '@sk/utils'
+import { useUserStore } from '#sk-web/store/useUserStore'
 import { useKnowledgeList } from './useKnowledgeListContext'
 
 export interface KnowledgeBookMenuOptions {
@@ -21,7 +23,13 @@ type MenuItem = ItemType & { hidden?: boolean }
 
 export function useKnowledgeBookMenu() {
   const router = useRouter()
+  const userStore = useUserStore()
   const { handleRemoveUsual, handleAddUsual, handleRename } = useKnowledgeList()
+
+  const knowledgePath = (book: KnowledgeItem, suffix = '') => {
+    const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
+    return `/${scope}/knowledge/${book.slug}${suffix}`
+  }
 
   const deleteKnowledgeVisible = ref(false)
   const renamingBookId = ref<string | null>(null)
@@ -123,7 +131,7 @@ export function useKnowledgeBookMenu() {
 
     switch (key) {
       case 'auth':
-        router.push(`/${book.team.slug}/knowledge/${book.slug}/manage/auth`)
+        router.push(knowledgePath(book, '/manage/auth'))
         break
       case 'unpin':
         await handleRemoveUsual(book.id)

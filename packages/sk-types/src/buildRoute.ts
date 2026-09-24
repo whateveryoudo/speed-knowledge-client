@@ -1,10 +1,13 @@
-// 基础路由上下文（到团队层）
+// 基础路由上下文
 interface BaseRouteContext {
   space_id?: string;
   space_domain?: string;
   team_id?: string;
   team_name?: string;
-  team_slug: string;
+  /** @deprecated 使用 scope_slug */
+  team_slug?: string;
+  /** 路由第一段：username / public_area_slug / team.slug */
+  scope_slug?: string;
 }
 // 文档路由上下文
 export interface DocumentRouteContext extends BaseRouteContext {

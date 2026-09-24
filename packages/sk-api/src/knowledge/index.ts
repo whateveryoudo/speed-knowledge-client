@@ -119,11 +119,14 @@ export const deleteKnowledge = (
   return request.delete(`${knowledgePrefix}/${slug}`);
 };
 
-/** 切换知识库公开性 */
-export const toggleKnowledgePublic = (
+/** 更新知识库公开范围（V2） */
+export const updateKnowledgeVisibility = (
   identifier: string,
-): Promise<ResponseType<boolean>> => {
-  return request.put(`${knowledgePrefix}/${identifier}/toggle-public`);
+  visibility: "private" | "space" | "public",
+): Promise<ResponseType<null>> => {
+  return request.put(`${knowledgePrefix}/${identifier}/visibility`, {
+    visibility,
+  });
 };
 
 

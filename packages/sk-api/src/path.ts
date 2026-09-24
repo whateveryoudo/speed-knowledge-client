@@ -10,5 +10,6 @@ export const notificationPrefix = `${apiVersion}/notification`
 export const spacePrefix = `${apiVersion}/space`
 export const teamPrefix = `${apiVersion}/team`
 export const collaboratorPrefix = `${apiVersion}/collaborator`
+export const resourceCollaborationPrefix = `${apiVersion}/resource-collaboration`
 export const searchPrefix = `${apiVersion}/search`
 export const resourcePrefix = `${apiVersion}/resource`

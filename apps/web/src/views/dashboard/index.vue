@@ -8,7 +8,7 @@
                     <a-flex class="px-2 w-full" justify="space-between" align="center">
                         <a-space>
                             <img :src="Logo" alt="logo" class="w-[30px] h-auto" />
-                            <span class="text-16px font-bold">{{ title }}</span>
+                            <SpaceSwitcher />
                         </a-space>
 
                         <a-space :size="0">
@@ -103,6 +103,7 @@ import StartMenus from './components/StartMenus';
 import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
 import UserSetting from './components/userSetting/index.vue';
+import SpaceSwitcher from './components/SpaceSwitcher.vue';
 import { useRouter } from 'vue-router';
 import { useKnowledgeListProvider, useKnowledgeList } from './composables/useKnowledgeListContext'
 import { useSystemStore } from '#sk-web/store/useSystemStore';
@@ -124,7 +125,6 @@ const { width, startResize } = useEdgeResize(expandWrapRef, { width: Number(loca
 })
 const { unreadNotificationCount } = storeToRefs(useSystemStore());
 const openTooltip = ref(false);
-const title = import.meta.env.VITE_SYS_TITLE;
 const [notificationModalVisible, toggleNotificationModalVisible] = useToggle(false);
 const [globalSearchOpen, toggleGlobalSearch] = useToggle(false);
 // 初始化知识库列表相关 context
