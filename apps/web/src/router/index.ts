@@ -29,6 +29,7 @@ const router = createRouter({
               path: 'knowledge',
               component: () => import('../views/dashboard/knowledgeMain/index.vue'),
             },
+            { path: 'team', component: () => import('../views/team/index.vue') },
             { path: 'team/:team_slug', component: () => import('../views/team/index.vue') },
           ],
         },

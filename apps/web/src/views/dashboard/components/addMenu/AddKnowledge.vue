@@ -89,6 +89,7 @@ import { resolveKnowledgeScopeSlug } from '@sk/utils'
 interface Props {
     open?: boolean
     defaultGroupId?: string
+    defaultTeamId?: string
 }
 
 interface FormValues {
@@ -103,6 +104,7 @@ interface FormValues {
 const props = withDefaults(defineProps<Props>(), {
     open: false,
     defaultGroupId: undefined,
+    defaultTeamId: undefined,
 })
 
 const spaceStore = useSpaceStore()
@@ -146,6 +148,9 @@ const canSubmit = computed(() => {
 })
 
 const resolveDefaultTeamId = (teams: TeamItem[]) => {
+    if (props.defaultTeamId) {
+        return props.defaultTeamId
+    }
     return teams[0]?.id
 }
 

@@ -6,10 +6,17 @@ export const getSpaceInfo = (): Promise<ResponseType<SpaceItem | null>> => {
   return request.get(`${spacePrefix}/`)
 }
 
-export const getSpaceInfoByDomin = (
-  space_domin: string,
+/** 校验当前用户是否可访问当前空间（组织子域需为成员）；403 时 silent，由 layout 展示无权页 */
+export const checkSpaceAccess = (): Promise<ResponseType<SpaceItem>> => {
+  return request.get(`${spacePrefix}/current/access`, {
+    headers: { silent: true },
+  })
+}
+
+export const getSpaceInfoByDomain = (
+  space_domain: string,
 ): Promise<ResponseType<SpaceItem>> => {
-  return request.get(`${spacePrefix}/by_domin/${space_domin}`)
+  return request.get(`${spacePrefix}/by_domain/${space_domain}`)
 }
 
 export const listSpaces = (): Promise<ResponseType<SpaceItem[]>> => {
@@ -23,9 +30,9 @@ export const createSpace = (
 }
 
 export const checkDomainAvailable = (
-  domin: string,
+  domain: string,
 ): Promise<ResponseType<boolean>> => {
-  return request.get(`${spacePrefix}/check-domin-available`, {
-    params: { domin },
+  return request.get(`${spacePrefix}/check-domain-available`, {
+    params: { domain },
   })
 }

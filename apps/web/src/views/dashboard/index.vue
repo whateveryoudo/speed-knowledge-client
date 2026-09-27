@@ -37,6 +37,8 @@
                     <div class="flex-1 overflow-y-auto">
                         <!-- 知识库菜单 -->
                         <BookMenus ref="bookMenusRef" expanded />
+                        <!-- 团队菜单 -->
+                        <TeamMenus expanded />
                     </div>
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
@@ -66,6 +68,7 @@
                     <StartMenus v-model:activeModuleKey="activeModuleKey" :expanded="false" />
                     <a-divider class="my-0 w-[30%]! min-w-auto mx-auto"></a-divider>
                     <BookMenus :expanded="false" />
+                    <TeamMenus :expanded="false" />
                 </a-flex>
                 <div @mouseenter.stop="openTooltip = false"
                     class="w-6px absolute top-0 right-0 bottom-0 border border-r border-r-solid border-[var(--sd-border-light)] cursor-col-resize"
@@ -99,6 +102,7 @@ import { useEdgeResize } from '#sk-web/hooks';
 import Logo from '#sk-web/assets/logo.png';
 import { BellOutlined, CaretRightOutlined, CaretLeftOutlined, ClockCircleOutlined, ClockCircleFilled, PlusOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import BookMenus from './components/bookMenus/index.vue';
+import TeamMenus from './components/teamMenus/index.vue';
 import StartMenus from './components/StartMenus';
 import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';

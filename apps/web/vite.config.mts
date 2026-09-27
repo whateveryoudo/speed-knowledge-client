@@ -229,7 +229,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         [apiBaseUrl]: {
           target: apiProxyUrl,
-          changeOrigin: true,
+          changeOrigin: false,
           rewrite: (path) => path.replace(new RegExp(`^${apiBaseUrl}`), ''),
         },
       },

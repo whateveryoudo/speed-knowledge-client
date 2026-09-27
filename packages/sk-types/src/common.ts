@@ -1,5 +1,15 @@
 import type { DocumentType } from './document'
 
+/** 附件摘要（空间 icon 等 JSON 字段） */
+export interface AttachmentItem {
+  id: string
+  fileName?: string
+  fileType?: string
+  fileSize?: number
+  /** 若后端直接给可访问地址则优先使用 */
+  url?: string
+}
+
 export enum CollectResourceType {
   KNOWLEDGE = "knowledge",
   DOCUMENT = "document",

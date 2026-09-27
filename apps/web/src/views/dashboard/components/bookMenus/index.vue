@@ -4,11 +4,12 @@
     <div class="px-2 h-full" v-if="expanded">
       <div
         class="book-header flex items-center rounded-[6px] h-[36px] pl-1 pr-3 cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200"
-        :class="{ 'pl-3': commonPinList.length === 0, 'bg-[var(--sd-bg-primary-hover)]': route.path === '/dashboard/knowledge' }"
+        :class="{ 'bg-[var(--sd-bg-primary-hover)]': route.path === '/dashboard/knowledge' }"
         @click="router.push('/dashboard/knowledge')">
-        <a-button v-if="commonPinList.length > 0" type="text"
+        <a-button type="text"
           class="shadow-btn-wrapper mr-2 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)]">
-          <span class="transition-transform duration-200" @click.stop="toggleInner" :class="{ 'rotate-90': innerExpanded }">
+          <span class="transition-transform duration-200" @click.stop="toggleInner"
+            :class="{ 'rotate-90': innerExpanded }">
             <CaretRightOutlined />
           </span>
         </a-button>
@@ -21,7 +22,7 @@
         <SkeletonList :loading="commonPinLoading">
           <MenuList v-if="commonPinList.length > 0" :books="commonPinBooks" :show-more="true"
             @drag-end="handleDragEnd" />
-          <Empty0 hasTop v-else description="暂无常用知识库" />
+          <p v-else class="text-[var(--sd-text-caption)] text-center mt-6 mb-4">暂无常用知识库</p>
         </SkeletonList>
       </Collapse>
 

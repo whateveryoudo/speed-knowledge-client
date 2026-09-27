@@ -13,10 +13,7 @@ const emptySpace = (): SpaceItem => ({
   domain: '',
   owner_id: '',
   contact_email: '',
-  icon: {
-    id: '',
-    url: '',
-  },
+  icon: null,
   description: '',
   created_at: '',
   updated_at: '',
@@ -33,20 +30,27 @@ export const buildOrganizationDashboardUrl = (domain: string) => {
   if (!root || root === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(root)) {
     return null
   }
-  const { protocol } = window.location
-  return `${protocol}//${domain}.${root}/dashboard`
+  const { protocol, port } = window.location
+  const portSuffix =
+  port && port !== '80' && port !== '443' ? `:${port}` : ''
+
+  return `${protocol}//${domain}.${root}${portSuffix}/dashboard`
 }
 
 export const useSpaceStore = defineStore('space', () => {
   const spaceInfo = ref<SpaceItem>(emptySpace())
   const isPersonalSpace = computed(() => spaceInfo.value.type === SpaceType.PERSONAL)
+  /** 组织空间成员校验失败时的提示；null 表示有权或未校验 */
+  const spaceAccessError = ref<{ errMessage: string } | null>(null)
+  /** 已登录场景下准入校验是否结束（避免闪一下工作台） */
+  const spaceAccessReady = ref(false)
 
   const initSpace = async () => {
-    const domin = getSpaceSubdomain(window.location.hostname)
+    const domain = getSpaceSubdomain(window.location.hostname)
     const accessToken = localStorage.getItem('access_token')
 
-    if (domin) {
-      const [err, res] = await to(spaceApi.getSpaceInfoByDomin(domin))
+    if (domain) {
+      const [err, res] = await to(spaceApi.getSpaceInfoByDomain(domain))
       if (err) {
         message.error(err.message)
         return
@@ -64,6 +68,38 @@ export const useSpaceStore = defineStore('space', () => {
     }
   }
 
+  /**
+   * Layout 用：已登录 + 组织子域时校验成员；个人空间 / 未登录不调接口。
+   * 组织非成员 → 403 → 写入 spaceAccessError（页内展示，不改 URL）。
+   */
+  const checkSpaceAccess = async () => {
+    spaceAccessError.value = null
+    const accessToken = localStorage.getItem('access_token')
+    const domain = getSpaceSubdomain(window.location.hostname)
+    // 未登录或无组织子域：无需准入校验
+    if (!accessToken || !domain) {
+      spaceAccessReady.value = true
+      return
+    }
+    spaceAccessReady.value = false
+    const [err, res] = await to(spaceApi.checkSpaceAccess())
+    if (!err && res?.data) {
+      spaceInfo.value = res.data
+      spaceAccessError.value = null
+    } else {
+      const errorRes = (err as any)?.response?.data as
+        | { errCode?: number; errMessage?: string }
+        | undefined
+      if (errorRes?.errCode === 403) {
+        spaceAccessError.value = {
+          errMessage: errorRes.errMessage || '你不是该空间成员，可联系空间管理员添加',
+        }
+      }
+      // 401 等由全局拦截处理；其它错误不挡 layout，避免误伤
+    }
+    spaceAccessReady.value = true
+  }
+
   const getSpaceInfoByUser = async () => {
     const [err, res] = await to(spaceApi.getSpaceInfo())
     if (err) {
@@ -76,12 +112,15 @@ export const useSpaceStore = defineStore('space', () => {
   }
 
   const enterPersonalSpace = async () => {
-    const domin = getSpaceSubdomain(window.location.hostname)
-    if (domin) {
+    const domain = getSpaceSubdomain(window.location.hostname)
+    if (domain) {
       const root =
         (import.meta.env.VITE_SPACE_ROOT_DOMAIN as string) ||
         window.location.hostname.replace(/^[^.]+\./, '')
-      window.location.href = `${window.location.protocol}//${root}/dashboard`
+      const { protocol, port } = window.location
+      const portSuffix =
+        port && port !== '80' && port !== '443' ? `:${port}` : ''
+      window.location.href = `${protocol}//${root}${portSuffix}/dashboard`
       return
     }
     await getSpaceInfoByUser()
@@ -105,7 +144,10 @@ export const useSpaceStore = defineStore('space', () => {
 
   return {
     spaceInfo,
+    spaceAccessError,
+    spaceAccessReady,
     initSpace,
+    checkSpaceAccess,
     isPersonalSpace,
     getSpaceInfoByUser,
     enterPersonalSpace,

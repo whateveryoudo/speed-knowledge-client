@@ -2,35 +2,21 @@
   <div class="min-h-screen flex items-center justify-center bg-[var(--ant-color-bg-base)] px-4 py-10">
     <div class="w-full max-w-[420px]">
       <div class="flex flex-col items-center mb-8">
-        <img :src="logo" alt="logo" class="w-10 h-10 object-contain mb-4" />
+        <img :src="logo" alt="logo" class="w-15 h-15 object-contain mb-4" />
         <h1 class="text-[22px] font-semibold text-[var(--sd-text-primary)] m-0">
           设置空间信息
         </h1>
       </div>
 
-      <a-form
-        layout="vertical"
-        :model="form"
-        :rules="rules"
-        @finish="handleSubmit"
-      >
+      <a-form layout="vertical" :model="form" :rules="rules" @finish="handleSubmit">
         <a-form-item label="空间名称" name="name">
-          <a-input
-            v-model:value="form.name"
-            size="large"
-            placeholder="可输入企业或团队名称"
-            :maxlength="50"
-          />
+          <a-input v-model:value="form.name" size="large" placeholder="可输入企业或团队名称" :maxlength="50" />
         </a-form-item>
 
+
         <a-form-item label="空间域名" name="domain">
-          <a-input
-            v-model:value="form.domain"
-            size="large"
-            placeholder="4-20 个数字或字母"
-            :maxlength="20"
-            @blur="handleDomainBlur"
-          >
+          <a-input v-model:value="form.domain" size="large" placeholder="4-20 个数字或字母" :maxlength="20"
+            @blur="handleDomainBlur">
             <template #addonAfter>.{{ rootDomain }}</template>
           </a-input>
           <div class="mt-1 text-[12px] text-[var(--sd-text-caption)]">
@@ -39,21 +25,12 @@
         </a-form-item>
 
         <a-form-item label="联系邮箱" name="contact_email">
-          <a-input
-            v-model:value="form.contact_email"
-            size="large"
-            placeholder="用于接收费用和使用等关键信息"
-          />
+          <a-input v-model:value="form.contact_email" size="large" placeholder="用于接收费用和使用等关键信息" />
         </a-form-item>
-
-        <a-button
-          type="primary"
-          html-type="submit"
-          size="large"
-          block
-          :loading="submitting"
-          :disabled="!agreed"
-        >
+        <a-form-item label="空间描述" name="description">
+          <a-textarea v-model:value="form.description" size="large" placeholder="可输入空间描述" :maxlength="512" />
+        </a-form-item>
+        <a-button type="primary" html-type="submit" size="large" block :loading="submitting" :disabled="!agreed">
           下一步
         </a-button>
 
@@ -98,6 +75,7 @@ const form = reactive({
   name: '',
   domain: '',
   contact_email: userStore.userInfo.email || '',
+  description: '',
 })
 
 const domainPattern = /^[a-z0-9]{4,20}$/
