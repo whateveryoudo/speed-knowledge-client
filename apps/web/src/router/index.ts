@@ -1,6 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ensureTiptap } from '#sk-web/plugins/ensureEditors'
-
+function isTokenExpired(token: string) {
+  try {
+    const tokenObj = JSON.parse(atob(token.split('.')[1] || ''))
+    return tokenObj.exp * 1000 < Date.now()
+  } catch {
+    return false
+  }
+}
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -10,7 +17,6 @@ const router = createRouter({
       redirect: '/dashboard',
       component: () => import('../layouts/BasicLayout.vue'),
       children: [
-
         {
           path: '/dashboard',
           name: 'dashboard',
@@ -42,7 +48,7 @@ const router = createRouter({
             await ensureTiptap()
           },
           meta: {
-            guestEntry: true
+            guestEntry: true,
           },
           children: [
             {
@@ -57,7 +63,6 @@ const router = createRouter({
               path: '/:team_slug/knowledge/:knowledge_slug/document/:document_slug',
               component: () => import('../views/knowledge/document/index.vue'),
             },
-
           ],
         },
         {
@@ -97,25 +102,28 @@ const router = createRouter({
     },
   ],
 })
+const whiteList = ['/login']
 
 router.beforeEach((to, from, next) => {
-  console.log(to, from)
-  const whiteList = ['/login']
-  // 部分页面支持公开页，在页面内部去做权限判断这里不拦截
+  const access_token = localStorage.getItem('access_token')
+  if (isTokenExpired(access_token || '')) {
+    localStorage.removeItem('access_token')
+  }
+  const valida_token = localStorage.getItem('access_token')
+  if (valida_token) {
+    if (to.path === '/login') {
+      const redirect = (to.query.redirect as string) || '/dashboard'
+      next({ path: redirect })
+    } else {
+      next()
+    }
+    return
+  }
+
   if (whiteList.includes(to.path) || to.meta.guestEntry) {
     next()
   } else {
-    const access_token = localStorage.getItem('access_token')
-    if (!access_token) {
-      next({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
-    } else {
-      const redirectUrl = to.query.redirect as string
-      if (redirectUrl) {
-        next({ path: redirectUrl })
-      } else {
-        next()
-      }
-    }
+    next({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
   }
 })
 

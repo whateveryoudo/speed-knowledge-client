@@ -13,7 +13,7 @@
             </div>
         </template>
         <div
-            class="px-1 flex items-center justify-center border border-solid border-[var(--ant-color-border)] rounded-md cursor-pointer">
+            class="h-[32px] w-[32px] shrink-0 flex items-center justify-center border border-solid border-[var(--ant-color-border)] rounded-md cursor-pointer hover:border-[var(--ant-color-primary)] transition-colors">
             <s-icon-font :type="value" svg-sprite style="width: 24px; height: 24px;" />
         </div>
     </a-popover>

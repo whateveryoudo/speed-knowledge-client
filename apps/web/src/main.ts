@@ -13,17 +13,26 @@ import '@speed-tiptap-editor/knowledge-editor/style.css'
 import { setAppContext } from '#sk-web/plugins/appContext'
 import { getComponentsPreviewUrl, transformFileItem } from '#sk-web/plugins/editorApis'
 
+let isRedirecting = false // 是否触发了重定向（防止页面多个接口触发多次）
 initSkApiConfig({
   baseURL: import.meta.env.VITE_APP_BASE_URL || '',
   onUnauthorized: () => {
+    if (isRedirecting) return
+    isRedirecting = true
     localStorage.removeItem('access_token')
     if (router.currentRoute.value.path !== '/login') {
-      router.push({
-        path: '/login',
-        query: {
-          redirect: window.location.pathname + window.location.search,
-        },
-      })
+      router
+        .push({
+          path: '/login',
+          query: {
+            redirect: window.location.pathname + window.location.search,
+          },
+        })
+        .finally(() => {
+          setTimeout(() => {
+            isRedirecting = false
+          }, 1000)
+        })
     }
   },
   onError: (msg: string) => {

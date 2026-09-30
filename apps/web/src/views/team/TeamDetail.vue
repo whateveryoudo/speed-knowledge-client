@@ -5,9 +5,11 @@
       <!-- 左侧：团队信息与 Tab 切换 -->
       <div class="flex items-center gap-6">
         <div class="flex items-center gap-2">
-          <div class="flex h-[32px] w-[32px] items-center justify-center rounded-lg bg-[#e6f4ff] text-[#1677ff]">
-            <TeamOutlined class="text-[17px]" />
-          </div>
+          <TeamAvatar
+            :icon="teamDetail?.icon"
+            :size="32"
+            class="border border-solid border-[#f0f0f0]"
+          />
           <span class="text-[16px] font-semibold text-[var(--sd-text-grey-900)]">
             {{ teamDetail?.name || '团队' }}
           </span>
@@ -67,7 +69,7 @@
     </div>
 
     <!-- 主体内容滚动区 -->
-    <div class="flex-1 overflow-y-auto p-6 max-w-[1400px] w-full mx-auto">
+    <div class="flex-1 overflow-y-auto p-6 w-full">
       <!-- Tab 1: 知识库 -->
       <div v-show="activeTab === 'knowledge'" class="flex flex-col gap-6">
         <!-- 管理员玩法 Banner (Image 1 & 4) -->
@@ -98,18 +100,29 @@
               </template>
             </a-input>
 
-            <!-- 新建知识库按钮 -->
-            <a-button
-              type="default"
-              class="rounded-md border-[#d9d9d9] hover:border-[#1677ff] hover:text-[#1677ff] flex items-center gap-1"
-              @click="openAddKnowledge = true"
-            >
-              <PlusOutlined />
-              <DownOutlined class="text-[10px]" />
-            </a-button>
+            <!-- 新建下拉按钮 (新建知识库 / 新建分组) -->
+            <a-dropdown :trigger="['click']" placement="bottomRight">
+              <a-button
+                class="rounded-md border border-solid border-[var(--ant-color-success)] text-[var(--ant-color-success)] hover:border-[var(--ant-color-success-hover)] hover:text-[var(--ant-color-success-hover)] hover:bg-[var(--ant-color-success-bg)] flex items-center gap-1.5 px-3 h-[32px] transition-colors"
+              >
+                <PlusOutlined class="text-[13px]" />
+                <DownOutlined class="text-[10px]" />
+              </a-button>
+              <template #overlay>
+                <a-menu class="min-w-[120px]" @click="handleActionMenuClick">
+                  <a-menu-item key="knowledge" class="py-1.5 text-[13px]">
+                    新建知识库
+                  </a-menu-item>
+                  <a-menu-divider />
+                  <a-menu-item key="group" class="py-1.5 text-[13px]">
+                    新建分组
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
 
             <!-- 视图模式切换 -->
-            <div class="flex items-center border border-solid border-[#d9d9d9] rounded-md bg-white p-0.5">
+            <div class="flex items-center border border-solid border-[var(--ant-color-border)] rounded-md bg-[var(--ant-color-bg-container)] p-0.5">
               <a-tooltip title="卡片视图">
                 <a-button
                   type="text"
@@ -121,6 +134,7 @@
                   <AppstoreOutlined />
                 </a-button>
               </a-tooltip>
+              <a-divider type="vertical" class="mx-0.5 h-[14px]" />
               <a-tooltip title="列表视图">
                 <a-button
                   type="text"
@@ -136,122 +150,14 @@
           </div>
         </div>
 
-        <!-- 分组与书架卡片列表 (Image 1 & 4) -->
-        <div v-if="loadingGroups" class="py-12 flex justify-center">
-          <a-spin />
-        </div>
-
-        <div v-else-if="groups.length === 0" class="py-16 text-center text-[var(--sd-text-caption)]">
-          <p>暂无知识库</p>
-          <a-button type="primary" class="!bg-[#2ba471] border-none" @click="openAddKnowledge = true">
-            新建第一个知识库
-          </a-button>
-        </div>
-
-        <div v-else class="flex flex-col gap-6">
-          <div
-            v-for="group in groups"
-            :key="group.id"
-            class="group-section flex flex-col gap-3"
-          >
-            <!-- 分组标题（如果不仅有默认分组才展示） -->
-            <div v-if="groups.length > 1 || !group.is_default" class="text-[14px] font-medium text-[var(--sd-text-grey-900)]">
-              {{ group.group_name }}
-            </div>
-
-            <!-- 卡片网格视图 -->
-            <div
-              v-if="viewMode === 'card'"
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            >
-              <div
-                v-for="book in group.knowledge_group_items ?? []"
-                :key="book.id"
-                class="knowledge-bookshelf-card group rounded-lg border border-solid border-[var(--sd-border-light)] bg-white p-5 hover:border-[var(--sd-border-grey-4)] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[170px]"
-                @click="goKnowledge(book)"
-              >
-                <!-- 卡片头部：图标 + 标题 + 锁 -->
-                <div>
-                  <div class="flex items-center gap-2.5">
-                    <div class="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg bg-[#e6f4ff] text-[#1677ff]">
-                      <s-icon-font
-                        v-if="book.icon"
-                        :type="book.icon"
-                        svg-sprite
-                        style="width: 20px; height: 20px"
-                      />
-                      <ReadOutlined v-else class="text-[18px]" />
-                    </div>
-                    <span class="truncate text-[15px] font-medium text-[var(--sd-text-grey-900)] group-hover:text-[#1677ff] transition-colors">
-                      {{ book.name }}
-                    </span>
-                    <LockOutlined
-                      v-if="book.visibility !== KnowledgeVisibility.PUBLIC"
-                      class="text-[12px] text-[var(--sd-text-caption)] shrink-0"
-                    />
-                  </div>
-
-                  <!-- 描述 -->
-                  <p class="mt-2 mb-3 text-[12px] text-[var(--sd-text-caption)] line-clamp-1">
-                    {{ book.description || '暂无描述' }}
-                  </p>
-                </div>
-
-                <!-- 卡片内容：Top 3 文档列表 -->
-                <div class="border-0 border-t border-solid border-[#f0f0f0] pt-2">
-                  <div v-if="!book.doc_summary || book.doc_summary.length === 0" class="py-2 text-[12px] text-[var(--sd-text-caption)]">
-                    知识库暂无内容
-                  </div>
-                  <ul v-else class="m-0 list-none p-0 flex flex-col gap-1.5">
-                    <li
-                      v-for="doc in book.doc_summary"
-                      :key="doc.id"
-                      class="flex items-center justify-between text-[12px] text-[var(--sd-text-caption)] hover:text-[#1677ff] transition-colors cursor-pointer"
-                      @click.stop="goDocument(book, doc)"
-                    >
-                      <div class="flex items-center gap-1.5 min-w-0 flex-1 pr-2">
-                        <span class="text-[#8c8c8c]">•</span>
-                        <span class="truncate">{{ doc.name }}</span>
-                      </div>
-                      <span class="shrink-0 text-[11px] text-[#bfbfbf]">
-                        {{ formatDocTime(doc.content_updated_at || doc.updated_at) }}
-                      </span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- 列表视图 -->
-            <div v-else class="flex flex-col gap-2">
-              <div
-                v-for="book in group.knowledge_group_items ?? []"
-                :key="book.id"
-                class="flex items-center justify-between p-3 rounded-lg border border-solid border-[var(--sd-border-light)] bg-white hover:border-[#1677ff] transition-colors cursor-pointer"
-                @click="goKnowledge(book)"
-              >
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <div class="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded bg-[#e6f4ff] text-[#1677ff]">
-                    <ReadOutlined />
-                  </div>
-                  <span class="font-medium text-[14px] text-[var(--sd-text-grey-900)] truncate">
-                    {{ book.name }}
-                  </span>
-                  <LockOutlined
-                    v-if="book.visibility !== KnowledgeVisibility.PUBLIC"
-                    class="text-[12px] text-[var(--sd-text-caption)]"
-                  />
-                  <span class="text-[12px] text-[var(--sd-text-caption)] truncate max-w-[400px]">
-                    {{ book.description || '-' }}
-                  </span>
-                </div>
-                <div class="text-[12px] text-[var(--sd-text-caption)]">
-                  {{ book.doc_count ?? 0 }} 篇文档
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- 通用知识库分组列表（支持卡片/列表、拖拽、重命名、空分组占位等） -->
+        <KnowledgeGroupList
+          ref="groupListRef"
+          :keyword="searchKeyword"
+          :team-id="teamDetail?.id"
+          :team-slug="teamSlug"
+          @knowledge-created="handleKnowledgeCreated"
+        />
       </div>
 
       <!-- Tab 2: 动态 (预备前端视图) -->
@@ -312,6 +218,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
 import {
   TeamOutlined,
   LockOutlined,
@@ -334,6 +241,8 @@ import { TeamVisibility, type TeamDetail, type KnowledgeGroupItem } from '@sk/ty
 import { useUserStore } from '#sk-web/store/useUserStore'
 import EditTeamModal from './components/EditTeamModal.vue'
 import AddKnowledge from '../dashboard/components/addMenu/AddKnowledge.vue'
+import TeamAvatar from './components/TeamAvatar.vue'
+import KnowledgeGroupList from '../dashboard/components/knowledgeGroupList/index.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -341,8 +250,7 @@ const userStore = useUserStore()
 
 const teamSlug = ref(route.params.team_slug as string)
 const teamDetail = ref<TeamDetail | null>(null)
-const groups = ref<KnowledgeGroupItem[]>([])
-const loadingGroups = ref(false)
+const groupListRef = ref<InstanceType<typeof KnowledgeGroupList> | null>(null)
 const searchKeyword = ref('')
 const isStarred = ref(false)
 const viewMode = ref<'card' | 'list'>('card')
@@ -357,15 +265,6 @@ const tabs = [
   { key: 'members', label: '成员' },
 ]
 
-const formatDocTime = (timeStr?: string) => {
-  if (!timeStr) return '-'
-  try {
-    return transformDatatimeToRecentText(timeStr)
-  } catch {
-    return dayjs(timeStr).format('MM-DD HH:mm')
-  }
-}
-
 const fetchTeamDetail = async () => {
   if (!teamSlug.value) return
   const [error, res] = await to(teamApi.getTeamDetail(teamSlug.value))
@@ -374,28 +273,16 @@ const fetchTeamDetail = async () => {
   }
 }
 
-const fetchKnowledgeGroups = async () => {
-  if (!teamSlug.value) return
-  loadingGroups.value = true
-  const [error, res] = await to(
-    teamApi.getTeamKnowledgeGroups(teamSlug.value, searchKeyword.value.trim() || undefined),
-  )
-  loadingGroups.value = false
-  if (!error && res.data) {
-    groups.value = res.data
+const handleActionMenuClick = ({ key }: { key: string | number }) => {
+  if (key === 'knowledge') {
+    openAddKnowledge.value = true
+  } else if (key === 'group') {
+    groupListRef.value?.createGroup()
   }
 }
 
-const goKnowledge = (book: any) => {
-  router.push(`/${teamSlug.value}/knowledge/${book.slug}`)
-}
-
-const goDocument = (book: any, doc: any) => {
-  router.push(`/${teamSlug.value}/knowledge/${book.slug}/document/${doc.slug}`)
-}
-
 const handleKnowledgeCreated = () => {
-  fetchKnowledgeGroups()
+  groupListRef.value?.refresh()
   fetchTeamDetail()
 }
 
@@ -405,14 +292,12 @@ watch(
     if (newSlug) {
       teamSlug.value = newSlug as string
       fetchTeamDetail()
-      fetchKnowledgeGroups()
     }
   },
 )
 
 onMounted(() => {
   fetchTeamDetail()
-  fetchKnowledgeGroups()
 })
 </script>
 

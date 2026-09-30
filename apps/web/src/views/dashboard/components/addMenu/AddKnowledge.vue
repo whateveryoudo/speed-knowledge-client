@@ -35,11 +35,11 @@
                     >
                         <template #option="{ team }">
                             <a-flex align="center" :gap="8" class="py-0.5">
-                                <IconFont
-                                    :type="team.icon?.startsWith('icon-') ? team.icon : 'icon-book-0'"
-                                    svg-sprite
+                                <TeamAvatar
+                                    :icon="team.icon"
+                                    :size="24"
+                                    rounded="4px"
                                     class="shrink-0"
-                                    style="width: 24px; height: 24px"
                                 />
                                 <span class="flex-1 truncate">{{ team.name }}</span>
                                 <LockOutlined
@@ -64,7 +64,7 @@
                 </a-form-item>
             </div>
         </a-form>
-        <a-button block type="primary" :class="[!canSubmit && 'opacity-50 cursor-not-allowed']" :loading="loading"
+        <a-button block size="large" type="primary" :class="[!canSubmit && 'opacity-50 cursor-not-allowed']" :loading="loading"
             @click="handleOk">
             新建
         </a-button>
@@ -77,6 +77,7 @@ import { IconFont } from 'speed-components-ui/components'
 import { LockOutlined } from '@ant-design/icons-vue'
 import type { FormInstance, SelectProps } from 'ant-design-vue'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
+import TeamAvatar from '#sk-web/views/team/components/TeamAvatar.vue'
 import { knowledge as knowledgeApi, team as teamApi } from '@sk/api'
 import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate, TeamItem } from '@sk/types'
 import { useKnowledgeList } from '../../composables/useKnowledgeListContext'

@@ -47,8 +47,8 @@ export const getKnowledgeGroupListDetail = (
 };
 
 // 创建分组
-export const createKnowledgeGroup = (): Promise<ResponseType<KnowledgeGroupItem>> => {
-  return request.post(`${knowledgePrefix}/group/create`);
+export const createKnowledgeGroup = (params?: { team_id?: string }): Promise<ResponseType<KnowledgeGroupItem>> => {
+  return request.post(`${knowledgePrefix}/group/create`, undefined, { params });
 };
 
 // 更新分组

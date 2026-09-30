@@ -1,14 +1,6 @@
 <template>
-  <a-modal
-    :open="open"
-    :title="null"
-    :footer="null"
-    :width="460"
-    destroyOnClose
-    centered
-    class="create-team-modal"
-    @cancel="handleCancel"
-  >
+  <a-modal :open="open" :title="null" :footer="null" :width="460" destroyOnClose centered class="create-team-modal"
+    @cancel="handleCancel">
     <div class="p-2">
       <!-- 头部 -->
       <div class="mb-5 flex items-start justify-between">
@@ -25,33 +17,16 @@
         <div class="mb-5">
           <div class="mb-2 text-[14px] font-medium text-[var(--sd-text-grey-900)]">基本信息</div>
           <div class="flex items-center gap-3">
-            <div
-              class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-lg border border-solid border-[#e5e7eb] bg-[#f0f5ff] text-[#1677ff]"
-            >
-              <TeamOutlined class="text-[20px]" />
-            </div>
-            <a-form-item
-              name="name"
-              class="mb-0 flex-1"
-              :rules="[{ required: true, message: '请输入团队名称', trigger: 'blur' }]"
-            >
-              <a-input
-                v-model:value="formState.name"
-                placeholder="团队名称"
-                :maxlength="30"
-                class="rounded-md"
-              />
+            <TeamIconSelect v-model:value="formState.icon" />
+            <a-form-item name="name" class="mb-0 flex-1"
+              :rules="[{ required: true, message: '请输入团队名称', trigger: 'blur' }]">
+              <a-input v-model:value="formState.name" placeholder="团队名称" :maxlength="30" class="rounded-md" />
             </a-form-item>
           </div>
           <div class="mt-3">
             <a-form-item name="description" class="mb-0">
-              <a-textarea
-                v-model:value="formState.description"
-                placeholder="团队简介"
-                :rows="3"
-                :maxlength="200"
-                class="rounded-md"
-              />
+              <a-textarea v-model:value="formState.description" placeholder="团队简介" :rows="3" :maxlength="200"
+                class="rounded-md" />
             </a-form-item>
           </div>
         </div>
@@ -60,15 +35,11 @@
         <div class="mb-5">
           <div class="mb-2 flex items-center justify-between">
             <span class="text-[14px] font-medium text-[var(--sd-text-grey-900)]">添加成员</span>
-            <span class="text-[12px] text-[#1677ff] cursor-pointer hover:opacity-80">+ 批量添加</span>
+            <span class="text-[12px] text-[var(--ant-color-primary)] cursor-pointer hover:opacity-80">+ 批量添加</span>
           </div>
-          <a-input
-            v-model:value="memberSearch"
-            placeholder="输入成员名字搜索添加"
-            class="rounded-md"
-          >
+          <a-input v-model:value="memberSearch" placeholder="输入成员名字搜索添加" class="rounded-md">
             <template #prefix>
-              <SearchOutlined class="text-[#9ca3af]" />
+              <SearchOutlined class="text-[var(--sd-text-caption)]" />
             </template>
           </a-input>
           <div class="mt-2 flex items-center gap-1.5 text-[12px] text-[var(--sd-text-caption)]">
@@ -86,14 +57,9 @@
         </div>
 
         <!-- 提交按钮 -->
-        <a-button
-          type="primary"
-          block
-          size="large"
-          class="h-[40px] rounded-lg !bg-[#2ba471] hover:!bg-[#248d61] border-none text-[15px] font-medium"
-          :loading="submitting"
-          @click="handleSubmit"
-        >
+
+        <a-button block size="large" type="primary" :class="[!canSubmit && 'opacity-50 cursor-not-allowed']" :loading="submitting"
+          @click="handleSubmit">
           新建
         </a-button>
       </a-form>
@@ -102,13 +68,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { message, type FormInstance } from 'ant-design-vue'
-import { TeamOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import { SearchOutlined } from '@ant-design/icons-vue'
 import to from 'await-to-js'
 import { team as teamApi } from '@sk/api'
 import { TeamVisibility, type TeamItem } from '@sk/types'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
+import TeamIconSelect from './TeamIconSelect.vue'
 
 const props = defineProps<{
   open: boolean
@@ -128,14 +95,18 @@ const isPublicToSpace = ref(false)
 const formState = reactive({
   name: '',
   description: '',
+  icon: 'icon-book-10',
 })
-
+const canSubmit = computed(() => {
+  return formState.name && !submitting.value
+})
 watch(
   () => props.open,
   (val) => {
     if (val) {
       formState.name = ''
       formState.description = ''
+      formState.icon = 'icon-book-10'
       memberSearch.value = ''
       isPublicToSpace.value = false
     }
@@ -148,6 +119,9 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   try {
+    if (!canSubmit.value) {
+      return
+    }
     await formRef.value?.validate()
   } catch {
     return
@@ -165,7 +139,7 @@ const handleSubmit = async () => {
       space_id: spaceId,
       name: formState.name.trim(),
       description: formState.description.trim() || undefined,
-      icon: 'icon-team',
+      icon: formState.icon,
       visibility: isPublicToSpace.value ? TeamVisibility.SPACE_MEMBER : TeamVisibility.PRIVATE,
     }),
   )

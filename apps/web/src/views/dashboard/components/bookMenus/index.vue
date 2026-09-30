@@ -1,5 +1,5 @@
 <template>
-  <div class="book-menus h-full">
+  <div class="book-menus">
     <!-- 展开态：一层菜单 + 可折叠的 MenuList -->
     <div class="px-2 h-full" v-if="expanded">
       <div

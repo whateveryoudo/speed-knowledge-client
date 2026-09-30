@@ -9,10 +9,10 @@
       >
         <a-button
           type="text"
-          class="shadow-btn-wrapper mr-1 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)] p-0 w-[20px] h-[20px] flex items-center justify-center"
+          class="shadow-btn-wrapper mr-1 text-[var(--sd-grey-7)] hover:text-[var(--sd-text-grey-900)]  flex items-center justify-center"
           @click.stop="toggleInner"
         >
-          <span class="transition-transform duration-200 text-[11px]" :class="{ 'rotate-90': innerExpanded }">
+          <span class="transition-transform duration-200" :class="{ 'rotate-90': innerExpanded }">
             <CaretRightOutlined />
           </span>
         </a-button>
@@ -36,9 +36,7 @@
             }"
             @click="router.push(`/dashboard/team/${team.slug}`)"
           >
-            <div class="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded text-[#1677ff]">
-              <TeamOutlined class="text-[13px]" />
-            </div>
+            <TeamAvatar :icon="team.icon" :size="20" rounded="4px" />
             <span class="truncate text-[13px] text-[var(--sd-text-grey-900)] flex-1">
               {{ team.name }}
             </span>
@@ -75,7 +73,7 @@
                 class="flex items-center gap-2 h-[30px] px-2 rounded-[4px] cursor-pointer hover:bg-[var(--sd-bg-primary-hover)] text-[13px]"
                 @click="router.push(`/dashboard/team/${team.slug}`)"
               >
-                <TeamOutlined class="text-[#1677ff] text-[12px]" />
+                <TeamAvatar :icon="team.icon" :size="18" rounded="3px" />
                 <span class="truncate flex-1">{{ team.name }}</span>
                 <LockOutlined
                   v-if="team.visibility !== TeamVisibility.PUBLIC"
@@ -106,6 +104,7 @@ import { Collapse } from 'vue-collapsed'
 import to from 'await-to-js'
 import { team as teamApi } from '@sk/api'
 import { TeamVisibility, type TeamListItem } from '@sk/types'
+import TeamAvatar from '#sk-web/views/team/components/TeamAvatar.vue'
 
 const props = withDefaults(
   defineProps<{

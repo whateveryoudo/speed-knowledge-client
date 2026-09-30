@@ -10,13 +10,19 @@
   >
     <div class="p-2">
       <a-form layout="vertical" :model="formState" ref="formRef">
-        <a-form-item
-          label="团队名称"
-          name="name"
-          :rules="[{ required: true, message: '请输入团队名称', trigger: 'blur' }]"
-        >
-          <a-input v-model:value="formState.name" placeholder="团队名称" :maxlength="30" />
-        </a-form-item>
+        <div class="mb-4">
+          <div class="mb-2 text-[14px] font-medium text-[var(--sd-text-grey-900)]">基本信息</div>
+          <div class="flex items-center gap-3">
+            <TeamIconSelect v-model:value="formState.icon" />
+            <a-form-item
+              name="name"
+              class="mb-0 flex-1"
+              :rules="[{ required: true, message: '请输入团队名称', trigger: 'blur' }]"
+            >
+              <a-input v-model:value="formState.name" placeholder="团队名称" :maxlength="30" />
+            </a-form-item>
+          </div>
+        </div>
 
         <a-form-item label="团队简介" name="description">
           <a-textarea
@@ -50,6 +56,7 @@ import { message, type FormInstance } from 'ant-design-vue'
 import to from 'await-to-js'
 import { team as teamApi } from '@sk/api'
 import { TeamVisibility, type TeamDetail, type TeamListItem } from '@sk/types'
+import TeamIconSelect from './TeamIconSelect.vue'
 
 const props = defineProps<{
   open: boolean
@@ -68,6 +75,7 @@ const isPublicToSpace = ref(false)
 const formState = reactive({
   name: '',
   description: '',
+  icon: 'icon-book-10',
 })
 
 watch(
@@ -76,6 +84,7 @@ watch(
     if (val && props.team) {
       formState.name = props.team.name
       formState.description = props.team.description || ''
+      formState.icon = props.team.icon || 'icon-book-10'
       isPublicToSpace.value = props.team.visibility !== TeamVisibility.PRIVATE
     }
   },
@@ -100,6 +109,7 @@ const handleSubmit = async () => {
       id: props.team.id,
       name: formState.name.trim(),
       description: formState.description.trim() || undefined,
+      icon: formState.icon,
       visibility: isPublicToSpace.value ? TeamVisibility.SPACE_MEMBER : TeamVisibility.PRIVATE,
     }),
   )
