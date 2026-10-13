@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import draggable from 'vuedraggable'
 import to from 'await-to-js'
@@ -14,7 +14,7 @@ import {
 } from '@ant-design/icons-vue'
 import { resolveKnowledgeScopeSlug, transformDatatimeToRecentText } from '@sk/utils'
 import dayjs from 'dayjs'
-import { knowledge as knowledgeApi, team as teamApi } from '@sk/api'
+import { knowledge as knowledgeApi, team as teamApi, space as spaceApi } from '@sk/api'
 import {
   DEFAULT_GROUP_DISPLAY_CONFIG,
   KnowledgeGroupType,
@@ -33,15 +33,23 @@ import GroupStylePopover from './GroupStylePopover.vue'
 const props = withDefaults(
   defineProps<{
     keyword?: string
+    scopeType?: 'personal' | 'team' | 'space'
     teamId?: string
     teamSlug?: string
   }>(),
   {
     keyword: '',
+    scopeType: undefined,
     teamId: undefined,
     teamSlug: undefined,
   },
 )
+
+const effectiveScope = computed<'personal' | 'team' | 'space'>(() => {
+  if (props.scopeType) return props.scopeType
+  if (props.teamSlug || props.teamId) return 'team'
+  return 'personal'
+})
 
 const emit = defineEmits<{
   (e: 'knowledgeCreated'): void
@@ -84,11 +92,19 @@ const formatUpdateTime = (record: KnowledgeItem) => {
 const fetchGroups = async () => {
   loading.value = true
   const keyword = props.keyword?.trim() || undefined
-  const [error, res] = props.teamSlug
-    ? await to(teamApi.getTeamKnowledgeGroups(props.teamSlug, keyword))
-    : await to(knowledgeApi.getKnowledgeGroupListDetail(keyword))
+  let error: any
+  let res: any
+
+  if (effectiveScope.value === 'space') {
+    ;[error, res] = await to(spaceApi.getSpaceKnowledgeGroups(keyword))
+  } else if (effectiveScope.value === 'team' && props.teamSlug) {
+    ;[error, res] = await to(teamApi.getTeamKnowledgeGroups(props.teamSlug, keyword))
+  } else {
+    ;[error, res] = await to(knowledgeApi.getKnowledgeGroupListDetail(keyword))
+  }
+
   loading.value = false
-  if (!error && res.data) {
+  if (!error && res?.data) {
     groups.value = normalizeGroups(res.data)
   }
 }
@@ -119,10 +135,18 @@ const onGroupNameBlur = async (group: KnowledgeGroupItem, value: string) => {
 }
 
 const onCreateGroup = async () => {
-  const [error, res] = await to(
-    knowledgeApi.createKnowledgeGroup(props.teamId ? { team_id: props.teamId } : undefined),
-  )
-  if (!error && res.data) {
+  let error: any
+  let res: any
+
+  if (effectiveScope.value === 'space') {
+    ;[error, res] = await to(spaceApi.createSpaceKnowledgeGroup())
+  } else if (effectiveScope.value === 'team' && props.teamSlug) {
+    ;[error, res] = await to(teamApi.createTeamKnowledgeGroup(props.teamSlug))
+  } else {
+    ;[error, res] = await to(knowledgeApi.createKnowledgeGroup())
+  }
+
+  if (!error && res?.data) {
     groups.value.unshift({
       ...res.data,
       knowledge_group_items: [],
@@ -141,11 +165,16 @@ const onDeleteGroup = (group: KnowledgeGroupItem) => {
   if (group.is_default) {
     return
   }
+  let tip = '删除后，分组下的知识库将移动到「我的知识库」分组'
+  if (effectiveScope.value === 'team') {
+    tip = '删除后，分组下的知识库将移动到团队「默认分组」'
+  } else if (effectiveScope.value === 'space') {
+    tip = '删除后，分组下的知识库将移动到公共区「默认分组」'
+  }
+
   Modal.confirm({
     title: '删除分组',
-    content: props.teamId
-      ? '删除后，分组下的知识库将移动到团队「默认分组」'
-      : '删除后，分组下的知识库将移动到「我的知识库」分组',
+    content: tip,
     okText: '删除',
     cancelText: '取消',
     onOk: async () => {
@@ -338,7 +367,7 @@ const handleKnowledgeCreated = () => {
 }
 
 watch(
-  () => [props.keyword, props.teamSlug, props.teamId],
+  () => [props.keyword, props.teamSlug, props.teamId, effectiveScope.value],
   () => {
     fetchGroups()
   },

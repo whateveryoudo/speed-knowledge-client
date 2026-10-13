@@ -9,7 +9,7 @@ import { attachment as attachmentApi, initSkApiConfig } from '@sk/api'
 import { message } from 'ant-design-vue'
 import 'uno.css'
 import '#sk-web/assets/base.less'
-import '@speed-tiptap-editor/knowledge-editor/style.css'
+import '@speed-editor/knowledge-editor/style.css'
 import { setAppContext } from '#sk-web/plugins/appContext'
 import { getComponentsPreviewUrl, transformFileItem } from '#sk-web/plugins/editorApis'
 

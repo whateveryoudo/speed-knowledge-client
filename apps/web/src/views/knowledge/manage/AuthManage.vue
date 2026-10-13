@@ -40,6 +40,7 @@
             <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'user'">
                     <a-space v-if="record.row_type === 'role_group'" :size="15">
+                        <TeamAvatar :icon="record.icon" :size="26" rounded="6px" />
                         <a-flex vertical :gap="2">
                             <span>{{ record.display_name }}</span>
                             <span class="text-[var(--sd-text-caption)]">角色组</span>
@@ -83,6 +84,7 @@ import { useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { to } from 'await-to-js';
 import AuthAdvancedSettings from './AuthAdvancedSettings.vue';
+import TeamAvatar from '#sk-web/views/team/components/TeamAvatar.vue';
 import defaultAvatar from '#sk-web/assets/images/avatar_def.png';
 import {
     ResourceRole,

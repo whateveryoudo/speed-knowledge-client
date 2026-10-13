@@ -61,7 +61,7 @@ import { useLoadMore } from 'speed-components-ui/hooks'
 import { useDebounceFn } from '@vueuse/core'
 import { knowledge as knowledgeApi, document as documentApi } from '@sk/api'
 import {
-  DocumentAbility,
+  KnowledgeAbility,
   DocumentType,
   KnowledgeVisibility,
   ListSortOrder,
@@ -94,7 +94,7 @@ const creatingDefault = ref(false)
 const loadMoreOptions = computed(() => ({
   extraParams: {
     keyword: keyword.value.trim() || undefined,
-    abilities: [DocumentAbility.DOC_CTEATE],
+    abilities: [KnowledgeAbility.CREATE_DOCUMENT],
     sorts: [{ field: 'updated_at', order: ListSortOrder.DESC }],
     page_size: 20,
   },

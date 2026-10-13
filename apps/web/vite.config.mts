@@ -13,15 +13,15 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'path'
 
 const require = createRequire(import.meta.url)
-const editorRoot = fileURLToPath(new URL('../../../speed-tiptap-editor', import.meta.url))
+const editorRoot = fileURLToPath(new URL('../../../speed-editor', import.meta.url))
 const editorPkg = (name: string) =>
-  fileURLToPath(new URL(`../../../speed-tiptap-editor/packages/${name}`, import.meta.url))
+  fileURLToPath(new URL(`../../../speed-editor/packages/${name}`, import.meta.url))
 const editorExtPkg = (name: string) =>
   fileURLToPath(
-    new URL(`../../../speed-tiptap-editor/packages/extensions/${name}`, import.meta.url),
+    new URL(`../../../speed-editor/packages/extensions/${name}`, import.meta.url),
   )
 
-/** 本地联调 speed-tiptap-editor（toDist: true 走 dist，false 走 src） */
+/** 本地联调 speed-editor（toDist: true 走 dist，false 走 src） */
 function speedTiptapEditorAliases() {
   const toDist = false
   const entry = (name: string, file = 'index.ts') =>
@@ -33,56 +33,56 @@ function speedTiptapEditorAliases() {
 
   if (toDist) {
     return {
-      '@speed-tiptap-editor/base-editor/style.css': cssEntry('base-editor'),
-      '@speed-tiptap-editor/ui/style.css': cssEntry('ui'),
-      '@speed-tiptap-editor/kit-base/style.css': cssEntry('kit-base'),
-      '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/dist/style.css`,
-      '@speed-tiptap-editor/base-editor/plugin': entry('base-editor', 'plugin.js'),
-      '@speed-tiptap-editor/lite-editor/plugin': entry('lite-editor', 'plugin.js'),
-      '@speed-tiptap-editor/knowledge-editor/plugin': entry('knowledge-editor', 'plugin.js'),
-      '@speed-tiptap-editor/base-editor': entry('base-editor'),
-      '@speed-tiptap-editor/lite-editor/style.css': cssEntry('lite-editor'),
-      '@speed-tiptap-editor/lite-editor': entry('lite-editor'),
-      '@speed-tiptap-editor/knowledge-editor/style.css': cssEntry('knowledge-editor'),
-      '@speed-tiptap-editor/knowledge-editor': entry('knowledge-editor'),
-      '@speed-tiptap-editor/collaboration-editor': entry('collaboration-editor'),
-      '@speed-tiptap-editor/shared': entry('shared'),
-      '@speed-tiptap-editor/ui': entry('ui'),
-      '@speed-tiptap-editor/composables': entry('composables'),
-      '@speed-tiptap-editor/document-io': entry('document-io'),
-      '@speed-tiptap-editor/schema': entry('schema'),
-      '@speed-tiptap-editor/kit-base': entry('kit-base'),
-      '@speed-tiptap-editor/extension-kit': extEntry('extension-kit'),
-      '@speed-tiptap-editor/extension-import-export': extEntry('extension-import-export'),
-      '@speed-tiptap-editor/extension-mind': extEntry('extension-mind'),
-      '@speed-tiptap-editor/extension-flow': extEntry('extension-flow'),
+      '@speed-editor/base-editor/style.css': cssEntry('base-editor'),
+      '@speed-editor/ui/style.css': cssEntry('ui'),
+      '@speed-editor/kit-base/style.css': cssEntry('kit-base'),
+      '@speed-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/dist/style.css`,
+      '@speed-editor/base-editor/plugin': entry('base-editor', 'plugin.js'),
+      '@speed-editor/lite-editor/plugin': entry('lite-editor', 'plugin.js'),
+      '@speed-editor/knowledge-editor/plugin': entry('knowledge-editor', 'plugin.js'),
+      '@speed-editor/base-editor': entry('base-editor'),
+      '@speed-editor/lite-editor/style.css': cssEntry('lite-editor'),
+      '@speed-editor/lite-editor': entry('lite-editor'),
+      '@speed-editor/knowledge-editor/style.css': cssEntry('knowledge-editor'),
+      '@speed-editor/knowledge-editor': entry('knowledge-editor'),
+      '@speed-editor/collaboration-editor': entry('collaboration-editor'),
+      '@speed-editor/shared': entry('shared'),
+      '@speed-editor/ui': entry('ui'),
+      '@speed-editor/composables': entry('composables'),
+      '@speed-editor/document-io': entry('document-io'),
+      '@speed-editor/schema': entry('schema'),
+      '@speed-editor/kit-base': entry('kit-base'),
+      '@speed-editor/extension-kit': extEntry('extension-kit'),
+      '@speed-editor/extension-import-export': extEntry('extension-import-export'),
+      '@speed-editor/extension-mind': extEntry('extension-mind'),
+      '@speed-editor/extension-flow': extEntry('extension-flow'),
     }
   }
 
   return {
-    '@speed-tiptap-editor/base-editor/style.css': `${editorPkg('base-editor')}/src/style.ts`,
-    '@speed-tiptap-editor/ui/style.css': `${editorPkg('ui')}/src/style.ts`,
-    '@speed-tiptap-editor/kit-base/style.css': `${editorPkg('kit-base')}/src/style.ts`,
-    '@speed-tiptap-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/src/style.ts`,
-    '@speed-tiptap-editor/base-editor/plugin': `${editorPkg('base-editor')}/src/plugin-entry.ts`,
-    '@speed-tiptap-editor/lite-editor/plugin': `${editorPkg('lite-editor')}/src/plugin-entry.ts`,
-    '@speed-tiptap-editor/knowledge-editor/plugin': `${editorPkg('knowledge-editor')}/src/plugin-entry.ts`,
-    '@speed-tiptap-editor/base-editor': `${editorPkg('base-editor')}/src/index.ts`,
-    '@speed-tiptap-editor/lite-editor/style.css': `${editorPkg('lite-editor')}/src/style.ts`,
-    '@speed-tiptap-editor/lite-editor': `${editorPkg('lite-editor')}/src/index.ts`,
-    '@speed-tiptap-editor/knowledge-editor/style.css': `${editorPkg('knowledge-editor')}/src/style.ts`,
-    '@speed-tiptap-editor/knowledge-editor': `${editorPkg('knowledge-editor')}/src/index.ts`,
-    '@speed-tiptap-editor/collaboration-editor': `${editorPkg('collaboration-editor')}/src/index.ts`,
-    '@speed-tiptap-editor/shared': `${editorPkg('shared')}/src/index.ts`,
-    '@speed-tiptap-editor/ui': `${editorPkg('ui')}/src/index.ts`,
-    '@speed-tiptap-editor/composables': `${editorPkg('composables')}/src/index.ts`,
-    '@speed-tiptap-editor/document-io': `${editorPkg('document-io')}/src/index.ts`,
-    '@speed-tiptap-editor/schema': `${editorPkg('schema')}/src/index.ts`,
-    '@speed-tiptap-editor/kit-base': `${editorPkg('kit-base')}/src/index.ts`,
-    '@speed-tiptap-editor/extension-kit': `${editorExtPkg('extension-kit')}/src/index.ts`,
-    '@speed-tiptap-editor/extension-import-export': `${editorExtPkg('extension-import-export')}/src/index.ts`,
-    '@speed-tiptap-editor/extension-mind': `${editorExtPkg('extension-mind')}/src/index.ts`,
-    '@speed-tiptap-editor/extension-flow': `${editorExtPkg('extension-flow')}/src/index.ts`,
+    '@speed-editor/base-editor/style.css': `${editorPkg('base-editor')}/src/style.ts`,
+    '@speed-editor/ui/style.css': `${editorPkg('ui')}/src/style.ts`,
+    '@speed-editor/kit-base/style.css': `${editorPkg('kit-base')}/src/style.ts`,
+    '@speed-editor/extension-kit/style.css': `${editorExtPkg('extension-kit')}/src/style.ts`,
+    '@speed-editor/base-editor/plugin': `${editorPkg('base-editor')}/src/plugin-entry.ts`,
+    '@speed-editor/lite-editor/plugin': `${editorPkg('lite-editor')}/src/plugin-entry.ts`,
+    '@speed-editor/knowledge-editor/plugin': `${editorPkg('knowledge-editor')}/src/plugin-entry.ts`,
+    '@speed-editor/base-editor': `${editorPkg('base-editor')}/src/index.ts`,
+    '@speed-editor/lite-editor/style.css': `${editorPkg('lite-editor')}/src/style.ts`,
+    '@speed-editor/lite-editor': `${editorPkg('lite-editor')}/src/index.ts`,
+    '@speed-editor/knowledge-editor/style.css': `${editorPkg('knowledge-editor')}/src/style.ts`,
+    '@speed-editor/knowledge-editor': `${editorPkg('knowledge-editor')}/src/index.ts`,
+    '@speed-editor/collaboration-editor': `${editorPkg('collaboration-editor')}/src/index.ts`,
+    '@speed-editor/shared': `${editorPkg('shared')}/src/index.ts`,
+    '@speed-editor/ui': `${editorPkg('ui')}/src/index.ts`,
+    '@speed-editor/composables': `${editorPkg('composables')}/src/index.ts`,
+    '@speed-editor/document-io': `${editorPkg('document-io')}/src/index.ts`,
+    '@speed-editor/schema': `${editorPkg('schema')}/src/index.ts`,
+    '@speed-editor/kit-base': `${editorPkg('kit-base')}/src/index.ts`,
+    '@speed-editor/extension-kit': `${editorExtPkg('extension-kit')}/src/index.ts`,
+    '@speed-editor/extension-import-export': `${editorExtPkg('extension-import-export')}/src/index.ts`,
+    '@speed-editor/extension-mind': `${editorExtPkg('extension-mind')}/src/index.ts`,
+    '@speed-editor/extension-flow': `${editorExtPkg('extension-flow')}/src/index.ts`,
     // 包内 tsconfig paths（仅 src 模式）
     '@kb': `${editorPkg('kit-base')}/src`,
     '@ek': `${editorExtPkg('extension-kit')}/src`,
@@ -192,12 +192,12 @@ export default defineConfig(({ mode }) => {
       ],
       alias: {
         '#sk-web': fileURLToPath(new URL('./src', import.meta.url)),
+        ...speedTiptapEditorAliases(),
+        ...speedComponentsDistAliases(),
+        ...speedSheetSourceAliases,
         ...(mode === 'development'
           ? {
               '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),
-              ...speedTiptapEditorAliases(),
-              ...speedComponentsDistAliases(),
-              ...speedSheetSourceAliases,
             }
           : {}),
       },
@@ -210,16 +210,16 @@ export default defineConfig(({ mode }) => {
         // '@speed-sheet/vue3',
         // '@speed-sheet/shared',
         // '@speed-sheet/extension-formula',
-        // '@speed-tiptap-editor/base-editor',
-        // '@speed-tiptap-editor/lite-editor',
-        // '@speed-tiptap-editor/knowledge-editor',
-        // '@speed-tiptap-editor/collaboration-editor',
-        // '@speed-tiptap-editor/composables',
-        // '@speed-tiptap-editor/kit-base',
-        // '@speed-tiptap-editor/extension-kit',
-        // '@speed-tiptap-editor/document-io',
-        // '@speed-tiptap-editor/shared',
-        // '@speed-tiptap-editor/ui',
+        // '@speed-editor/base-editor',
+        // '@speed-editor/lite-editor',
+        // '@speed-editor/knowledge-editor',
+        // '@speed-editor/collaboration-editor',
+        // '@speed-editor/composables',
+        // '@speed-editor/kit-base',
+        // '@speed-editor/extension-kit',
+        // '@speed-editor/document-io',
+        // '@speed-editor/shared',
+        // '@speed-editor/ui',
       ],
     },
     server: {

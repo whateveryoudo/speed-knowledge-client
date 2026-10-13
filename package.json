@@ -4,7 +4,9 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev:web": "turbo run dev --filter=client-web",
+    "dev:desktop": "turbo run dev --filter=client-desktop",
     "build:web": "turbo run build-only --filter=client-web",
+    "build:desktop": "turbo run build --filter=client-desktop",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "clean": "rm -rf node_modules **/**/node_modules"

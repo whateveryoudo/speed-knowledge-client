@@ -50,7 +50,7 @@
                                 搜索
                             </template>
                         </a-input>
-                        <AddMenu v-if="can(DocumentAbility.DOC_CTEATE)" :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb"
+                        <AddMenu v-if="can(KnowledgeAbility.CREATE_DOCUMENT)" :knowledgeId="knowledgeInfo.id" @add-document-cb="handleAddDocumentCb"
                             @add-catalog-node-cb="handleAddCatalogNodeCb" />
                     </a-flex>
 
@@ -59,7 +59,7 @@
                         <!-- 知识库下的文档树 -->
                         <DocumentMenus :loading="documentLoading" :tree="documentTree" :knowledge-id="knowledgeInfo.id"
                             :nodeUIStateMap="nodeUIStateMap" :focusRenameNodeId="focusRenameNodeId"
-                            :can-doc-create="can(DocumentAbility.DOC_CTEATE)"
+                            :can-doc-create="can(KnowledgeAbility.CREATE_DOCUMENT)"
                             :can-doc-edit="can(DocumentAbility.DOC_EDIT)"
                             :can-doc-delete="can(DocumentAbility.DOC_DELETE)"
                             :can-doc-export="can(DocumentAbility.DOC_EXPORT)"

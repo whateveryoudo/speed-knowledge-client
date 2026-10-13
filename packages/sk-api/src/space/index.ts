@@ -1,6 +1,6 @@
 import request, { type ResponseType } from '../request'
 import { spacePrefix } from '../path'
-import type { SpaceCreate, SpaceItem } from '@sk/types'
+import type { SpaceCreate, SpaceItem, KnowledgeGroupItem } from '@sk/types'
 
 export const getSpaceInfo = (): Promise<ResponseType<SpaceItem | null>> => {
   return request.get(`${spacePrefix}/`)
@@ -35,4 +35,20 @@ export const checkDomainAvailable = (
   return request.get(`${spacePrefix}/check-domain-available`, {
     params: { domain },
   })
+}
+
+/** 获取空间公共区带知识库的分组列表 */
+export const getSpaceKnowledgeGroups = (
+  keyword?: string,
+): Promise<ResponseType<KnowledgeGroupItem[]>> => {
+  return request.get(`${spacePrefix}/groups`, {
+    params: keyword ? { keyword } : undefined,
+  })
+}
+
+/** 空间公共区创建分组 */
+export const createSpaceKnowledgeGroup = (): Promise<
+  ResponseType<KnowledgeGroupItem>
+> => {
+  return request.post(`${spacePrefix}/groups/create`)
 }

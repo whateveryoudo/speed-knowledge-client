@@ -45,6 +45,7 @@ export interface ResourceCollaborationItem {
   principal_role: PrincipalRole
   user?: CollaborationUserBrief | null
   display_name: string
+  icon?: string | null
   locked: boolean
   resource_role?: ResourceRole | null
   source?: string | null

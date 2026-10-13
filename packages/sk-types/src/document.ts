@@ -43,11 +43,9 @@ export const documentTypeOptions = [
 ] as const
 
 export enum DocumentAbility {
-  DOC_CTEATE = 'doc_create',
   DOC_READ = 'doc_read',
   DOC_EDIT = 'doc_edit',
   DOC_DELETE = 'doc_delete',
-  DOC_JOIN = 'doc_join',
   DOC_SHARE = 'doc_share',
   DOC_COMMENT = 'doc_comment',
   DOC_EXPORT = 'doc_export',

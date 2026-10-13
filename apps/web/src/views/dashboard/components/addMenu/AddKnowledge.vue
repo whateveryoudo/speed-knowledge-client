@@ -187,8 +187,15 @@ const resolveDefaultGroupId = (groups: KnowledgeGroupItem[]) => {
 }
 
 const getKnowledgeGroupListData = async () => {
-    const [error, res] = await to(knowledgeApi.getKnowledgeGroupList())
-    if (error) {
+    let error: any
+    let res: any
+    const targetTeamId = form.value.team_id || props.defaultTeamId
+    if (!spaceStore.isPersonalSpace && targetTeamId) {
+        ;[error, res] = await to(teamApi.getTeamKnowledgeGroupsSimple(targetTeamId))
+    } else {
+        ;[error, res] = await to(knowledgeApi.getKnowledgeGroupList())
+    }
+    if (error || !res?.data) {
         return
     }
     groupList.value = res.data
@@ -264,6 +271,12 @@ watch(() => props.open, async (val) => {
         }
     }
 }, { immediate: true })
+
+watch(() => form.value.team_id, async (newTeamId, oldTeamId) => {
+    if (props.open && newTeamId !== oldTeamId && newTeamId !== undefined) {
+        await getKnowledgeGroupListData()
+    }
+})
 </script>
 
 <style lang="less" scoped>

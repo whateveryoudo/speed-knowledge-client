@@ -47,11 +47,25 @@ export const updateTeam = (
 
 /** 获取团队下的知识库分组列表（含 Top3 文档） */
 export const getTeamKnowledgeGroups = (
-  slug: string,
+  identifier: string,
   keyword?: string
 ): Promise<ResponseType<KnowledgeGroupItem[]>> => {
-  return request.get(`${teamPrefix}/${slug}/knowledge-groups`, {
+  return request.get(`${teamPrefix}/${identifier}/groups`, {
     params: keyword ? { keyword } : undefined,
   });
+};
+
+/** 获取团队轻量分组列表 */
+export const getTeamKnowledgeGroupsSimple = (
+  identifier: string
+): Promise<ResponseType<KnowledgeGroupItem[]>> => {
+  return request.get(`${teamPrefix}/${identifier}/groups/simple`);
+};
+
+/** 团队下创建分组 */
+export const createTeamKnowledgeGroup = (
+  identifier: string
+): Promise<ResponseType<KnowledgeGroupItem>> => {
+  return request.post(`${teamPrefix}/${identifier}/groups/create`);
 };
 

@@ -14,8 +14,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { KnowledgeEditor } from '@speed-tiptap-editor/knowledge-editor'
-import '@speed-tiptap-editor/knowledge-editor/style.css'
+import { KnowledgeEditor } from '@speed-editor/knowledge-editor'
+import '@speed-editor/knowledge-editor/style.css'
 import type { CSSProperties } from 'vue'
 
 const props = withDefaults(

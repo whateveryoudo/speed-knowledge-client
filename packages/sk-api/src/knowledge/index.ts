@@ -30,25 +30,25 @@ export const getKnowledgeMineList = (
 ): Promise<ResponseType<PaginationResponse<KnowledgeItem>>> => {
   return request.post(`${knowledgePrefix}/mine/list`, data);
 };
-// 获取分组列表
+// 获取分组列表（轻量）
 export const getKnowledgeGroupList = (): Promise<
   ResponseType<KnowledgeGroupItem[]>
 > => {
-  return request.get(`${knowledgePrefix}/group/list`);
+  return request.get(`${knowledgePrefix}/group/list-simple`);
 };
 
-// 获取带知识库的分组列表
+// 获取带知识库的分组列表（详情）
 export const getKnowledgeGroupListDetail = (
   keyword?: string
 ): Promise<ResponseType<KnowledgeGroupItem[]>> => {
-  return request.get(`${knowledgePrefix}/group/list-detail`, {
+  return request.get(`${knowledgePrefix}/group/list`, {
     params: keyword ? { keyword } : undefined,
   });
 };
 
-// 创建分组
-export const createKnowledgeGroup = (params?: { team_id?: string }): Promise<ResponseType<KnowledgeGroupItem>> => {
-  return request.post(`${knowledgePrefix}/group/create`, undefined, { params });
+// 创建分组（个人）
+export const createKnowledgeGroup = (): Promise<ResponseType<KnowledgeGroupItem>> => {
+  return request.post(`${knowledgePrefix}/group/create`);
 };
 
 // 更新分组

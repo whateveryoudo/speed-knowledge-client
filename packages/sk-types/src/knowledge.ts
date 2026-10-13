@@ -89,6 +89,7 @@ export enum KnowledgeAbility {
   MODIFY_BOOK_SETTING = 'modify_book_setting',
   SHARE_BOOK = 'share_book',
   MODIFY_BOOK_PERMISSION = 'modify_book_permission',
+  CREATE_DOCUMENT = 'create_document',
 }
 
 

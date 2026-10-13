@@ -44,7 +44,6 @@
             <TeamAvatar
               :icon="record.icon"
               :size="32"
-              class="border border-solid border-[#f0f0f0]"
             />
             <span class="truncate font-medium text-[var(--sd-text-grey-900)] hover:text-[#1677ff] transition-colors">
               {{ record.name }}

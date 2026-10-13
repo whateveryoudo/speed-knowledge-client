@@ -153,6 +153,7 @@
         <!-- 通用知识库分组列表（支持卡片/列表、拖拽、重命名、空分组占位等） -->
         <KnowledgeGroupList
           ref="groupListRef"
+          scope-type="team"
           :keyword="searchKeyword"
           :team-id="teamDetail?.id"
           :team-slug="teamSlug"

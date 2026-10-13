@@ -46,7 +46,7 @@ export default defineComponent({
       if (!isPersonalSpace.value) {
         menus.push({
           title: '公共区',
-          key: 'public-area',
+          key: '/dashboard/public-area',
           icon: () => <ReadOutlined />,
           filledIcon: () => <ReadOutlined />,
         })
@@ -55,15 +55,6 @@ export default defineComponent({
     })
 
     const handleModuleClick = (item: ModuleMenuItem) => {
-      if (item.key === 'public-area') {
-        const slug = spaceInfo.value.public_area_slug
-        if (!slug) {
-          message.warning('公共区尚未就绪')
-          return
-        }
-        router.push(`/${slug}/knowledge/`)
-        return
-      }
       router.push(item.key)
     }
 

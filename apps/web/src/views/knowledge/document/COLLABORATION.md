@@ -1,6 +1,6 @@
 # Word 文档协同编辑 — 记忆点
 
-> 改标题闪屏、协同重建等问题，优先查本文。相关代码：`WordEditor.vue`、`useWordEditorProps.ts`、`useKnowledgeStore.handleUpdateDocumentName`、`speed-tiptap-editor/useCollaboration.ts`。
+> 改标题闪屏、协同重建等问题，优先查本文。相关代码：`WordEditor.vue`、`useWordEditorProps.ts`、`useKnowledgeStore.handleUpdateDocumentName`、`speed-editor/useCollaboration.ts`。
 
 ## 架构（refactor 后）
 
@@ -66,7 +66,7 @@ documentInfo.value = res.data
 
 ## useCollaboration 行为
 
-`speed-tiptap-editor/src/hooks/useCollaboration.ts`：
+`speed-editor/src/hooks/useCollaboration.ts`：
 
 - watch `[config, enabled]`，`deep: true`
 - 任何 config 变化 → `setup()` → **先 `destroy()`** → 再 `new Y.Doc()` + `HocuspocusProvider`
@@ -106,5 +106,5 @@ documentInfo.value = res.data
 | `composables/useWordEditorProps.ts` | 传给 WordEditor 的 `editorProps.collaboration` |
 | `editors/WordEditor.vue` | `useCollaboration` + `v-if="ready"` |
 | `document/index.vue` | `showEditor`、`editorKey`、标题双向绑定 |
-| `speed-tiptap-editor/.../useCollaboration.ts` | Y.Doc / Provider 生命周期 |
-| `speed-tiptap-editor/.../editor.vue` | 接收外部 ydoc，extensions 热更新 |
+| `speed-editor/.../useCollaboration.ts` | Y.Doc / Provider 生命周期 |
+| `speed-editor/.../editor.vue` | 接收外部 ydoc，extensions 热更新 |

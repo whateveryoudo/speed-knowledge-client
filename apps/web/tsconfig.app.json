@@ -8,7 +8,7 @@
     "jsx": "preserve", // 添加这行：保留 JSX 语法，让 Vite 插件处理
     "paths": {
       // "@/*": ["../../speed-components/src/*"],
-      "@/*": ["../../speed-tiptap-editor/src/*"],
+      "@/*": ["../../speed-editor/src/*"],
       "#sk-web/*": ["./src/*"],
       // 子路径须在 @speed-sheet/vue3 之前，避免 style.css 被解析成 index.ts/style.css
       "@speed-sheet/vue3/style.css": ["../../../speed-sheet/packages/vue3/dist/style.css"],

@@ -195,7 +195,7 @@ speed-knowledge-client/
 ## 🔗 相关项目
 
 ### 编辑器
-- **[Speed Tiptap Editor](https://github.com/whateveryoudo/speed-tiptap-editor)**  
+- **[Speed Tiptap Editor](https://github.com/whateveryoudo/speed-editor)**  
   基于 Tiptap 的富文本编辑器，提供丰富的编辑功能和扩展能力。
 
 - **[Speed Sheet](https://github.com/whateveryoudo/speed-sheet)**  

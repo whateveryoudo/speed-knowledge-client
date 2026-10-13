@@ -1,0 +1,22 @@
+{
+  "name": "client-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "pack:mac": "electron-vite build && electron-builder --mac",
+    "pack:win": "electron-vite build && electron-builder --win"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@electron-toolkit/utils": "^3.0.0",
+    "@types/node": "^22.10.1",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}
