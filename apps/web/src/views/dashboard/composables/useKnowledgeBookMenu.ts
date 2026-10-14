@@ -24,7 +24,7 @@ type MenuItem = ItemType & { hidden?: boolean }
 export function useKnowledgeBookMenu() {
   const router = useRouter()
   const userStore = useUserStore()
-  const { handleRemoveUsual, handleAddUsual, handleRename } = useKnowledgeList()
+  const { handleRemoveUsual, handleAddUsual, handleRename, isPinned } = useKnowledgeList()
 
   const knowledgePath = (book: KnowledgeItem, suffix = '') => {
     const scope = resolveKnowledgeScopeSlug(book, userStore.userInfo.username)
@@ -113,20 +113,24 @@ export function useKnowledgeBookMenu() {
     return items.filter((item) => !item.hidden)
   }
 
-  const handleTogglePin = async (book: KnowledgeItem, pinned: boolean) => {
-    if (pinned) {
-      await handleRemoveUsual(book.id)
-      message.success('已移出常用')
-    } else {
-      await handleAddUsual(book.id)
-      message.success('已设为常用')
+  const handleTogglePin = async (book: KnowledgeItem, pinned?: boolean) => {
+    const isCurrentlyPinned = pinned ?? (book.is_pinned ?? isPinned(book.id))
+    // 乐观更新自身
+    book.is_pinned = !isCurrentlyPinned
+    try {
+      if (isCurrentlyPinned) {
+        await handleRemoveUsual(book.id)
+        message.success('已移出常用')
+      } else {
+        await handleAddUsual(book.id)
+        message.success('已设为常用')
+      }
+    } catch {
+      book.is_pinned = isCurrentlyPinned
     }
   }
 
-  const handleMenuClick = async (
-    key: string,
-    book: KnowledgeItem,
-  ) => {
+  const handleMenuClick = async (key: string, book: KnowledgeItem) => {
     currentBook.value = book
 
     switch (key) {

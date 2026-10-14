@@ -134,6 +134,12 @@ const speedSheetSourceAliases = {
       import.meta.url,
     ),
   ),
+  '@speed-sheet/extension-chart': fileURLToPath(
+    new URL(
+      '../../../speed-sheet/packages/extensions/extension-chart/src/index.ts',
+      import.meta.url,
+    ),
+  ),
 } as const
 
 // https://vite.dev/config/

@@ -92,18 +92,22 @@ function initKnowledgeListState(): KnowledgeListContext {
       return
     }
     const [error, res] = await to(knowledgeApi.createCommonPin(knowledgeId))
-    if (!error && res.data) {
+    if (error) {
+      throw error
+    }
+    if (res?.data) {
       commonPinList.value = [...commonPinList.value, res.data]
     }
   }
 
   const handleRemoveUsual = async (knowledgeId: string) => {
     const [error] = await to(knowledgeApi.deleteCommonPin(knowledgeId))
-    if (!error) {
-      commonPinList.value = commonPinList.value.filter(
-        (item) => item.knowledge_id !== knowledgeId,
-      )
+    if (error) {
+      throw error
     }
+    commonPinList.value = commonPinList.value.filter(
+      (item) => item.knowledge_id !== knowledgeId,
+    )
   }
 
   const handleDelete = async (slug: string, cb?: () => void) => {

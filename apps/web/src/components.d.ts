@@ -16,6 +16,8 @@ declare module 'vue' {
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
+    ACollapse: typeof import('ant-design-vue/es')['Collapse']
+    ACollapsePanel: typeof import('ant-design-vue/es')['CollapsePanel']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADivider: typeof import('ant-design-vue/es')['Divider']
     ADrawer: typeof import('ant-design-vue/es')['Drawer']
@@ -74,6 +76,7 @@ declare module 'vue' {
     IconEcosystem: typeof import('./components/icons/IconEcosystem.vue')['default']
     IconSupport: typeof import('./components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./components/icons/IconTooling.vue')['default']
+    InfoCircleFilled: typeof import('@ant-design/icons-vue')['InfoCircleFilled']
     KnowledgeSearchModal: typeof import('./components/search/KnowledgeSearchModal.vue')['default']
     LeftOutlined: typeof import('@ant-design/icons-vue')['LeftOutlined']
     Markdown: typeof import('./components/robot/chat/Markdown.vue')['default']
@@ -89,6 +92,7 @@ declare module 'vue' {
     SearchResultItem: typeof import('./components/search/SearchResultItem.vue')['default']
     SiteBeian: typeof import('./components/SiteBeian.vue')['default']
     SkeletonList: typeof import('./components/global/skeletonList/index.vue')['default']
+    TableOutlined: typeof import('@ant-design/icons-vue')['TableOutlined']
     Trigger: typeof import('./components/robot/Trigger.vue')['default']
   }
 }

@@ -62,8 +62,12 @@ const onMenuClick = (e: { key: string }, book: KnowledgeItem) => {
   handleMenuClick(e.key, book)
 }
 
+const isItemPinned = (book: KnowledgeItem) => {
+  return book.is_pinned ?? isPinned(book.id)
+}
+
 const onTogglePin = (book: KnowledgeItem) => {
-  handleTogglePin(book, isPinned(book.id))
+  handleTogglePin(book)
 }
 
 const onRenameBlur = async (value: string, book: KnowledgeItem) => {
@@ -166,12 +170,13 @@ defineExpose({
       </template>
       <template v-else-if="column.key === 'action'">
         <div class="flex items-center justify-end gap-4">
-          <a-tooltip :title="isPinned((record as KnowledgeItem).id) ? '移出常用' : '设为常用'">
+          <a-tooltip :title="isItemPinned(record as KnowledgeItem) ? '移出常用' : '设为常用'">
             <span
-              class="inline-flex cursor-pointer text-[14px] text-[var(--sd-grey-8)] hover:text-[var(--sd-link-color)]"
+              class="inline-flex cursor-pointer text-[14px] hover:text-[var(--sd-link-color)]"
+              :class="isItemPinned(record as KnowledgeItem) ? 'text-[var(--sd-link-color)]' : 'text-[var(--sd-grey-8)]'"
               @click.stop="onTogglePin(record as KnowledgeItem)"
             >
-              <PushpinFilled v-if="isPinned((record as KnowledgeItem).id)" />
+              <PushpinFilled v-if="isItemPinned(record as KnowledgeItem)" />
               <PushpinOutlined v-else />
             </span>
           </a-tooltip>
