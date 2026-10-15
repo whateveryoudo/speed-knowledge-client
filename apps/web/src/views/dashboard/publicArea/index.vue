@@ -11,11 +11,9 @@
       </div>
     </div>
 
-    <CommonPin />
-
     <a-flex justify="space-between" align="center">
       <div class="text-[14px] font-medium text-[var(--sd-text-grey-900)]">
-        所有分组
+        {{ viewType === 'group' ? '所有分组' : '所有知识库' }}
       </div>
       <div class="flex items-center gap-3">
         <a-input
@@ -51,15 +49,52 @@
             </a-menu>
           </template>
         </a-dropdown>
+
+        <!-- 视图切换：分组视图 / 列表视图 -->
+        <a-space :size="0">
+          <template #split>
+            <a-divider type="vertical" class="mx-1" />
+          </template>
+          <a-tooltip title="分组视图">
+            <a-button
+              type="text"
+              @click="viewType = 'group'"
+              :class="['shadow-btn-wrapper', viewType === 'group' ? 'is-active' : '']"
+            >
+              <template #icon>
+                <AppstoreOutlined />
+              </template>
+            </a-button>
+          </a-tooltip>
+          <a-tooltip title="列表视图">
+            <a-button
+              type="text"
+              @click="viewType = 'list'"
+              :class="['shadow-btn-wrapper', viewType === 'list' ? 'is-active' : '']"
+            >
+              <template #icon>
+                <MenuOutlined />
+              </template>
+            </a-button>
+          </a-tooltip>
+        </a-space>
       </div>
     </a-flex>
 
-    <!-- 公共区通用分组列表 -->
+    <!-- 分组视图 -->
     <KnowledgeGroupList
+      v-if="viewType === 'group'"
       ref="groupListRef"
       scope-type="space"
       :keyword="keyword"
       @knowledge-created="onKnowledgeCreated"
+    />
+
+    <!-- 列表视图 -->
+    <PublicAreaKnowledgeList
+      v-else
+      ref="listRef"
+      :keyword="keyword"
     />
 
     <!-- 新建知识库弹窗 -->
@@ -72,30 +107,58 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { PlusOutlined, DownOutlined, SearchOutlined } from '@ant-design/icons-vue'
+import { ref, watch, nextTick } from 'vue'
+import {
+  PlusOutlined,
+  DownOutlined,
+  SearchOutlined,
+  AppstoreOutlined,
+  MenuOutlined,
+} from '@ant-design/icons-vue'
 import { debounce } from 'lodash-es'
-import CommonPin from '../knowledgeMain/components/CommonPin.vue'
 import KnowledgeGroupList from '../components/knowledgeGroupList/index.vue'
 import AddKnowledge from '../components/addMenu/AddKnowledge.vue'
+import PublicAreaKnowledgeList from './components/PublicAreaKnowledgeList.vue'
+
+const PUBLIC_AREA_VIEW_TYPE_KEY = 'sk_public_area_view_type'
+
+const readInitialViewType = (): 'group' | 'list' => {
+  const stored = localStorage.getItem(PUBLIC_AREA_VIEW_TYPE_KEY)
+  return stored === 'list' ? 'list' : 'group'
+}
 
 const keyword = ref('')
+const viewType = ref<'group' | 'list'>(readInitialViewType())
 const openAddKnowledge = ref(false)
 const groupListRef = ref<InstanceType<typeof KnowledgeGroupList> | null>(null)
+const listRef = ref<InstanceType<typeof PublicAreaKnowledgeList> | null>(null)
+
+watch(viewType, (v) => {
+  localStorage.setItem(PUBLIC_AREA_VIEW_TYPE_KEY, v)
+})
 
 const handleSearch = debounce(() => {
-  groupListRef.value?.refresh()
+  if (viewType.value === 'group') {
+    groupListRef.value?.refresh()
+  } else {
+    listRef.value?.refresh()
+  }
 }, 300)
 
-const handleActionMenuClick = ({ key }: { key: string | number }) => {
+const handleActionMenuClick = async ({ key }: { key: string | number }) => {
   if (key === 'knowledge') {
     openAddKnowledge.value = true
   } else if (key === 'group') {
+    if (viewType.value !== 'group') {
+      viewType.value = 'group'
+      await nextTick()
+    }
     groupListRef.value?.createGroup()
   }
 }
 
 const onKnowledgeCreated = () => {
   groupListRef.value?.refresh()
+  listRef.value?.refresh()
 }
 </script>

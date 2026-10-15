@@ -23,6 +23,7 @@ export enum KnowledgeFromWay {
   OWN = "own",
   COLLABORATION = "collaboration",
   TEAM = "team",
+  PUBLIC_AREA = "public_area",
 }
 
 export enum ListSortOrder {
@@ -38,6 +39,8 @@ export interface KnowledgeListSortRule {
 export interface KnowledgeListQuery {
   scope?: KnowledgeFromWay;
   keyword?: string;
+  team_id?: string;
+  only_public_area?: boolean;
   sorts?: KnowledgeListSortRule[];
   page: number;
   page_size: number;

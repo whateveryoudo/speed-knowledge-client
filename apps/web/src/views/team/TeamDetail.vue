@@ -93,7 +93,8 @@
               placeholder="搜索"
               allow-clear
               class="w-[200px] rounded-md"
-              @pressEnter="fetchKnowledgeGroups"
+              @pressEnter="handleSearch"
+              @input="handleSearch"
             >
               <template #prefix>
                 <SearchOutlined class="text-[var(--sd-text-caption)]" />
@@ -152,12 +153,21 @@
 
         <!-- 通用知识库分组列表（支持卡片/列表、拖拽、重命名、空分组占位等） -->
         <KnowledgeGroupList
+          v-if="viewMode === 'card'"
           ref="groupListRef"
           scope-type="team"
           :keyword="searchKeyword"
           :team-id="teamDetail?.id"
           :team-slug="teamSlug"
           @knowledge-created="handleKnowledgeCreated"
+        />
+
+        <!-- 列表视图 -->
+        <TeamKnowledgeTableList
+          v-else
+          ref="tableListRef"
+          :keyword="searchKeyword"
+          :team-id="teamDetail?.id"
         />
       </div>
 
@@ -217,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
@@ -236,6 +246,7 @@ import {
 } from '@ant-design/icons-vue'
 import to from 'await-to-js'
 import dayjs from 'dayjs'
+import { debounce } from 'lodash-es'
 import { transformDatatimeToRecentText } from '@sk/utils'
 import { team as teamApi } from '@sk/api'
 import { TeamVisibility, type TeamDetail, type KnowledgeGroupItem } from '@sk/types'
@@ -244,6 +255,14 @@ import EditTeamModal from './components/EditTeamModal.vue'
 import AddKnowledge from '../dashboard/components/addMenu/AddKnowledge.vue'
 import TeamAvatar from './components/TeamAvatar.vue'
 import KnowledgeGroupList from '../dashboard/components/knowledgeGroupList/index.vue'
+import TeamKnowledgeTableList from './components/TeamKnowledgeTableList.vue'
+
+const TEAM_DETAIL_VIEW_MODE_KEY = 'sk_team_detail_view_mode'
+
+const readInitialViewMode = (): 'card' | 'list' => {
+  const stored = localStorage.getItem(TEAM_DETAIL_VIEW_MODE_KEY)
+  return stored === 'list' ? 'list' : 'card'
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -252,12 +271,17 @@ const userStore = useUserStore()
 const teamSlug = ref(route.params.team_slug as string)
 const teamDetail = ref<TeamDetail | null>(null)
 const groupListRef = ref<InstanceType<typeof KnowledgeGroupList> | null>(null)
+const tableListRef = ref<InstanceType<typeof TeamKnowledgeTableList> | null>(null)
 const searchKeyword = ref('')
 const isStarred = ref(false)
-const viewMode = ref<'card' | 'list'>('card')
+const viewMode = ref<'card' | 'list'>(readInitialViewMode())
 const activeTab = ref<'knowledge' | 'activities' | 'topics' | 'members'>('knowledge')
 const openEditModal = ref(false)
 const openAddKnowledge = ref(false)
+
+watch(viewMode, (v) => {
+  localStorage.setItem(TEAM_DETAIL_VIEW_MODE_KEY, v)
+})
 
 const tabs = [
   { key: 'knowledge', label: '知识库' },
@@ -274,16 +298,29 @@ const fetchTeamDetail = async () => {
   }
 }
 
-const handleActionMenuClick = ({ key }: { key: string | number }) => {
+const handleSearch = debounce(() => {
+  if (viewMode.value === 'card') {
+    groupListRef.value?.refresh()
+  } else {
+    tableListRef.value?.refresh()
+  }
+}, 300)
+
+const handleActionMenuClick = async ({ key }: { key: string | number }) => {
   if (key === 'knowledge') {
     openAddKnowledge.value = true
   } else if (key === 'group') {
+    if (viewMode.value !== 'card') {
+      viewMode.value = 'card'
+      await nextTick()
+    }
     groupListRef.value?.createGroup()
   }
 }
 
 const handleKnowledgeCreated = () => {
   groupListRef.value?.refresh()
+  tableListRef.value?.refresh()
   fetchTeamDetail()
 }
 
