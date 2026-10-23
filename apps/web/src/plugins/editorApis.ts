@@ -32,11 +32,24 @@ export function getPublicAttachmentPreviewUrl(attachmentId: string) {
   return `${base}${apiVersion}/attachment/public/preview/${attachmentId}`
 }
 
-/** 空间 icon：优先 url，否则用附件 id 拼公开预览 */
+/** 空间 icon：支持纯附件 ID、URL 或旧版对象结构，统一拼装公开预览 */
 export function resolveSpaceIconUrl(
-  icon?: { id?: string; url?: string } | null,
+  icon?: string | { id?: string; url?: string } | null,
   fallback = '',
 ) {
+  if (!icon) return fallback
+  if (typeof icon === 'string') {
+    if (
+      icon.startsWith('http://') ||
+      icon.startsWith('https://') ||
+      icon.startsWith('/') ||
+      icon.startsWith('data:') ||
+      icon.startsWith('blob:')
+    ) {
+      return icon
+    }
+    return getPublicAttachmentPreviewUrl(icon)
+  }
   if (icon?.url) return icon.url
   if (icon?.id) return getPublicAttachmentPreviewUrl(icon.id)
   return fallback

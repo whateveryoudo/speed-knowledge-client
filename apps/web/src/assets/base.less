@@ -95,6 +95,14 @@ h6 {
   color: var(--sd-grey-8);
   border-color: #d9d9d9;
 }
+
+// antd 表格表头统一清爽样式
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background-color: #fafbfc;
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 13px;
+}
 // 一些过渡效果
 .fade-enter-active,
 .fade-leave-active {
@@ -116,5 +124,30 @@ h6 {
 
   .ant-modal-body {
     padding: 0;
+  }
+}
+
+// 优雅全局细滚动条 (4px 悬浮半透明滑块，无底槽)
+.custom-thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 }

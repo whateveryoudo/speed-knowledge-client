@@ -59,7 +59,7 @@ export default defineComponent({
     }
 
     const goSpaceManage = () => {
-      message.info('空间管理稍后接入，请先用创建空间造数据')
+      router.push('/space/manage')
     }
 
     const renderItem = (item: ModuleMenuItem) => {

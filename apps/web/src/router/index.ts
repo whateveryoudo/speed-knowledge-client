@@ -97,6 +97,63 @@ const router = createRouter({
           name: 'createSpace',
           component: () => import('../views/space/CreateSpace.vue'),
         },
+        {
+          path: '/space/manage',
+          name: 'spaceManage',
+          component: () => import('../views/space/manage/index.vue'),
+          redirect: '/space/manage/contacts',
+          children: [
+            {
+              path: 'contacts',
+              component: () => import('../views/space/manage/contacts/index.vue'),
+            },
+            {
+              path: 'overview',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '空间总览', description: '空间运行数据概览统计建设中，敬请期待！' },
+            },
+            {
+              path: 'permissions',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '权限设置', description: '全局空间角色组与权限策略配置建设中，敬请期待！' },
+            },
+            {
+              path: 'admins',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '管理员设置', description: '空间超级管理员与分级管理员授权建设中，敬请期待！' },
+            },
+            {
+              path: 'team',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '团队管理', description: '空间内部多团队跨组管理建设中，敬请期待！' },
+            },
+            {
+              path: 'security',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '安全中心', description: '安全审计日志与访问风控策略建设中，敬请期待！' },
+            },
+            {
+              path: 'cost',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '费用中心', description: '企业账单、订购套餐与用量配额建设中，敬请期待！' },
+            },
+            {
+              path: 'settings',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '空间设置', description: '空间基本信息设置与高级删除设置建设中，敬请期待！' },
+            },
+            {
+              path: 'statistics',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '数据统计', description: '旗舰版深度知识图谱与文档阅读转化率分析建设中，敬请期待！' },
+            },
+            {
+              path: 'trash',
+              component: () => import('../views/space/manage/components/PlaceholderView.vue'),
+              props: { title: '回收站', description: '空间已删资源深度留存与撤销恢复中心建设中，敬请期待！' },
+            },
+          ],
+        },
       ],
     },
     {

@@ -54,6 +54,7 @@ declare module 'vue' {
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
+    ATreeSelect: typeof import('ant-design-vue/es')['TreeSelect']
     Chat: typeof import('./components/robot/chat/index.vue')['default']
     ChatAnswer: typeof import('./components/robot/chat/ChatAnswer.vue')['default']
     ChatAnswerToolbar: typeof import('./components/robot/chat/ChatAnswerToolbar.vue')['default']
@@ -76,11 +77,9 @@ declare module 'vue' {
     IconEcosystem: typeof import('./components/icons/IconEcosystem.vue')['default']
     IconSupport: typeof import('./components/icons/IconSupport.vue')['default']
     IconTooling: typeof import('./components/icons/IconTooling.vue')['default']
-    InfoCircleFilled: typeof import('@ant-design/icons-vue')['InfoCircleFilled']
     KnowledgeSearchModal: typeof import('./components/search/KnowledgeSearchModal.vue')['default']
     LeftOutlined: typeof import('@ant-design/icons-vue')['LeftOutlined']
     Markdown: typeof import('./components/robot/chat/Markdown.vue')['default']
-    MergeCellsOutlined: typeof import('@ant-design/icons-vue')['MergeCellsOutlined']
     MessageOutlined: typeof import('@ant-design/icons-vue')['MessageOutlined']
     MoreOutlined: typeof import('@ant-design/icons-vue')['MoreOutlined']
     NotFound: typeof import('./components/global/notFound/index.vue')['default']
@@ -92,7 +91,6 @@ declare module 'vue' {
     SearchResultItem: typeof import('./components/search/SearchResultItem.vue')['default']
     SiteBeian: typeof import('./components/SiteBeian.vue')['default']
     SkeletonList: typeof import('./components/global/skeletonList/index.vue')['default']
-    TableOutlined: typeof import('@ant-design/icons-vue')['TableOutlined']
     Trigger: typeof import('./components/robot/Trigger.vue')['default']
   }
 }
