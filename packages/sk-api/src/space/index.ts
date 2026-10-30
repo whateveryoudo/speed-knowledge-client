@@ -10,6 +10,7 @@ import type {
   SpaceMemberListItem,
   SpaceMemberQuery,
   SpaceMemberExtra,
+  SpaceTransferOwnerParams,
 } from '@sk/types'
 import { SpaceMemberRole } from '@sk/types'
 
@@ -159,5 +160,12 @@ export const batchDeleteResignedMembers = (
   member_ids: string[],
 ): Promise<ResponseType<boolean>> => {
   return request.post(`${spaceMemberPrefix}/batch-delete`, { member_ids })
+}
+
+/** 空间所有权转让（仅所有者可发起） */
+export const transferSpaceOwner = (
+  data: SpaceTransferOwnerParams,
+): Promise<ResponseType<boolean>> => {
+  return request.post(`${spaceMemberPrefix}/transfer-owner`, data)
 }
 

@@ -95,3 +95,9 @@ export interface SpaceMemberExtra {
   active_member_count: number
 }
 
+export interface SpaceTransferOwnerParams {
+  target_user_id: number
+  exit_space?: boolean
+  target_role_if_stay?: SpaceMemberRole
+}
+

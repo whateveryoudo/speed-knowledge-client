@@ -29,6 +29,7 @@ declare module 'vue' {
     AInput: typeof import('ant-design-vue/es')['Input']
     AInputGroup: typeof import('ant-design-vue/es')['InputGroup']
     AInputNumber: typeof import('ant-design-vue/es')['InputNumber']
+    AInputSearch: typeof import('ant-design-vue/es')['InputSearch']
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuDivider: typeof import('ant-design-vue/es')['MenuDivider']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
