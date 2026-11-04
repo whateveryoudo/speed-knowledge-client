@@ -37,6 +37,19 @@ export const buildOrganizationDashboardUrl = (domain: string) => {
   return `${protocol}//${domain}.${root}${portSuffix}/dashboard`
 }
 
+/** 获取平台主域名（根域）的完整 Origin (例如本地 http://speed.localhost:5173 或线上 https://example.com) */
+export const getMainOrigin = (): string => {
+  if (typeof window === 'undefined') return ''
+  const domain = getSpaceSubdomain(window.location.hostname)
+  const root =
+    (import.meta.env.VITE_SPACE_ROOT_DOMAIN as string) ||
+    (domain ? window.location.hostname.replace(/^[^.]+\./, '') : window.location.hostname)
+
+  const { protocol, port } = window.location
+  const portSuffix = port && port !== '80' && port !== '443' ? `:${port}` : ''
+  return `${protocol}//${root}${portSuffix}`
+}
+
 export const useSpaceStore = defineStore('space', () => {
   const spaceInfo = ref<SpaceItem>(emptySpace())
   const isPersonalSpace = computed(() => spaceInfo.value.type === SpaceType.PERSONAL)
@@ -52,14 +65,12 @@ export const useSpaceStore = defineStore('space', () => {
     if (domain) {
       const [err, res] = await to(spaceApi.getSpaceInfoByDomain(domain))
       if (err) {
-        message.error(err.message)
         return
       }
       spaceInfo.value = res.data
     } else if (accessToken) {
       const [err, res] = await to(spaceApi.getSpaceInfo())
       if (err) {
-        message.error(err.message)
         return
       }
       if (res.data) {
@@ -114,13 +125,11 @@ export const useSpaceStore = defineStore('space', () => {
   const enterPersonalSpace = async () => {
     const domain = getSpaceSubdomain(window.location.hostname)
     if (domain) {
-      const root =
-        (import.meta.env.VITE_SPACE_ROOT_DOMAIN as string) ||
-        window.location.hostname.replace(/^[^.]+\./, '')
-      const { protocol, port } = window.location
-      const portSuffix =
-        port && port !== '80' && port !== '443' ? `:${port}` : ''
-      window.location.href = `${protocol}//${root}${portSuffix}/dashboard`
+      const token = localStorage.getItem('access_token')
+      const targetUrl = `${getMainOrigin()}/dashboard`
+      window.location.href = token
+        ? `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}auth_token=${encodeURIComponent(token)}`
+        : targetUrl
       return
     }
     await getSpaceInfoByUser()
@@ -134,7 +143,11 @@ export const useSpaceStore = defineStore('space', () => {
     }
     const url = buildOrganizationDashboardUrl(space.domain)
     if (url) {
-      window.location.href = url
+      const token = localStorage.getItem('access_token')
+      const targetUrl = token
+        ? `${url}${url.includes('?') ? '&' : '?'}auth_token=${encodeURIComponent(token)}`
+        : url
+      window.location.href = targetUrl
       return
     }
     // 本地开发：无子域名时直接写入当前 store

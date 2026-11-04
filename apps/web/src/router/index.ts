@@ -92,6 +92,12 @@ const router = createRouter({
           path: '/:team_slug/:resource_type/:knowledge_slug/:document_slug/invite',
           component: () => import('../views/invite/DocumentInvite.vue'),
         },
+        // 邀请链接-组织（空间/团队）
+        {
+          path: '/invite/org',
+          name: 'orgInvite',
+          component: () => import('../views/invite/OrgInvite.vue'),
+        },
         {
           path: '/organizations/new',
           name: 'createSpace',

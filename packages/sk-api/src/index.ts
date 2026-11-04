@@ -13,6 +13,7 @@ import * as space from "./space";
 import * as team from "./team";
 import * as search from "./search";
 import * as resource from "./resource";
+import * as orgInvitation from "./orgInvitation";
 export * from "./path";
 export {
   attachment,
@@ -30,4 +31,5 @@ export {
   notification,
   search,
   resource,
+  orgInvitation,
 };

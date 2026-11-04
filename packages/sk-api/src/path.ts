@@ -15,3 +15,5 @@ export const collaboratorPrefix = `${apiVersion}/collaborator`
 export const resourceCollaborationPrefix = `${apiVersion}/resource-collaboration`
 export const searchPrefix = `${apiVersion}/search`
 export const resourcePrefix = `${apiVersion}/resource`
+export const orgInvitationPrefix = `${apiVersion}/org-invitation`
+export const orgJoinRequestPrefix = `${apiVersion}/org-join-request`

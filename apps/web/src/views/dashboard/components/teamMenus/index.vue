@@ -1,5 +1,5 @@
 <template>
-  <div class="team-menus my-1">
+  <div v-if="!spaceStore.isPersonalSpace" class="team-menus my-1">
     <!-- 展开态：团队菜单项 + 可折叠团队列表 (Image 1) -->
     <div class="px-2" v-if="expanded">
       <div
@@ -46,7 +46,7 @@
             />
           </div>
         </div>
-        <p v-else class="text-[var(--sd-text-caption)] text-center text-[12px] py-2 m-0">
+        <p v-else class="text-[var(--sd-text-caption)] text-center py-2 m-0">
           暂无团队
         </p>
       </Collapse>
@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   CaretRightOutlined,
@@ -105,6 +105,7 @@ import to from 'await-to-js'
 import { team as teamApi } from '@sk/api'
 import { TeamVisibility, type TeamListItem } from '@sk/types'
 import TeamAvatar from '#sk-web/views/team/components/TeamAvatar.vue'
+import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 
 const props = withDefaults(
   defineProps<{
@@ -117,6 +118,7 @@ const props = withDefaults(
 
 const router = useRouter()
 const route = useRoute()
+const spaceStore = useSpaceStore()
 const innerExpanded = ref(true)
 const teams = ref<TeamListItem[]>([])
 const loading = ref(false)
@@ -126,17 +128,31 @@ const toggleInner = () => {
 }
 
 const fetchTeams = async () => {
+  if (spaceStore.isPersonalSpace) return
   loading.value = true
   const [error, res] = await to(teamApi.getMyTeamList())
   loading.value = false
-  if (!error && res.data) {
+  if (!error && res?.data) {
     teams.value = res.data
   }
 }
 
 onMounted(() => {
-  fetchTeams()
+  if (!spaceStore.isPersonalSpace) {
+    fetchTeams()
+  }
 })
+
+watch(
+  () => spaceStore.isPersonalSpace,
+  (isPersonal) => {
+    if (!isPersonal) {
+      fetchTeams()
+    } else {
+      teams.value = []
+    }
+  },
+)
 </script>
 
 <style scoped>

@@ -15,5 +15,6 @@ export * from './notification'
 export * from './search'
 export * from './resourceAccess'
 export * from './buildRoute'
+export * from './orgInvitation'
 // 能力类型（联合）
 export type Ability = KnowledgeAbility | DocumentAbility

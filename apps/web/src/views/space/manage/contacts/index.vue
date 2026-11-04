@@ -25,23 +25,69 @@
         <!-- 空间成员操作栏 -->
         <template v-if="activeTab === 'member'">
           <a-button class="rounded-[6px]" @click="handleExport">导出</a-button>
-          <a-button
-            type="primary"
-            class="rounded-[6px] !bg-[#00b96b] !border-[#00b96b] hover:!bg-[#059669]"
-            @click="showAddMemberModal = true"
-          >
-            <template #icon>
-              <PlusOutlined />
+          <a-dropdown placement="bottomRight">
+            <a-button
+              type="primary"
+              class="rounded-[6px]"
+            >
+              添加成员
+            </a-button>
+            <template #overlay>
+              <a-menu class="min-w-[170px] rounded-[8px] py-1 shadow-md">
+                <a-menu-item key="link" class="py-2 px-3 text-[13px]" @click="showInviteModal = true">
+                  <div class="flex items-center gap-2">
+                    <LinkOutlined class="text-[14px]" />
+                    <span>链接邀请成员</span>
+                  </div>
+                </a-menu-item>
+                <a-menu-item
+                  key="phone"
+                  class="py-2 px-3 text-[13px]"
+                  @click="message.info('手机号邀请功能正在开发中')"
+                >
+                  <div class="flex items-center gap-2">
+                    <PhoneOutlined class="text-[14px]" />
+                    <span>手机号邀请成员</span>
+                  </div>
+                </a-menu-item>
+                <a-menu-item
+                  key="batch"
+                  class="py-2 px-3 text-[13px]"
+                  @click="message.info('批量导入功能正在开发中')"
+                >
+                  <div class="flex items-center gap-2">
+                    <ImportOutlined class="text-[14px]" />
+                    <span>批量导入</span>
+                  </div>
+                </a-menu-item>
+                <a-menu-divider />
+                <a-menu-item
+                  key="dingding"
+                  class="py-2 px-3 text-[13px]"
+                  @click="message.info('绑定钉钉通讯录为专业版功能，敬请期待！')"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <SendOutlined class="text-[14px]" />
+                      <span>绑定钉钉通讯录</span>
+                    </div>
+                    <span
+                      class="text-[11px] px-1.5 py-0.5 rounded-full font-medium leading-none bg-[var(--ant-orange-1)] text-[var(--ant-orange-7)]"
+                    >
+                      专业版
+                    </span>
+                  </div>
+                </a-menu-item>
+              </a-menu>
             </template>
-            添加成员
-          </a-button>
+          </a-dropdown>
         </template>
 
         <!-- 外部联系人操作栏 -->
         <template v-else-if="activeTab === 'external'">
           <a-button
             type="primary"
-            class="rounded-[6px] !bg-[#00b96b] !border-[#00b96b] hover:!bg-[#059669]"
+            class="rounded-[6px]"
             @click="handleAddExternal"
           >
             <template #icon>
@@ -178,7 +224,7 @@
                   v-else
                   :value="record.role"
                   size="small"
-                  class="w-[100px]"
+                  class="w-[80px]"
                   :bordered="false"
                   @change="(val: SpaceMemberRole) => handleRoleChange(record, val)"
                 >
@@ -228,30 +274,22 @@
                     </a-button>
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item key="detail" @click="handleShowDetail(record)">
-                          查看详情
-                        </a-menu-item>
-
                         <!-- 空间成员专属操作 -->
                         <template v-if="activeTab === 'member'">
-                          <a-menu-item key="dept" @click="openAdjustDept(record)">
+                          <!-- 非本人成员：可调整部门 -->
+                          <a-menu-item
+                            v-if="!isSelf(record)"
+                            key="dept"
+                            @click="openAdjustDept(record)"
+                          >
                             调整部门
                           </a-menu-item>
 
-                          <!-- 所有者在自己这行发起转让（弹框可自由选择在职成员） -->
+                          <!-- 仅所有者在自己这一行可发起“转让空间所有权” -->
                           <a-menu-item
                             v-if="isSelf(record) && isCurrentOwner"
                             key="transferSelf"
                             @click="openTransferOwnerModal(null)"
-                          >
-                            转让空间所有权
-                          </a-menu-item>
-
-                          <!-- 所有者也可快捷转让给特定成员 -->
-                          <a-menu-item
-                            v-if="isCurrentOwner && !isSelf(record) && record.role !== SpaceMemberRole.EXTERNAL"
-                            key="transferToOther"
-                            @click="openTransferOwnerModal(record)"
                           >
                             转让空间所有权
                           </a-menu-item>
@@ -323,6 +361,15 @@
       @success="handleAddMemberSuccess"
     />
 
+    <OrgInviteModal
+      v-model:visible="showInviteModal"
+      org-type="space"
+      :org-id="spaceStore.spaceInfo?.id || ''"
+      :org-name="spaceStore.spaceInfo?.name"
+      :default-dept-id="selectedDeptId"
+      :department-tree="departmentTree"
+    />
+
     <TransferOwnerModal
       v-model:visible="showTransferOwnerModal"
       :current-user-id="userStore.userInfo?.id"
@@ -337,10 +384,15 @@ import { ref, computed, onMounted, reactive, h } from 'vue'
 import { message, Modal, type TableColumnType } from 'ant-design-vue'
 import {
   PlusOutlined,
+  ShareAltOutlined,
   TeamOutlined,
   EllipsisOutlined,
   InfoCircleOutlined,
   ExclamationCircleOutlined,
+  LinkOutlined,
+  PhoneOutlined,
+  ImportOutlined,
+  SendOutlined,
 } from '@ant-design/icons-vue'
 import { useTable } from 'speed-components-ui/hooks'
 import { space as spaceApi } from '@sk/api'
@@ -359,6 +411,7 @@ import DepartmentEditModal from './components/DepartmentEditModal.vue'
 import AdjustDepartmentModal from './components/AdjustDepartmentModal.vue'
 import AddMemberModal from './components/AddMemberModal.vue'
 import TransferOwnerModal from './components/TransferOwnerModal.vue'
+import OrgInviteModal from '#sk-web/components/business/org/OrgInviteModal.vue'
 
 const userStore = useUserStore()
 const spaceStore = useSpaceStore()
@@ -740,6 +793,9 @@ const openAdjustDept = (record: SpaceMemberListItem) => {
 const handleAdjustDeptSuccess = () => {
   getList()
 }
+
+// 邀请成员弹窗
+const showInviteModal = ref(false)
 
 // 添加成员弹窗
 const showAddMemberModal = ref(false)
