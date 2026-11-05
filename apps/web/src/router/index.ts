@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ensureTiptap } from '#sk-web/plugins/ensureEditors'
+import { SpaceMemberRole } from '@sk/types'
 function isTokenExpired(token: string) {
   try {
     const tokenObj = JSON.parse(atob(token.split('.')[1] || ''))
@@ -108,6 +109,9 @@ const router = createRouter({
           name: 'spaceManage',
           component: () => import('../views/space/manage/index.vue'),
           redirect: '/space/manage/contacts',
+          meta: {
+            roles: [SpaceMemberRole.OWNER, SpaceMemberRole.ADMIN],
+          },
           children: [
             {
               path: 'contacts',
@@ -172,6 +176,16 @@ const router = createRouter({
 const whiteList = ['/login']
 
 router.beforeEach((to, from, next) => {
+  // 跨子域同步/邀请跳转时接收到的 auth_token：存入 localStorage 并从 URL Query 中剔除
+  if (to.query.auth_token) {
+    const token = to.query.auth_token as string
+    localStorage.setItem('access_token', token)
+    const query = { ...to.query }
+    delete query.auth_token
+    next({ path: to.path, query, hash: to.hash, replace: true })
+    return
+  }
+
   const access_token = localStorage.getItem('access_token')
   if (isTokenExpired(access_token || '')) {
     localStorage.removeItem('access_token')

@@ -28,24 +28,32 @@
                 <a-form-item name="team_id">
                     <a-select
                         v-model:value="form.team_id"
-                        placeholder="请选择团队"
+                        placeholder="请选择归属"
                         :loading="teamLoading"
-                        :options="teamOptions"
+                        :options="destinationOptions"
                         option-label-prop="label"
                     >
-                        <template #option="{ team }">
+                        <template #option="item">
                             <a-flex align="center" :gap="8" class="py-0.5">
-                                <TeamAvatar
-                                    :icon="team.icon"
-                                    :size="24"
-                                    rounded="4px"
-                                    class="shrink-0"
-                                />
-                                <span class="flex-1 truncate">{{ team.name }}</span>
-                                <LockOutlined
-                                    v-if="team.visibility === 'private'"
-                                    class="text-[12px] text-[var(--sd-text-caption)] shrink-0"
-                                />
+                                <template v-if="item.isPublicArea">
+                                    <div class="w-[24px] h-[24px] rounded-[4px] bg-[var(--sd-link-color)] flex items-center justify-center shrink-0">
+                                        <ReadOutlined class="text-[14px] text-[#fff]" />
+                                    </div>
+                                    <span class="flex-1 truncate font-medium">公共区</span>
+                                </template>
+                                <template v-else-if="item.team">
+                                    <TeamAvatar
+                                        :icon="item.team.icon"
+                                        :size="24"
+                                        rounded="4px"
+                                        class="shrink-0"
+                                    />
+                                    <span class="flex-1 truncate">{{ item.team.name }}</span>
+                                    <LockOutlined
+                                        v-if="item.team.visibility === 'private'"
+                                        class="text-[12px] text-[var(--sd-text-caption)] shrink-0"
+                                    />
+                                </template>
                             </a-flex>
                         </template>
                     </a-select>
@@ -74,18 +82,20 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { IconFont } from 'speed-components-ui/components'
-import { LockOutlined } from '@ant-design/icons-vue'
+import { LockOutlined, BookOutlined } from '@ant-design/icons-vue'
 import type { FormInstance, SelectProps } from 'ant-design-vue'
 import KnowledgeIconSelect from './KnowledgeIconSelect.vue'
 import TeamAvatar from '#sk-web/views/team/components/TeamAvatar.vue'
-import { knowledge as knowledgeApi, team as teamApi } from '@sk/api'
+import { knowledge as knowledgeApi, team as teamApi, space as spaceApi } from '@sk/api'
 import type { KnowledgeGroupItem, KnowledgeItem, KnowledgeCreate, TeamItem } from '@sk/types'
 import { useKnowledgeList } from '../../composables/useKnowledgeListContext'
 import to from 'await-to-js'
 import { useSpaceStore } from '#sk-web/store/useSpaceStore'
 import { useUserStore } from '#sk-web/store/useUserStore'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { resolveKnowledgeScopeSlug } from '@sk/utils'
+
+const PUBLIC_AREA_VALUE = '__PUBLIC_AREA__'
 
 interface Props {
     open?: boolean
@@ -111,6 +121,7 @@ const props = withDefaults(defineProps<Props>(), {
 const spaceStore = useSpaceStore()
 const userStore = useUserStore()
 const router = useRouter()
+const route = useRoute()
 const { initCommonPinList } = useKnowledgeList()
 const emit = defineEmits<{
     (e: 'update:open', value: boolean): void
@@ -134,13 +145,27 @@ const form = ref<FormValues>({
 })
 const groupOptions = ref<SelectProps['options']>([])
 
-const teamOptions = computed(() =>
-    teamList.value.map((team) => ({
-        value: team.id,
-        label: team.name,
-        team,
-    })),
-)
+const destinationOptions = computed(() => {
+    const options: Array<{
+        value: string
+        label: string
+        team?: TeamItem
+        isPublicArea?: boolean
+    }> = [
+        {
+            value: PUBLIC_AREA_VALUE,
+            label: '公共区',
+            isPublicArea: true,
+        },
+        ...teamList.value.map((team) => ({
+            value: team.id,
+            label: team.name,
+            team,
+            isPublicArea: false,
+        })),
+    ]
+    return options
+})
 
 const canSubmit = computed(() => {
     if (!form.value.name.trim() || !form.value.group_id) return false
@@ -148,11 +173,16 @@ const canSubmit = computed(() => {
     return !!form.value.team_id
 })
 
-const resolveDefaultTeamId = (teams: TeamItem[]) => {
+const resolveDefaultDestination = (teams: TeamItem[]) => {
     if (props.defaultTeamId) {
         return props.defaultTeamId
     }
-    return teams[0]?.id
+    // 如果当前处于公共区视图，默认新建至公共区
+    if (route.path.includes('/public-area')) {
+        return PUBLIC_AREA_VALUE
+    }
+    // 如果有团队，优先选团队；否则选公共区
+    return teams[0]?.id ?? PUBLIC_AREA_VALUE
 }
 
 const getTeamListData = async () => {
@@ -171,7 +201,7 @@ const getTeamListData = async () => {
         return
     }
     teamList.value = res.data
-    form.value.team_id = resolveDefaultTeamId(res.data)
+    form.value.team_id = resolveDefaultDestination(res.data)
 }
 
 const resolveDefaultGroupId = (groups: KnowledgeGroupItem[]) => {
@@ -189,11 +219,13 @@ const resolveDefaultGroupId = (groups: KnowledgeGroupItem[]) => {
 const getKnowledgeGroupListData = async () => {
     let error: any
     let res: any
-    const targetTeamId = form.value.team_id || props.defaultTeamId
-    if (!spaceStore.isPersonalSpace && targetTeamId) {
-        ;[error, res] = await to(teamApi.getTeamKnowledgeGroupsSimple(targetTeamId))
-    } else {
+    const target = form.value.team_id || props.defaultTeamId
+    if (spaceStore.isPersonalSpace) {
         ;[error, res] = await to(knowledgeApi.getKnowledgeGroupList())
+    } else if (target === PUBLIC_AREA_VALUE || !target) {
+        ;[error, res] = await to(spaceApi.getSpaceKnowledgeGroups())
+    } else {
+        ;[error, res] = await to(teamApi.getTeamKnowledgeGroupsSimple(target))
     }
     if (error || !res?.data) {
         return
@@ -212,7 +244,7 @@ const resetForm = () => {
         description: '',
         group_id: resolveDefaultGroupId(groupList.value),
         icon: 'icon-book-0',
-        team_id: spaceStore.isPersonalSpace ? undefined : resolveDefaultTeamId(teamList.value),
+        team_id: spaceStore.isPersonalSpace ? undefined : resolveDefaultDestination(teamList.value),
         cover: [],
     }
     formRef.value?.clearValidate()
@@ -222,13 +254,14 @@ const handleOk = async () => {
     if (!canSubmit.value) return
     try {
         loading.value = true
+        const isPublic = form.value.team_id === PUBLIC_AREA_VALUE
         const reqParams: KnowledgeCreate = {
             name: form.value.name,
             description: form.value.description,
             cover_url: form.value.cover?.[0],
             group_id: form.value?.group_id ?? '',
             icon: form.value.icon,
-            team_id: spaceStore.isPersonalSpace ? null : form.value.team_id ?? null,
+            team_id: isPublic || spaceStore.isPersonalSpace ? null : form.value.team_id ?? null,
             space_id: spaceStore.spaceInfo.id,
         }
         const [error, res] = await to(knowledgeApi.addKnowledge(reqParams))
@@ -264,7 +297,7 @@ watch(() => props.open, async (val) => {
         await getTeamListData()
         await getKnowledgeGroupListData()
         if (!form.value.team_id) {
-            form.value.team_id = resolveDefaultTeamId(teamList.value)
+            form.value.team_id = resolveDefaultDestination(teamList.value)
         }
         if (!form.value.group_id) {
             form.value.group_id = resolveDefaultGroupId(groupList.value)

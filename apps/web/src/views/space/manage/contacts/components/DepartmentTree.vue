@@ -38,7 +38,7 @@
                   @click.stop="handleAddSub(node.id)"
                   class="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--sd-bg-primary-hover)] text-[var(--sd-text-caption)] hover:text-[var(--sd-text-primary)] cursor-pointer"
                 >
-                  <PlusOutlined class="text-[11px]" />
+                  <PlusOutlined  />
                 </span>
               </a-tooltip>
 
@@ -48,7 +48,7 @@
                   @click.stop
                   class="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--sd-bg-primary-hover)] text-[var(--sd-text-caption)] hover:text-[var(--sd-text-primary)] cursor-pointer"
                 >
-                  <MoreOutlined class="text-[12px]" />
+                  <MoreOutlined  />
                 </span>
                 <template #overlay>
                   <a-menu>

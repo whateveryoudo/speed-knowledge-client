@@ -15,17 +15,6 @@ import '@speed-editor/knowledge-editor/style.css'
 import { setAppContext } from '#sk-web/plugins/appContext'
 import { getComponentsPreviewUrl, transformFileItem } from '#sk-web/plugins/editorApis'
 
-// 跨子域跳转或邀请加入时的 Token 安全接收：在 Vue 及所有组件库加载前的第 0 毫秒存入并抹平 URL
-if (typeof window !== 'undefined') {
-  const urlParams = new URLSearchParams(window.location.search)
-  const authToken = urlParams.get('auth_token')
-  if (authToken) {
-    localStorage.setItem('access_token', authToken)
-    urlParams.delete('auth_token')
-    const cleanSearch = urlParams.toString() ? `?${urlParams.toString()}` : ''
-    window.history.replaceState(null, '', window.location.pathname + cleanSearch + window.location.hash)
-  }
-}
 
 let isRedirecting = false // 是否触发了重定向（防止页面多个接口触发多次）
 initSkApiConfig({

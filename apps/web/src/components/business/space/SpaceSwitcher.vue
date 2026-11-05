@@ -44,7 +44,7 @@
           @click="switchToPersonal"
         >
           <img
-            :src="userStore.userInfo.avatar || AvatarDef"
+            :src="userAvatar"
             alt=""
             class="w-[28px] h-[28px] rounded-full object-cover shrink-0"
           />
@@ -99,6 +99,10 @@ const isActiveOrg = (item: SpaceItem) =>
 
 const spaceAvatar = (item: SpaceItem) =>
   resolveSpaceIconUrl(item.icon, AvatarDef)
+
+const userAvatar = computed(() =>
+  resolveSpaceIconUrl(userStore.userInfo.avatar, AvatarDef),
+)
 
 const loadSpaces = async () => {
   const [err, res] = await to(spaceApi.listSpaces())

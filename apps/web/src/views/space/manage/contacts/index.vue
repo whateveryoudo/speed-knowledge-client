@@ -730,7 +730,7 @@ const openTransferOwnerModal = (record: SpaceMemberListItem) => {
 }
 
 const handleTransferSuccess = (exitSpace: boolean) => {
-  spaceStore.initSpace()
+  spaceStore.checkSpaceAccess()
   if (exitSpace) {
     message.info('你已转让所有权并退出该空间')
     window.location.reload()

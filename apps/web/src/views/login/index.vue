@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { AxiosError } from 'axios'
 import type { LoginErrorDetail } from '@sk/types'
 import { SpaceType } from '@sk/types'
@@ -376,6 +376,11 @@ const handleSubmit = async () => {
     await handleLogin()
   }
 }
+
+onMounted(() => {
+  spaceStore.loadPublicSpaceByDomain()
+})
+
 
 onUnmounted(() => {
   clearEmailCodeTimer()

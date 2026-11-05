@@ -26,7 +26,7 @@ export default defineComponent({
     const route = useRoute()
     const router = useRouter()
     const spaceStore = useSpaceStore()
-    const { isPersonalSpace, spaceInfo } = storeToRefs(spaceStore)
+    const { isPersonalSpace, spaceInfo, isSpaceAdmin } = storeToRefs(spaceStore)
 
     const moduleMenus = computed<ModuleMenuItem[]>(() => {
       const menus: ModuleMenuItem[] = [
@@ -91,7 +91,7 @@ export default defineComponent({
         {moduleMenus.value.map((item) => (
           <div key={item.key}>{renderItem(item)}</div>
         ))}
-        {!isPersonalSpace.value && props.expanded && (
+        {!isPersonalSpace.value && isSpaceAdmin.value && props.expanded && (
           <div
             onClick={goSpaceManage}
             class="flex items-center h-[32px] my-[4px] px-[10px] rounded-[6px] hover:bg-[var(--sd-bg-primary-hover)] transition-[background-color] duration-200 cursor-pointer mt-2"

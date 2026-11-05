@@ -34,8 +34,6 @@ useFavicon(
   ),
 )
 
-spaceStore.initSpace()
-
 const { useToken } = theme
 const { token } = useToken()
 const instance = getCurrentInstance()

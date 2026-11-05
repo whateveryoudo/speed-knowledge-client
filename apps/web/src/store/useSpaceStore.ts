@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { type SpaceItem, SpaceType } from '@sk/types'
+import { type SpaceItem, SpaceType, SpaceMemberRole } from '@sk/types'
 import { to } from 'await-to-js'
 import { space as spaceApi } from '@sk/api'
 import { message } from 'ant-design-vue'
 import { getSpaceSubdomain } from '@sk/utils'
+
 
 const emptySpace = (): SpaceItem => ({
   id: '',
@@ -58,57 +59,73 @@ export const useSpaceStore = defineStore('space', () => {
   /** 已登录场景下准入校验是否结束（避免闪一下工作台） */
   const spaceAccessReady = ref(false)
 
-  const initSpace = async () => {
-    const domain = getSpaceSubdomain(window.location.hostname)
-    const accessToken = localStorage.getItem('access_token')
+  /** 当前登录用户在该空间的角色（个人空间天然为 owner） */
+  const currentRole = computed<SpaceMemberRole | null>(() => {
+    if (isPersonalSpace.value) return SpaceMemberRole.OWNER
+    return spaceInfo.value.current_role ?? null
+  })
 
-    if (domain) {
-      const [err, res] = await to(spaceApi.getSpaceInfoByDomain(domain))
-      if (err) {
-        return
-      }
+  /** 是否为空间管理员（Owner 或 Admin） */
+  const isSpaceAdmin = computed<boolean>(() => {
+    if (isPersonalSpace.value) return true
+    return (
+      currentRole.value === SpaceMemberRole.OWNER ||
+      currentRole.value === SpaceMemberRole.ADMIN
+    )
+  })
+
+  /** 是否为空间所有者 */
+  const isSpaceOwner = computed<boolean>(() => {
+    if (isPersonalSpace.value) return true
+    return currentRole.value === SpaceMemberRole.OWNER
+  })
+
+  /**
+   * 1. 登录页/公开展示页用：根据二级域名拉取公开信息（名称、Logo）
+   */
+  const loadPublicSpaceByDomain = async () => {
+    const domain = getSpaceSubdomain(window.location.hostname)
+    if (!domain) return
+    const [err, res] = await to(spaceApi.getSpaceInfoByDomain(domain))
+    if (!err && res?.data) {
       spaceInfo.value = res.data
-    } else if (accessToken) {
-      const [err, res] = await to(spaceApi.getSpaceInfo())
-      if (err) {
-        return
-      }
-      if (res.data) {
-        spaceInfo.value = res.data
-      }
     }
   }
 
   /**
-   * Layout 用：已登录 + 组织子域时校验成员；个人空间 / 未登录不调接口。
-   * 组织非成员 → 403 → 写入 spaceAccessError（页内展示，不改 URL）。
+   * 2. 工作台 BasicLayout 用：校验已登录用户的空间准入与角色权限
    */
   const checkSpaceAccess = async () => {
     spaceAccessError.value = null
-    const accessToken = localStorage.getItem('access_token')
     const domain = getSpaceSubdomain(window.location.hostname)
-    // 未登录或无组织子域：无需准入校验
-    if (!accessToken || !domain) {
+
+    // 场景 A：组织二级域名 -> 调 /current/access 校验成员准入并获取角色
+    if (domain) {
+      spaceAccessReady.value = false
+      const [err, res] = await to(spaceApi.checkSpaceAccess())
+      if (!err && res?.data) {
+        spaceInfo.value = res.data
+        spaceAccessError.value = null
+      } else {
+        const errorRes = (err as any)?.response?.data as
+          | { errCode?: number; errMessage?: string }
+          | undefined
+        if (errorRes?.errCode === 403) {
+          spaceAccessError.value = {
+            errMessage: errorRes.errMessage || '你不是该空间成员，可联系空间管理员添加',
+          }
+        }
+      }
       spaceAccessReady.value = true
       return
     }
-    spaceAccessReady.value = false
-    const [err, res] = await to(spaceApi.checkSpaceAccess())
+
+    // 场景 B：主站根域名 -> 获取当前登录用户的个人空间
+    spaceAccessReady.value = true
+    const [err, res] = await to(spaceApi.getSpaceInfo())
     if (!err && res?.data) {
       spaceInfo.value = res.data
-      spaceAccessError.value = null
-    } else {
-      const errorRes = (err as any)?.response?.data as
-        | { errCode?: number; errMessage?: string }
-        | undefined
-      if (errorRes?.errCode === 403) {
-        spaceAccessError.value = {
-          errMessage: errorRes.errMessage || '你不是该空间成员，可联系空间管理员添加',
-        }
-      }
-      // 401 等由全局拦截处理；其它错误不挡 layout，避免误伤
     }
-    spaceAccessReady.value = true
   }
 
   const getSpaceInfoByUser = async () => {
@@ -159,7 +176,10 @@ export const useSpaceStore = defineStore('space', () => {
     spaceInfo,
     spaceAccessError,
     spaceAccessReady,
-    initSpace,
+    currentRole,
+    isSpaceAdmin,
+    isSpaceOwner,
+    loadPublicSpaceByDomain,
     checkSpaceAccess,
     isPersonalSpace,
     getSpaceInfoByUser,

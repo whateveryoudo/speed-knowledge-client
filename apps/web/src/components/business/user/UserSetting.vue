@@ -1,9 +1,9 @@
 <template>
-    <a-popover placement="bottomLeft" :title="false" :arrow="false">
+    <a-popover placement="bottomRight" :title="false" :arrow="false">
         <template #content>
             <div class="w-[200px]">
                 <a-flex gap="middle" align="center">
-                    <img :src="AvatarDef" alt="avatar" class="w-[36px] h-[36px]" />
+                    <img :src="userAvatar" alt="avatar" class="w-[36px] h-[36px] rounded-full object-cover shrink-0" />
                     <a-flex>
                         <p class="text-[var(--sd-text-primary)]">{{ userInfo.nickname || userInfo.username }}</p>
                     </a-flex>
@@ -24,20 +24,26 @@
             </div>
         </template>
         <a-button type="text" class="shadow-btn-wrapper">
-            <img :src="AvatarDef" alt="avatar" class="w-[24px] h-[24px]" />
+            <img :src="userAvatar" alt="avatar" class="w-[24px] h-[24px] rounded-full object-cover shrink-0" />
         </a-button>
     </a-popover>
 </template>
 <script lang="ts" setup>
 import AvatarDef from '#sk-web/assets/images/avatar_def.png';
 import { useUserStore } from '#sk-web/store/useUserStore';
-import { h } from 'vue'
+import { computed, h } from 'vue'
 import { SettingOutlined, LoginOutlined } from '@ant-design/icons-vue';
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
+import { resolveSpaceIconUrl } from '#sk-web/plugins/editorApis';
+
 const router = useRouter()
 const route = useRoute()
 const { userInfo } = storeToRefs(useUserStore())
+
+const userAvatar = computed(() =>
+    resolveSpaceIconUrl(userInfo.value.avatar, AvatarDef),
+)
 const menuItems = [
     {
         key: 'setting',

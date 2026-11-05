@@ -106,13 +106,13 @@ import TeamMenus from './components/teamMenus/index.vue';
 import StartMenus from './components/StartMenus';
 import { type KnowledgeItem } from '@sk/types'
 import AddMenu from './components/addMenu';
-import UserSetting from './components/userSetting/index.vue';
-import SpaceSwitcher from './components/SpaceSwitcher.vue';
+import UserSetting from '#sk-web/components/business/user/UserSetting.vue';
+import SpaceSwitcher from '#sk-web/components/business/space/SpaceSwitcher.vue';
 import { useRouter } from 'vue-router';
 import { useKnowledgeListProvider, useKnowledgeList } from './composables/useKnowledgeListContext'
 import { useSystemStore } from '#sk-web/store/useSystemStore';
 import { useToggle } from '@vueuse/core'
-import NotificationModal from './components/notificationModal/index.vue';
+import NotificationModal from '#sk-web/components/business/notification/NotificationModal.vue';
 import { GlobalSearchModal } from '#sk-web/components/search';
 import { storeToRefs } from 'pinia';
 const DEFAULT_EXPAND_WIDTH = 253;

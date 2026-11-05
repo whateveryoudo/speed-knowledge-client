@@ -33,14 +33,14 @@
             @click.stop="$emit('addSub', node.id)"
             class="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors"
           >
-            <PlusOutlined class="text-[11px]" />
+            <PlusOutlined" />
           </span>
         </a-tooltip>
 
         <!-- 非根节点显示操作下拉菜单 -->
         <a-dropdown v-if="node.parent_id" trigger="click" placement="bottomRight">
           <span class="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-200 text-gray-500 hover:text-gray-800 transition-colors">
-            <EllipsisOutlined class="text-[12px]" />
+            <EllipsisOutlined />
           </span>
           <template #overlay>
             <a-menu>

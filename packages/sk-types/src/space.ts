@@ -34,6 +34,7 @@ export interface SpaceItem {
   created_at: string
   updated_at: string
   space_members?: SpaceMemberItem[]
+  current_role?: SpaceMemberRole | null
 }
 
 export interface SpaceCreate {
