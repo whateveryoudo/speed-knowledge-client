@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { ensureTiptap } from '#sk-web/plugins/ensureEditors'
+import { preloadAllEditorsOnIdle } from '#sk-web/plugins/ensureEditors'
 import { SpaceMemberRole } from '@sk/types'
 function isTokenExpired(token: string) {
   try {
@@ -49,9 +49,6 @@ const router = createRouter({
           name: 'knowledge',
           component: () => import('../views/knowledge/index.vue'),
           redirect: '/:team_slug/knowledge/',
-          beforeEnter: async () => {
-            await ensureTiptap()
-          },
           meta: {
             guestEntry: true,
           },
@@ -205,6 +202,19 @@ router.beforeEach((to, from, next) => {
     next()
   } else {
     next({ path: '/login', query: { redirect: window.location.pathname + window.location.search } })
+  }
+})
+
+router.afterEach((to) => {
+  const token = localStorage.getItem('access_token')
+  const isLoginPage = to.path === '/login'
+
+  // 用户已登录状态：
+  // 1. 若进入非文档页面（工作台、空间设置等）：1.5s 后空闲全量预热；
+  // 2. 若冷启动直接进入文档：当前文档绝对优先按需加载，2.5s 后（当前文档已出字并进入阅读状态）在后台静默预热其余全部编辑器。
+  if (token && !isLoginPage) {
+    const isDocumentPage = to.path.includes('/document/')
+    preloadAllEditorsOnIdle(isDocumentPage ? 2500 : 1500)
   }
 })
 

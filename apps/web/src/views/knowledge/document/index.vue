@@ -51,6 +51,10 @@
           :content-json="documentContentJson"
           :editable="currentDocState.mode === 'edit' && canEditDoc"
           :title="documentInfo.name"
+          :document-id="documentInfo.id"
+          :knowledge-id="documentInfo.knowledge_id"
+          :collaboration-url="collaborationBaseUrl"
+          :collaboration-token="collaborationToken"
           :header-style="wordHeaderStyle"
           :main-style="wordMainStyle"
           :editor-props="wordEditorProps"
@@ -64,6 +68,30 @@
           :knowledge-id="documentInfo.knowledge_id"
           :editable="currentDocState.mode === 'edit' && canEditDoc"
           :sheet-snapshot="documentSheetSnapshot"
+          :collaboration-url="collaborationBaseUrl"
+          :collaboration-token="collaborationToken"
+          @update:collaborators="handleCollaboratorsChange"
+        />
+        <BoardEditor
+          v-else-if="isBoardDocument && knowledgeStore.showEditor"
+          :editor-key="editorKey"
+          :document-id="documentInfo.id"
+          :knowledge-id="documentInfo.knowledge_id"
+          :title="documentInfo.name || defaultTitle"
+          :editable="currentDocState.mode === 'edit' && canEditDoc"
+          :board-snapshot="documentBoardSnapshot"
+          :collaboration-url="collaborationBaseUrl"
+          :collaboration-token="collaborationToken"
+          @update:collaborators="handleCollaboratorsChange"
+        />
+        <MindEditor
+          v-else-if="isMindDocument && knowledgeStore.showEditor"
+          :editor-key="editorKey"
+          :document-id="documentInfo.id"
+          :knowledge-id="documentInfo.knowledge_id"
+          :title="documentInfo.name || defaultTitle"
+          :editable="currentDocState.mode === 'edit' && canEditDoc"
+          :mind-snapshot="documentBoardSnapshot"
           :collaboration-url="collaborationBaseUrl"
           :collaboration-token="collaborationToken"
           @update:collaborators="handleCollaboratorsChange"
@@ -88,9 +116,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, watch } from 'vue'
 import { DocumentType } from '@sk/types'
-import { ensureSheet } from '#sk-web/plugins/ensureEditors'
+import { ensureTiptap, ensureSheet, ensureBoard, preloadAllEditorsOnIdle } from '#sk-web/plugins/ensureEditors'
 import { storeToRefs } from 'pinia'
 import { useSystemStore } from '#sk-web/store/useSystemStore'
 import { useKnowledgeStore } from '#sk-web/store/useKnowledgeStore'
@@ -103,11 +131,29 @@ import { CollectResourceType, DocumentAbility } from '@sk/types'
 import { CollaboratorAddPopver, DocumentShare } from '../components/documentCollaborator'
 import { usePersonSearch } from '#sk-web/components/personSearch/usePersonSearch'
 import dayjs from 'dayjs'
-import WordEditor from './editors/WordEditor.vue'
-import SheetEditor from './editors/SheetEditor.vue'
 import { useDocumentCollaborators } from './composables/useDocumentCollaborators'
 import { useWordEditorProps } from './composables/useWordEditorProps'
 import { useAbility } from '#sk-web/hooks/useAbility'
+
+const WordEditor = defineAsyncComponent(async () => {
+  await ensureTiptap()
+  return import('./editors/WordEditor.vue')
+})
+
+const SheetEditor = defineAsyncComponent(async () => {
+  await ensureSheet()
+  return import('./editors/SheetEditor.vue')
+})
+
+const BoardEditor = defineAsyncComponent(async () => {
+  await ensureBoard()
+  return import('./editors/BoardEditor.vue')
+})
+
+const MindEditor = defineAsyncComponent(async () => {
+  await ensureBoard()
+  return import('./editors/MindEditor.vue')
+})
 
 const { knowledgeSidebarWidth } = storeToRefs(useSystemStore())
 const knowledgeStore = useKnowledgeStore()
@@ -116,6 +162,7 @@ const {
   currentDocState,
   documentContentJson,
   documentSheetSnapshot,
+  documentBoardSnapshot,
   showKnowledgeLeftPanel,
   documentError,
 } = storeToRefs(knowledgeStore)
@@ -130,7 +177,14 @@ const canCollectDoc = computed(() => isLoggedIn())
 
 const isWordDocument = computed(() => documentInfo.value.type === DocumentType.WORD)
 const isSheetDocument = computed(() => documentInfo.value.type === DocumentType.SHEET)
-const defaultTitle = computed(() => (isSheetDocument.value ? '无标题表格' : '无标题文档'))
+const isBoardDocument = computed(() => documentInfo.value.type === DocumentType.BOARD)
+const isMindDocument = computed(() => documentInfo.value.type === DocumentType.MIND)
+const defaultTitle = computed(() => {
+  if (isSheetDocument.value) return '无标题表格'
+  if (isBoardDocument.value) return '无标题画板'
+  if (isMindDocument.value) return '无标题思维导图'
+  return '无标题文档'
+})
 const editorKey = computed(() => `${documentInfo.value.id}-${documentInfo.value.type}-${currentDocState.value.mode}`)
 const collaborationBaseUrl = import.meta.env.VITE_APP_COLLABORATE_URL as string
 const collaborationToken = window.localStorage.getItem('access_token') as string
@@ -183,15 +237,10 @@ watch(
   { immediate: true },
 )
 
-watch(
-  () => documentInfo.value?.type,
-  async (type) => {
-    if (type === DocumentType.SHEET) {
-      await ensureSheet()
-    }
-  },
-  { immediate: true },
-)
+onMounted(() => {
+  // 冷启动直达文档渲染后，闲时自动预加载其余全部编辑器
+  preloadAllEditorsOnIdle(2500)
+})
 </script>
 
 <style lang="less" scoped></style>

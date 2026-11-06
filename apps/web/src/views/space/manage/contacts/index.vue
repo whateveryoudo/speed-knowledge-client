@@ -61,23 +61,6 @@
                   </div>
                 </a-menu-item>
                 <a-menu-divider />
-                <a-menu-item
-                  key="dingding"
-                  class="py-2 px-3 text-[13px]"
-                  @click="message.info('绑定钉钉通讯录为专业版功能，敬请期待！')"
-                >
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <SendOutlined class="text-[14px]" />
-                      <span>绑定钉钉通讯录</span>
-                    </div>
-                    <span
-                      class="text-[11px] px-1.5 py-0.5 rounded-full font-medium leading-none bg-[var(--ant-orange-1)] text-[var(--ant-orange-7)]"
-                    >
-                      专业版
-                    </span>
-                  </div>
-                </a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>

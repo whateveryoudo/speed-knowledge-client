@@ -46,6 +46,16 @@ export default defineComponent({
         icon: <IconFont type="icon-sheet" svg-sprite style={{ width: '18px', height: '18px' }} />,
       },
       {
+        label: '画板',
+        key: 'board',
+        icon: <IconFont type="icon-board" svg-sprite style={{ width: '18px', height: '18px' }} />,
+      },
+      {
+        label: '思维导图',
+        key: 'mind',
+        icon: <IconFont type="icon-mind" svg-sprite style={{ width: '18px', height: '18px' }} />,
+      },
+      {
         type: 'divider',
       },
       {
@@ -77,12 +87,19 @@ export default defineComponent({
         return
       }
 
-      if (key === DocumentType.WORD || key === DocumentType.SHEET) {
+      const defaultNameMap: Record<string, string> = {
+        [DocumentType.WORD]: '无标题文档',
+        [DocumentType.SHEET]: '无标题表格',
+        [DocumentType.BOARD]: '无标题画板',
+        [DocumentType.MIND]: '无标题思维导图',
+      }
+
+      if (key in defaultNameMap) {
         const [error, res] = await to(
           documentApi.addDocument({
             knowledge_id: props.knowledgeId,
             type: key,
-            name: key === DocumentType.WORD ? '无标题文档' : '无标题表格',
+            name: defaultNameMap[key],
             parent_id,
           }),
         )

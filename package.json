@@ -9,7 +9,8 @@
     "build:desktop": "turbo run build --filter=client-desktop",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "rm -rf node_modules **/**/node_modules"
+    "clean": "rm -rf node_modules **/**/node_modules",
+    "link:board": "node scripts/link-speed-board.mjs"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

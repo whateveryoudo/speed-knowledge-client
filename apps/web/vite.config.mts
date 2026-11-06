@@ -104,6 +104,9 @@ function speedComponentsDistAliases() {
     : {
         'speed-components-ui/components': `${packagePrefix}/components/index.ts`,
         'speed-components-ui/hooks': `${packagePrefix}/hooks/index.ts`,
+        'speed-components-ui/dist/style.css': fileURLToPath(
+          new URL('../../../speed-components/dist/style.css', import.meta.url),
+        ),
       }
 }
 
@@ -139,6 +142,44 @@ const speedSheetSourceAliases = {
       '../../../speed-sheet/packages/extensions/extension-chart/src/index.ts',
       import.meta.url,
     ),
+  ),
+} as const
+
+/** 本地联调 speed-board 源码 */
+const speedBoardSourceAliases = {
+  '@speed-board/vue3-antd': fileURLToPath(
+    new URL('../../../speed-board/packages/vue3-antd/src/index.ts', import.meta.url),
+  ),
+  '@speed-board/vue3': fileURLToPath(
+    new URL('../../../speed-board/packages/vue3/src/index.ts', import.meta.url),
+  ),
+  '@speed-board/core': fileURLToPath(
+    new URL('../../../speed-board/packages/core/src/index.ts', import.meta.url),
+  ),
+  '@speed-board/shared': fileURLToPath(
+    new URL('../../../speed-board/packages/shared/src/index.ts', import.meta.url),
+  ),
+  '@speed-board/extension-draw': fileURLToPath(
+    new URL(
+      '../../../speed-board/packages/extensions/extension-draw/src/index.ts',
+      import.meta.url,
+    ),
+  ),
+  '@speed-board/extension-mindmap': fileURLToPath(
+    new URL(
+      '../../../speed-board/packages/extensions/extension-mindmap/src/index.ts',
+      import.meta.url,
+    ),
+  ),
+} as const
+
+/** 本地联调 speed-collaboration 源码 */
+const speedCollaborationAliases = {
+  '@speed-collaboration/vue3': fileURLToPath(
+    new URL('../../../speed-collaboration/packages/vue3/src/index.ts', import.meta.url),
+  ),
+  '@speed-collaboration/core': fileURLToPath(
+    new URL('../../../speed-collaboration/packages/core/src/index.ts', import.meta.url),
   ),
 } as const
 
@@ -201,6 +242,8 @@ export default defineConfig(({ mode }) => {
         ...speedTiptapEditorAliases(),
         ...speedComponentsDistAliases(),
         ...speedSheetSourceAliases,
+        ...speedBoardSourceAliases,
+        ...speedCollaborationAliases,
         ...(mode === 'development'
           ? {
               '@sc': fileURLToPath(new URL('../../../speed-components/src', import.meta.url)),

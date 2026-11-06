@@ -12,7 +12,7 @@ import {
   DocumentType,
   KnowledgeVisibility,
 } from '@sk/types'
-import type { WorkbookSnapshot } from '@speed-sheet/shared'
+import type { WorkbookSnapshot } from '@speed-sheet/vue3-antd'
 import { to } from 'await-to-js'
 import { document as documentApi } from '@sk/api'
 import { useRouter, useRoute } from 'vue-router'
@@ -74,6 +74,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   })
   const documentContentJson = ref<string | null>(null)
   const documentSheetSnapshot = ref<WorkbookSnapshot | null>(null)
+  const documentBoardSnapshot = ref<any | null>(null)
   const showEditor = ref(false) // 是否显示编辑器（用于处理不同文档切换时序问题）
   /** 无左侧面板时，路由 query.edit 指定的文档模式 */
   const documentModeOverride = ref<'preview' | 'edit' | null>(null)
@@ -356,9 +357,18 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     if (documentInfo.value.type === DocumentType.SHEET) {
       documentSheetSnapshot.value = parsed
       documentContentJson.value = null
+      documentBoardSnapshot.value = null
+    } else if (
+      documentInfo.value.type === DocumentType.BOARD ||
+      documentInfo.value.type === DocumentType.MIND
+    ) {
+      documentBoardSnapshot.value = parsed
+      documentContentJson.value = null
+      documentSheetSnapshot.value = null
     } else {
       documentContentJson.value = parsed?.default ?? null
       documentSheetSnapshot.value = null
+      documentBoardSnapshot.value = null
     }
   }
   const initDocumentDetail = async (showLoading = true) => {
@@ -366,6 +376,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     showEditor.value = false
     documentContentJson.value = null
     documentSheetSnapshot.value = null
+    documentBoardSnapshot.value = null
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
@@ -499,6 +510,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     documentError,
     documentContentJson,
     documentSheetSnapshot,
+    documentBoardSnapshot,
     documentTree,
     documentLoading,
     nodeUIStateMap,

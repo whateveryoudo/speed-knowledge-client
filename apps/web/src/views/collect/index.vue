@@ -105,12 +105,14 @@ import {
 import { transformDatatimeToRecentText } from '@sk/utils'
 import { Empty0 } from '#sk-web/components/global'
 
-type CollectFilterKey = 'all' | 'knowledge' | 'word' | 'sheet'
+type CollectFilterKey = 'all' | 'knowledge' | 'word' | 'sheet' | 'board' | 'mind'
 
 const collectFilterOptions: { label: string; value: CollectFilterKey }[] = [
   { label: '所有收藏', value: 'all' },
   { label: '文档', value: 'word' },
   { label: '表格', value: 'sheet' },
+  { label: '画板', value: 'board' },
+  { label: '思维导图', value: 'mind' },
   { label: '知识库', value: 'knowledge' },
 ]
 
@@ -151,6 +153,12 @@ const displayList = computed(() => {
   }
   if (filterKey.value === 'sheet') {
     return list.value.filter((item) => item.document?.type === DocumentType.SHEET)
+  }
+  if (filterKey.value === 'board') {
+    return list.value.filter((item) => item.document?.type === DocumentType.BOARD)
+  }
+  if (filterKey.value === 'mind') {
+    return list.value.filter((item) => item.document?.type === DocumentType.MIND)
   }
   return list.value
 })

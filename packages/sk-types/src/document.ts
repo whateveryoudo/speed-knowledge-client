@@ -7,6 +7,8 @@ export enum DocumentNodeType {
 export enum DocumentType {
   WORD = "word",
   SHEET = "sheet",
+  BOARD = "board",
+  MIND = "mind",
   GROUP = "group",
 }
 
@@ -34,6 +36,16 @@ export const documentTypeOptions = [
     label: '表格',
     value: DocumentType.SHEET,
     icon: 'icon-sheet',
+  },
+  {
+    label: '画板',
+    value: DocumentType.BOARD,
+    icon: 'icon-board',
+  },
+  {
+    label: '思维导图',
+    value: DocumentType.MIND,
+    icon: 'icon-mind',
   },
   {
     label: '分组',

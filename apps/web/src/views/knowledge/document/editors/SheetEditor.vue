@@ -18,11 +18,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { SpeedSheet } from '@speed-sheet/vue3-antd'
-import type { WorkbookSnapshot } from '@speed-sheet/shared'
+import { SpeedSheet, type WorkbookSnapshot } from '@speed-sheet/vue3-antd'
 import type { Collaborator } from '@sk/types'
 import { useUserStore } from '#sk-web/store/useUserStore'
-import { useSheetCollaboration } from '../composables/useSheetCollaboration'
+import { useCollaboration } from '@speed-collaboration/vue3'
 
 const props = defineProps<{
   editorKey: string
@@ -55,10 +54,10 @@ const collaborationConfig = computed(() => {
   }
 })
 
-const { ydoc } = useSheetCollaboration({
+const { ydoc } = useCollaboration({
   config: collaborationConfig,
   enabled: computed(() => props.editable && !!props.documentId),
-  onCollaboratorsChange: (collaborators) => emit('update:collaborators', collaborators),
+  onCollaboratorsChange: (collaborators) => emit('update:collaborators', collaborators as Collaborator[]),
 })
 
 const ready = computed(() => {

@@ -203,7 +203,6 @@ const handleAccept = async () => {
 
 // 进入空间或团队
 const enterOrg = async (targetSlug?: string | null, targetOrgId?: string | null) => {
-  debugger;
   const slug = targetSlug || info.value?.org_slug
   const orgType = info.value?.org_type || OrgType.SPACE
 

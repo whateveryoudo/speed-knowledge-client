@@ -1,0 +1,18 @@
+<svg width="1em" height="1em" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="larkui-icon larkui-icon-doc-type-mind icon-svg DocActionMenu-module_iconContainer_o4EG1 index-module_size_HzXte" data-name="DocTypeMind" style="width: 20px; min-width: 20px; height: 20px;">
+  <g fill="none" fill-rule="evenodd">
+    <!-- 统一卡片底框（白底 + 橙色描边） -->
+    <path d="M4.75 1.267h10.5a2 2 0 0 1 2 2v13.5a2 2 0 0 1-2 2H4.75a2 2 0 0 1-2-2v-13.5a2 2 0 0 1 2-2Z" stroke="#E26829" stroke-width="0.976" fill="#FFF" stroke-linecap="round" stroke-linejoin="round"></path>
+    
+    <!-- 脑图树状连线 -->
+    <path d="M8.5 10h1.8c.8 0 1.2-.4 1.2-1.2V6.8c0-.6.4-1 1-1h.5M10.3 10c0 .8.4 1.2 1.2 1.2v2c0 .6.4 1 1 1h.5" stroke="#FA8C16" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"></path>
+    
+    <!-- 中心主题节点（深橙） -->
+    <rect x="5.2" y="8.3" width="3.6" height="3.4" rx="0.8" fill="#FA8C16"></rect>
+    
+    <!-- 右上子主题节点（浅橙） -->
+    <rect x="12" y="4.6" width="3.2" height="2.4" rx="0.6" fill="#FFBB96"></rect>
+    
+    <!-- 右下子主题节点（浅橙） -->
+    <rect x="12" y="13" width="3.2" height="2.4" rx="0.6" fill="#FFBB96"></rect>
+  </g>
+</svg>
