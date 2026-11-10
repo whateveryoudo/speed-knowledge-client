@@ -77,7 +77,6 @@
           :editor-key="editorKey"
           :document-id="documentInfo.id"
           :knowledge-id="documentInfo.knowledge_id"
-          :title="documentInfo.name || defaultTitle"
           :editable="currentDocState.mode === 'edit' && canEditDoc"
           :board-snapshot="documentBoardSnapshot"
           :collaboration-url="collaborationBaseUrl"
@@ -89,7 +88,6 @@
           :editor-key="editorKey"
           :document-id="documentInfo.id"
           :knowledge-id="documentInfo.knowledge_id"
-          :title="documentInfo.name || defaultTitle"
           :editable="currentDocState.mode === 'edit' && canEditDoc"
           :mind-snapshot="documentBoardSnapshot"
           :collaboration-url="collaborationBaseUrl"
@@ -200,7 +198,7 @@ const wordHeaderStyle = computed(() => ({
   top: '52px',
   left: `${knowledgeSidebarWidth.value}px`,
   right: '0',
-  zIndex: 10,
+  zIndex: 200,
 }))
 
 const wordMainStyle = computed(() => ({

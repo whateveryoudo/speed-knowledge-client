@@ -4,6 +4,8 @@
       v-if="ready"
       :key="editorKey"
       :title="title"
+      :readonly="!editable"
+      :ydoc="editable ? ydoc ?? undefined : undefined"
       :data="mindData"
       :options="mindOptions"
       @save="onSave"
@@ -52,7 +54,7 @@ const { ydoc } = useCollaboration({
 const mindData = computed(() => {
   const elements = props.mindSnapshot?.elements
   if (Array.isArray(elements) && elements.length > 0) {
-    return elements[0]
+    return JSON.parse(JSON.stringify(elements[0]))
   }
   return undefined
 })
@@ -64,9 +66,10 @@ const mindOptions = computed(() => {
 })
 
 const ready = computed(() => {
-  if (!props.documentId) return false
-  if (props.editable) return !!ydoc.value
-  return !!props.mindSnapshot
+  // 1. 预览/只读模式：不需要建立协同，拿到数据直接就是 ready
+  if (!props.editable) return true;
+  // 2. 协同编辑模式：必须等待协同 ydoc 和 provider 握手同步完成
+  return Boolean(ydoc.value);
 })
 
 const onSave = () => {

@@ -1,7 +1,7 @@
 // store/useKnowledgeStore.ts
 // 存放当前进入的知识库相关信息
 import { defineStore, storeToRefs } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, shallowRef, markRaw, watch } from 'vue'
 import {
   type KnowledgeItem,
   type DocumentItem,
@@ -72,9 +72,9 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     created_at: '',
     updated_at: '',
   })
-  const documentContentJson = ref<string | null>(null)
-  const documentSheetSnapshot = ref<WorkbookSnapshot | null>(null)
-  const documentBoardSnapshot = ref<any | null>(null)
+  const documentContentJson = shallowRef<string | null>(null)
+  const documentSheetSnapshot = shallowRef<WorkbookSnapshot | null>(null)
+  const documentBoardSnapshot = shallowRef<any | null>(null)
   const showEditor = ref(false) // 是否显示编辑器（用于处理不同文档切换时序问题）
   /** 无左侧面板时，路由 query.edit 指定的文档模式 */
   const documentModeOverride = ref<'preview' | 'edit' | null>(null)
@@ -355,18 +355,18 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     }
     const parsed = res.data ? JSON.parse(res.data) : null
     if (documentInfo.value.type === DocumentType.SHEET) {
-      documentSheetSnapshot.value = parsed
+      documentSheetSnapshot.value = parsed ? markRaw(parsed) : {}
       documentContentJson.value = null
       documentBoardSnapshot.value = null
     } else if (
       documentInfo.value.type === DocumentType.BOARD ||
       documentInfo.value.type === DocumentType.MIND
     ) {
-      documentBoardSnapshot.value = parsed
+      documentBoardSnapshot.value = parsed ? markRaw(parsed) : { elements: [] }
       documentContentJson.value = null
       documentSheetSnapshot.value = null
     } else {
-      documentContentJson.value = parsed?.default ?? null
+      documentContentJson.value = parsed?.default ? markRaw(parsed.default) : null
       documentSheetSnapshot.value = null
       documentBoardSnapshot.value = null
     }
@@ -380,11 +380,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     const [error, res] = await to(documentApi.getDocumentDetail(document_slug.value))
     if (!error) {
       documentInfo.value = res.data
-      showLoading && currentDocNode.value.mode === 'edit' && message.loading('文档初始化中...', 0.5)
-      showEditor.value = true
-      if (documentInfo.value.id && currentDocNode.value.mode === 'preview') {
-        getDocumentContent(documentInfo.value.id)
+      showLoading && currentDocState.value.mode === 'edit' && message.loading('文档初始化中...', 0.5)
+      if (documentInfo.value.id && currentDocState.value.mode === 'preview') {
+        await getDocumentContent(documentInfo.value.id)
       }
+      showEditor.value = true
     } else {
       const errorRes = (error as any)?.response?.data as {
         errCode: number
