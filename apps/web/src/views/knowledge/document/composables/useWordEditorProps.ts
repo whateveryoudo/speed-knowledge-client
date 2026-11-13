@@ -15,17 +15,11 @@ export function useWordEditorProps(options: {
   userInfo: Ref<UserInfo>
   fetchDocContextUsers: (documentId: string, query: string) => Promise<UserInfo[]>
 }) {
-  const { documentInfo, userInfo, fetchDocContextUsers } = options
-
+  const { documentInfo, fetchDocContextUsers } = options
+  // 这里不再注入 collaborationConfig，WordEditor.vue内部（用了共用@speed-collaboration/vue3包）
   return computed(() => {
     const baseUrl = import.meta.env.VITE_APP_PROXY_URL + apiVersion
     return {
-      collaborationConfig: {
-        documentId: documentInfo.value.id,
-        url: import.meta.env.VITE_APP_COLLABORATE_URL + '/collaboration' + '?knowledgeId=' + documentInfo.value.knowledge_id,
-        token: window.localStorage.getItem('access_token') as string,
-        user: userInfo.value,
-      },
       ai: {
         doubao: {
           url: baseUrl + '/ai/doubao/stream',

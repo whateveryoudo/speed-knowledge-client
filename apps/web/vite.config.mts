@@ -56,6 +56,8 @@ function speedTiptapEditorAliases() {
       '@speed-editor/extension-import-export': extEntry('extension-import-export'),
       '@speed-editor/extension-mind': extEntry('extension-mind'),
       '@speed-editor/extension-flow': extEntry('extension-flow'),
+      '@speed-editor/extension-board': extEntry('extension-board'),
+      '@speed-editor/extension-board/style.css': `${editorExtPkg('extension-board')}/dist/style.css`,
     }
   }
 
@@ -83,6 +85,8 @@ function speedTiptapEditorAliases() {
     '@speed-editor/extension-import-export': `${editorExtPkg('extension-import-export')}/src/index.ts`,
     '@speed-editor/extension-mind': `${editorExtPkg('extension-mind')}/src/index.ts`,
     '@speed-editor/extension-flow': `${editorExtPkg('extension-flow')}/src/index.ts`,
+    '@speed-editor/extension-board': `${editorExtPkg('extension-board')}/src/index.ts`,
+    '@speed-editor/extension-board/style.css': `${editorExtPkg('extension-board')}/dist/style.css`,
     // 包内 tsconfig paths（仅 src 模式）
     '@kb': `${editorPkg('kit-base')}/src`,
     '@ek': `${editorExtPkg('extension-kit')}/src`,
